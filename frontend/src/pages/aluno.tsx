@@ -40,7 +40,6 @@ export default function AlunoPage() {
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [loggedStudentId, setLoggedStudentId] = useState<string | null>(null);
 
-
   const router = useRouter();
   const { queueData, isConnected } = useRealtimeQueue(token);
 
@@ -48,7 +47,7 @@ export default function AlunoPage() {
     const savedEscolaId = localStorage.getItem('kioske_escolaId');
     const savedToken = localStorage.getItem('kioske_token');
     const savedStudent = localStorage.getItem('kioske_student');
-    
+
     if (savedEscolaId) {
       setEscolaId(savedEscolaId);
     } else {
@@ -181,32 +180,30 @@ export default function AlunoPage() {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
         <Head>
-          <title>Selecione o Servico | Kioske Digital</title>
+          <title>Selecione o Serviço | Kioske Digital</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
 
-        <header className="bg-white px-8 py-4 shadow-sm flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
+        <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
+          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
           <Link
             href="/aluno/login"
-            className="text-sm text-[#047857] hover:text-[#065f46] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-4 py-2 transition-colors"
+            className="text-xs text-[#047857] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-3 py-1.5 transition-colors"
           >
             Entrar
           </Link>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center p-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-extrabold text-gray-800 mb-4">Selecione o Servico</h2>
-            <p className="text-gray-500 max-w-xl mx-auto text-lg">
-              Toque na opcao desejada para iniciar o seu atendimento.
+        <main className="flex-1 px-4 py-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-extrabold text-gray-800 mb-1">Selecione o Serviço</h2>
+            <p className="text-sm text-gray-500 max-w-xs mx-auto">
+              Toque na opção desejada para iniciar
             </p>
           </div>
 
           <ServicosGrid onSelecionarServico={handleSelecionarServico} setServicos={setServicos} />
         </main>
-
-        <footer className="bg-white p-4 flex justify-between items-center text-sm text-gray-400 border-t border-gray-100">
-        </footer>
       </div>
     );
   }
@@ -216,19 +213,20 @@ export default function AlunoPage() {
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
         <Head>
           <title>Triagem | Kioske Digital</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
 
-        <header className="bg-white px-8 py-4 shadow-sm flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
-          <Link href="/aluno/login" className="text-sm text-[#047857] hover:text-[#065f46] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-4 py-2 transition-colors">
+        <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
+          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
+          <Link href="/aluno/login" className="text-xs text-[#047857] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-3 py-1.5 transition-colors">
             Entrar
           </Link>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center p-8">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{servicoSelecionado.nome}</h2>
-            <p className="text-gray-500 mb-8">Responda as seguintes perguntas para continuar:</p>
+        <main className="flex-1 px-4 py-4">
+          <div className="bg-white rounded-2xl shadow-sm w-full max-w-lg mx-auto p-5 border border-gray-100">
+            <h2 className="text-lg font-bold text-gray-800 mb-1">{servicoSelecionado.nome}</h2>
+            <p className="text-sm text-gray-500 mb-5">Responda às perguntas para continuar:</p>
 
             <TriageForm
               perguntas={perguntas}
@@ -242,9 +240,9 @@ export default function AlunoPage() {
                 setServicoSelecionado(null);
                 setPerguntas([]);
               }}
-              className="mt-6 w-full text-gray-600 hover:text-gray-800 font-medium text-sm"
+              className="mt-4 w-full text-center text-sm text-gray-500 hover:text-gray-700 font-medium py-2"
             >
-              voltar para servicos
+              voltar
             </button>
           </div>
         </main>
@@ -257,13 +255,14 @@ export default function AlunoPage() {
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
         <Head>
           <title>Sua Senha | Kioske Digital</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
 
-        <header className="bg-[#E2E8F0] px-8 py-3 shadow-sm flex items-center justify-between">
-          <h1 className="text-lg font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
+        <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
+          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
           <div className="flex items-center gap-2">
             {loggedStudentId ? (
-              <Link href="/aluno/conta" className="text-xs text-[#047857] font-bold hover:underline">
+              <Link href="/aluno/conta" className="text-xs text-[#047857] font-bold hover:underline px-2 py-1">
                 Minha Conta
               </Link>
             ) : (
@@ -274,45 +273,44 @@ export default function AlunoPage() {
           </div>
         </header>
 
-        <main className="flex-1 flex flex-col items-center py-10 px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-gray-800">Sua Senha Digital</h2>
-            <p className="text-gray-500">Driving School Admin Terminal</p>
+        <main className="flex-1 px-4 py-6">
+          <div className="text-center mb-5">
+            <h2 className="text-2xl font-extrabold text-gray-800">Sua Senha Digital</h2>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-gray-100 relative">
-            <div className={`py-2 px-4 flex justify-between items-center text-white text-sm font-bold tracking-wider ${ticketData.estado === 'called' ? 'bg-red-600' : 'bg-[#047857]'}`}>
+          <div className="bg-white rounded-2xl shadow-sm w-full max-w-sm mx-auto overflow-hidden border border-gray-100">
+            <div className={`py-2 px-4 flex justify-between items-center text-white text-xs font-bold tracking-wider ${ticketData.estado === 'called' ? 'bg-red-600' : 'bg-[#047857]'}`}>
               <span>ESTADO: {ticketData.estado === 'called' ? 'CHAMADA' : 'EM ESPERA'}</span>
-              <span className="flex items-center gap-2">
-                {isConnected && <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>}
+              <span className="flex items-center gap-1.5">
+                {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>}
                 LIVE
               </span>
             </div>
 
-            <div className="p-8 flex flex-col items-center">
-              <div className="w-full border-2 border-dashed border-green-200 rounded-xl p-8 mb-8 text-center bg-green-50/30">
-                <span className="text-xs font-bold text-green-700 uppercase tracking-widest block mb-2">Senha Atual</span>
-                <span className={`text-7xl font-black ${ticketData.estado === 'called' ? 'text-red-600' : 'text-[#047857]'}`}>
+            <div className="p-5 flex flex-col items-center">
+              <div className="w-full border-2 border-dashed border-green-200 rounded-xl p-5 mb-5 text-center bg-green-50/30">
+                <span className="text-[10px] font-bold text-green-700 uppercase tracking-widest block mb-1">Senha Atual</span>
+                <span className={`text-4xl font-black ${ticketData.estado === 'called' ? 'text-red-600' : 'text-[#047857]'}`}>
                   {ticketData.token || ticketData.codigo_senha}
                 </span>
               </div>
 
-              <div className="flex gap-4 w-full mb-8">
-                <div className="flex-1 bg-blue-50/50 p-4 rounded-xl text-center border border-blue-100">
-                  <span className="text-xs text-gray-500 font-bold mb-1 block">SUA VEZ EM:</span>
-                  <span className="text-2xl font-bold text-gray-800">{ticketData.tempo_estimado_min} min</span>
+              <div className="flex gap-3 w-full mb-5">
+                <div className="flex-1 bg-blue-50/50 p-3 rounded-xl text-center border border-blue-100">
+                  <span className="text-[10px] text-gray-500 font-bold mb-0.5 block">SUA VEZ EM:</span>
+                  <span className="text-xl font-bold text-gray-800">{ticketData.tempo_estimado_min} min</span>
                 </div>
-                <div className="flex-1 bg-blue-50/50 p-4 rounded-xl text-center border border-blue-100">
-                  <span className="text-xs text-gray-500 font-bold mb-1 block">PESSOAS A FRENTE:</span>
-                  <span className="text-2xl font-bold text-gray-800">{ticketData.posicao_fila}</span>
+                <div className="flex-1 bg-blue-50/50 p-3 rounded-xl text-center border border-blue-100">
+                  <span className="text-[10px] text-gray-500 font-bold mb-0.5 block">PESSOAS A FRENTE:</span>
+                  <span className="text-xl font-bold text-gray-800">{ticketData.posicao_fila}</span>
                 </div>
               </div>
 
               {ticketData.alertas && ticketData.alertas.length > 0 && (
-                <div className="w-full bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-start gap-3 mb-8">
-                  <span className="text-orange-500 text-xl">!</span>
+                <div className="w-full bg-orange-50 border border-orange-100 p-3 rounded-xl flex items-start gap-2 mb-4">
+                  <span className="text-orange-500 font-bold shrink-0">!</span>
                   <div>
-                    <p className="font-bold text-orange-800 text-sm mb-1">Alertas:</p>
+                    <p className="font-bold text-orange-800 text-xs mb-0.5">Alertas:</p>
                     {ticketData.alertas.map((alerta, i) => (
                       <p key={i} className="text-orange-700 text-xs">
                         {alerta === 'urgencia_menos_10min' && 'Tem atividade em menos de 10 minutos'}
@@ -324,24 +322,24 @@ export default function AlunoPage() {
               )}
 
               {ticketData.qrCode && (
-                <div className="w-full mb-6 flex flex-col items-center">
-                  <h4 className="font-bold text-gray-800 text-sm mb-3">Acompanhe no Telemovel</h4>
-                  <img src={ticketData.qrCode} alt="QR Code da senha" className="w-40 h-40" />
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Aponte a camara para o QR Code e receba notificacoes em tempo real.
+                <div className="w-full mb-4 flex flex-col items-center">
+                  <h4 className="font-bold text-gray-800 text-xs mb-2">Acompanhe no Telemóvel</h4>
+                  <img src={ticketData.qrCode} alt="QR Code da senha" className="w-32 h-32" />
+                  <p className="text-[10px] text-gray-500 mt-1 text-center">
+                    Aponte a câmara para o QR Code
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="bg-gray-50 p-4 flex gap-4 border-t border-gray-100">
+            <div className="bg-gray-50 p-3 flex gap-3 border-t border-gray-100">
               <button
                 onClick={handleReimprimir}
-                className="flex-1 py-3 font-bold text-[#047857] hover:bg-green-50 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 py-3 font-bold text-[#047857] hover:bg-green-50 rounded-lg text-sm transition-colors"
               >
                 Reimprimir
               </button>
-              <button onClick={handleCancelar} className="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg flex items-center justify-center gap-2 transition-colors">
+              <button onClick={handleCancelar} className="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg text-sm transition-colors">
                 Cancelar
               </button>
             </div>
@@ -370,21 +368,18 @@ function ServicosGrid({ onSelecionarServico, setServicos: setParentServicos }: {
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
         const url = `${apiUrl}/api/servicos?escolaId=${encodeURIComponent(savedEscolaId)}`;
-        
-        console.log('Carregando serviços de:', url);
-        
+
         const res = await fetch(url);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         }
-        
+
         const data = await res.json();
-        console.log('Serviços carregados:', data);
-        
+
         const servicosArray = Array.isArray(data) ? data : (Array.isArray(data.servicos) ? data.servicos : []);
         setServicos(servicosArray);
         setParentServicos(servicosArray);
-        
+
         if (servicosArray.length === 0) {
           setErro('Nenhum serviço disponível. Contacte o administrador.');
         }
@@ -403,13 +398,14 @@ function ServicosGrid({ onSelecionarServico, setServicos: setParentServicos }: {
 
   if (carregando) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 flex flex-col items-center opacity-60">
-            <div className="w-20 h-20 bg-gray-200 rounded-full mb-6 animate-pulse"></div>
-            <div className="w-32 h-6 bg-gray-200 rounded mb-3 animate-pulse"></div>
-            <div className="w-24 h-4 bg-gray-200 rounded mb-8 animate-pulse"></div>
-            <div className="w-full h-10 bg-gray-200 rounded animate-pulse"></div>
+      <div className="grid grid-cols-1 gap-3 max-w-lg mx-auto w-full">
+        {[1, 2].map((i) => (
+          <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4 opacity-60">
+            <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse shrink-0"></div>
+            <div className="flex-1 space-y-2">
+              <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
+            </div>
           </div>
         ))}
       </div>
@@ -418,19 +414,12 @@ function ServicosGrid({ onSelecionarServico, setServicos: setParentServicos }: {
 
   if (erro) {
     return (
-      <div className="max-w-2xl w-full bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
-        <div className="flex justify-center mb-4">
-          <svg className="w-12 h-12 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-        </div>
-        <h3 className="text-2xl font-bold text-red-800 mb-3">Erro ao Carregar Serviços</h3>
-        <p className="text-red-600 mb-6">{erro}</p>
+      <div className="max-w-md mx-auto w-full bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+        <h3 className="text-lg font-bold text-red-800 mb-2">Erro ao Carregar Serviços</h3>
+        <p className="text-sm text-red-600 mb-4">{erro}</p>
         <button
           onClick={() => window.location.reload()}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition-colors"
         >
           Tentar Novamente
         </button>
@@ -440,39 +429,32 @@ function ServicosGrid({ onSelecionarServico, setServicos: setParentServicos }: {
 
   if (servicos.length === 0) {
     return (
-      <div className="max-w-2xl w-full bg-orange-50 border border-orange-200 rounded-2xl p-8 text-center">
-        <div className="flex justify-center mb-4">
-          <svg className="w-12 h-12 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-        </div>
-        <h3 className="text-2xl font-bold text-orange-800 mb-3">Nenhum Serviço Disponível</h3>
-        <p className="text-orange-600">Contacte o administrador para ativar serviços.</p>
+      <div className="max-w-md mx-auto w-full bg-orange-50 border border-orange-200 rounded-2xl p-6 text-center">
+        <h3 className="text-lg font-bold text-orange-800 mb-1">Nenhum Serviço Disponível</h3>
+        <p className="text-sm text-orange-600">Contacte o administrador para ativar serviços.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
+    <div className="grid grid-cols-1 gap-3 max-w-lg mx-auto w-full">
       {servicos.map((servico) => (
-        <div
+        <button
           key={servico.id}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 flex flex-col items-center text-center transition-transform hover:scale-105"
+          onClick={() => onSelecionarServico(servico)}
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:shadow-md"
         >
-          <div className="w-20 h-20 bg-green-50 text-green-700 rounded-full flex items-center justify-center mb-6 text-3xl shadow-sm">
-            <span className="text-green-700 text-lg font-bold">{servico.nome.charAt(0).toUpperCase()}</span>
+          <div className="w-12 h-12 bg-green-50 text-green-700 rounded-full flex items-center justify-center text-lg font-bold shrink-0">
+            {servico.nome.charAt(0).toUpperCase()}
           </div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-3">{servico.nome}</h3>
-          <p className="text-gray-500 mb-8 flex-1">Tempo médio: ~{servico.tempo_medio_atendimento} min</p>
-          <button
-            onClick={() => onSelecionarServico(servico)}
-            className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md"
-          >
-            Selecionar
-          </button>
-        </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-bold text-gray-800 truncate">{servico.nome}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Tempo médio: ~{servico.tempo_medio_atendimento} min</p>
+          </div>
+          <svg className="w-5 h-5 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       ))}
     </div>
   );

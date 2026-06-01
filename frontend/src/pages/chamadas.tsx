@@ -136,90 +136,86 @@ export default function ChamadasPage() {
   const waitingList = waitingTickets.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans overflow-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
       <Head>
         <title>Senhas Chamadas | Kioske Digital</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
 
-      <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shadow-sm z-10 relative">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-black text-[#047857] uppercase tracking-wider">KIOSKE DIGITAL UNIVERSAL</h1>
-          <span className="text-gray-400">|</span>
-          <h2 className="text-xl font-bold text-gray-800">Acompanhamento de Fila</h2>
+      {/* Mobile header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-sm sm:text-base font-black text-[#047857] uppercase tracking-wider truncate">Kioske Digital</h1>
+          <span className="text-gray-300 hidden sm:inline">|</span>
+          <h2 className="text-sm font-bold text-gray-800 hidden sm:inline">Senhas Chamadas</h2>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full font-bold text-sm tracking-widest flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> LIVE SYSTEM
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-bold text-[10px] sm:text-xs tracking-wider flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+            <span className="hidden sm:inline">LIVE</span>
+          </span>
         </div>
       </header>
 
-      <div className="flex-1 flex w-full max-w-[1920px] mx-auto">
-        <div className="flex-1 p-10 flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-[#047857] flex items-center gap-3">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              Senhas Chamadas
-            </h2>
-            <p className="text-gray-400 font-medium">Última atualização: {time.slice(0, 5)}</p>
+      <main className="flex-1 flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto">
+        {/* Left / Main content */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col">
+          {/* Table grid - compact on mobile */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+            {TABLES.map(table => {
+              const ticket = calledByTable[table];
+              return (
+                <div key={table} className={`bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center shadow-sm border flex flex-col justify-center items-center min-h-[3.5rem] sm:min-h-[5rem] ${ticket ? 'border-gray-100' : 'border-dashed border-gray-300'}`}>
+                  <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">{TABLE_LABELS[table]}</p>
+                  {ticket ? (
+                    <p className="text-lg sm:text-2xl md:text-3xl font-black text-gray-700">{ticket.token}</p>
+                  ) : (
+                    <p className="text-base sm:text-xl font-bold text-gray-300">---</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center mb-10 w-full max-w-4xl mx-auto">
-            <div className="w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 transform transition-transform duration-500 hover:scale-[1.02]">
-              <div className="bg-[#047857] text-white text-center py-4 tracking-widest font-bold text-sm uppercase">
-                {currentCalled?.mesa_atendimento ? `MESA DE ATENDIMENTO ${currentCalled.mesa_atendimento}` : 'AGUARDANDO CHAMADA'}
+          {/* Current called ticket */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="w-full bg-white rounded-2xl sm:rounded-3xl shadow-md sm:shadow-xl overflow-hidden border border-gray-100 max-w-lg mx-auto">
+              <div className="bg-[#047857] text-white text-center py-2 sm:py-3 tracking-wider font-bold text-[10px] sm:text-sm uppercase px-4">
+                {currentCalled?.mesa_atendimento ? `MESA ${currentCalled.mesa_atendimento}` : 'AGUARDANDO CHAMADA'}
               </div>
-              <div className="p-16 flex flex-col items-center justify-center relative">
-                <h1 className="text-[12rem] leading-none font-black text-[#047857] mb-8 tracking-tighter">
+              <div className="p-6 sm:p-10 md:p-14 flex flex-col items-center justify-center">
+                <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-none font-black text-[#047857] mb-4 sm:mb-6 tracking-tighter break-all text-center">
                   {currentCalled?.token || '---'}
                 </h1>
-                <div className="bg-[#A7F3D0] px-10 py-4 rounded-xl flex items-center gap-4 animate-pulse">
-                  <svg className="w-8 h-8 text-[#065F46]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  <div className="text-left">
-                    <p className="text-[#065F46] text-xs font-bold tracking-widest uppercase mb-1">CLIENTE</p>
-                    <p className="text-[#064E3B] text-2xl font-black uppercase">
-                      {currentCalled?.aluno_nome || '---'}
-                    </p>
+                {currentCalled?.aluno_nome && (
+                  <div className="bg-green-50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl flex items-center gap-2 sm:gap-3 w-full justify-center">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <p className="text-green-800 text-sm sm:text-base font-bold truncate">{currentCalled.aluno_nome}</p>
                   </div>
-                </div>
+                )}
               </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-4 w-full mt-10">
-              {TABLES.map(table => {
-                const ticket = calledByTable[table];
-                return (
-                  <div key={table} className={`bg-white rounded-2xl p-6 text-center shadow-md border flex flex-col justify-center items-center h-32 ${ticket ? 'border-gray-100' : 'border-dashed border-gray-300'}`}>
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">{TABLE_LABELS[table]}</p>
-                    {ticket ? (
-                      <p className="text-4xl font-black text-gray-700">{ticket.token}</p>
-                    ) : (
-                      <p className="text-2xl font-bold text-gray-300">---</p>
-                    )}
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
 
-        <aside className="w-[450px] bg-white border-l border-gray-200 p-8 flex flex-col">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Próximos na Fila</h2>
+        {/* Right sidebar - waiting list (hidden on small mobile, slide-in on larger) */}
+        <aside className="w-full lg:w-80 xl:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 p-4 sm:p-5 lg:p-6 flex flex-col max-h-[50vh] lg:max-h-none">
+          <div className="flex items-center justify-between mb-3 lg:mb-4">
+            <h2 className="text-sm sm:text-base font-bold text-gray-800">Próximos na Fila</h2>
+            <span className="text-xs text-gray-400 font-medium">{waitingTickets.length} aguardando</span>
+          </div>
 
-          <div className="flex-1 overflow-hidden flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-3">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-[#047857] border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-3 border-[#047857]/30 border-t-[#047857] rounded-full animate-spin" />
               </div>
             ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-500 font-medium">{error}</p>
+              <div className="text-center py-6">
+                <p className="text-red-500 text-sm font-medium">{error}</p>
               </div>
             ) : waitingList.length > 0 ? (
               waitingList.map((ticket, idx) => {
@@ -230,32 +226,32 @@ export default function ChamadasPage() {
                 return (
                   <div
                     key={ticket.id}
-                    className={`p-5 rounded-2xl border-l-4 flex justify-between items-center ${
+                    className={`p-3 sm:p-4 rounded-xl border-l-4 flex justify-between items-center ${
                       isUrgent
-                        ? 'bg-red-50 border-red-500 shadow-md'
+                        ? 'bg-red-50 border-red-500'
                         : isMedium
                         ? 'bg-yellow-50 border-yellow-400'
-                        : 'bg-gray-50 border-transparent'
+                        : 'bg-gray-50 border-gray-200'
                     }`}
                   >
-                    <div>
-                      <h3 className={`text-2xl font-black ${isUrgent ? 'text-red-600' : 'text-[#047857]'}`}>
-                        {ticket.token} {isUrgent && '!'}
+                    <div className="min-w-0">
+                      <h3 className={`text-base sm:text-lg font-black ${isUrgent ? 'text-red-600' : 'text-[#047857]'}`}>
+                        {ticket.token}
                       </h3>
-                      <p className={`text-sm ${isUrgent ? 'text-red-500 font-bold' : isMedium ? 'text-yellow-600 font-bold' : 'text-gray-500'}`}>
+                      <p className={`text-[10px] sm:text-xs ${isUrgent ? 'text-red-500 font-bold' : isMedium ? 'text-yellow-600 font-bold' : 'text-gray-500'}`}>
                         {isUrgent ? 'Urgente' : isMedium ? 'Prioritário' : 'Normal'}
                       </p>
                       {ticket.servico?.nome && (
-                        <p className="text-xs text-gray-400 mt-1">{ticket.servico.nome}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5 truncate">{ticket.servico.nome}</p>
                       )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0 ml-2">
                       {isUrgent ? (
-                        <p className="text-xs font-bold uppercase tracking-widest mb-1 text-red-500">Próximo</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-red-500">Próximo</p>
                       ) : (
                         <>
-                          <p className="text-xs font-bold uppercase tracking-widest mb-1 text-gray-400">Espera Est.</p>
-                          <p className="text-xl font-bold text-gray-800">{estimatedTime} min</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Espera</p>
+                          <p className="text-sm sm:text-base font-bold text-gray-800">{estimatedTime} min</p>
                         </>
                       )}
                     </div>
@@ -263,41 +259,18 @@ export default function ChamadasPage() {
                 );
               })
             ) : (
-              <div className="text-center py-12">
-                <div className="mb-3">
-                  <p className="font-medium text-lg text-gray-500">Nenhum ticket em espera</p>
-                </div>
-                <p className="font-medium text-lg text-gray-500">Fila vazia</p>
-                <p className="text-sm text-gray-400">Nenhum aluno a aguardar.</p>
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-500 font-medium">Fila vazia</p>
+                <p className="text-xs text-gray-400">Nenhum aluno a aguardar</p>
               </div>
             )}
           </div>
-
-          <div className="mt-8 bg-[#047857] p-6 rounded-2xl text-white relative overflow-hidden">
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <svg className="w-24 h-24" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" stroke="white" strokeWidth="2" />
-                <line x1="12" y1="8" x2="12.01" y2="8" stroke="white" strokeWidth="2" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold mb-2">Atenção ao Painel</h3>
-            <p className="text-green-100 text-sm leading-relaxed relative z-10">
-              Mantenha o seu comprovante em mãos. Quando a sua senha for chamada, dirija-se à mesa indicada.
-            </p>
-          </div>
         </aside>
-      </div>
+      </main>
 
-      <footer className="bg-[#0F172A] text-gray-400 p-4 px-8 flex justify-between items-center text-sm">
-        <div className="flex gap-8 items-center text-white font-medium">
-          <span className="flex items-center gap-2">{date}</span>
-          <span className="flex items-center gap-2 text-lg font-bold">{time}</span>
-        </div>
-        <div className="flex gap-8 items-center uppercase tracking-widest text-xs font-bold">
-          <span className="flex gap-2">Temperatura Ambiente <span className="text-white">24ºC</span></span>
-          <span className="flex gap-2">Qualidade do Ar <span className="text-green-400">EXCELENTE</span></span>
-        </div>
+      <footer className="bg-white border-t border-gray-200 px-4 py-2 sm:px-6 sm:py-3 flex justify-between items-center text-[10px] sm:text-xs text-gray-400">
+        <span>{date}</span>
+        <span className="font-bold text-gray-600">{time}</span>
       </footer>
     </div>
   );
