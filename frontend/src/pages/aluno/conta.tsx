@@ -36,23 +36,25 @@ interface Notification {
   created_at: string;
 }
 
-type Tab = 'perfil' | 'senhas' | 'aulas' | 'notificacoes' | 'sessoes';
+type Tab = 'senhas' | 'aulas' | 'notificacoes';
 
 export default function StudentAccountPage() {
   const router = useRouter();
-  const { student, isAuthenticated, isLoading, logout, getAccessToken, refreshSession } = useStudentAuth();
+  const { student, isAuthenticated, isLoading, logout, getAccessToken, changePassword, logoutAll } = useStudentAuth();
   const { addToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<Tab>('perfil');
+  const [activeTab, setActiveTab] = useState<Tab>('senhas');
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [aulas, setAulas] = useState<Aula[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [naoLidas, setNaoLidas] = useState(0);
-  const [sessoes, setSessoes] = useState<any[]>([]);
   const [carregandoTickets, setCarregandoTickets] = useState(false);
   const [carregandoAulas, setCarregandoAulas] = useState(false);
   const [carregandoNotificacoes, setCarregandoNotificacoes] = useState(false);
-  const [carregandoSessoes, setCarregandoSessoes] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [alterandoSenha, setAlterandoSenha] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -133,42 +135,32 @@ export default function StudentAccountPage() {
     fetchNotificacoes();
   };
 
-  const fetchSessoes = useCallback(async () => {
-    if (!student) return;
-    setCarregandoSessoes(true);
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAlterandoSenha(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/sessions`,
-        { headers: authHeaders() }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setSessoes(data.sessions || []);
-      }
-    } catch {
+      await changePassword(senhaAtual, novaSenha);
+      addToast('Senha alterada com sucesso!', 'success');
+      setShowPasswordModal(false);
+      setSenhaAtual('');
+      setNovaSenha('');
+    } catch (err: any) {
+      addToast(err.message || 'Erro ao alterar senha', 'error');
     } finally {
-      setCarregandoSessoes(false);
+      setAlterandoSenha(false);
     }
-  }, [student, authHeaders]);
+  };
+
+  const handleLogoutAll = async () => {
+    await logoutAll();
+    router.push('/aluno/login');
+  };
 
   useEffect(() => {
     if (activeTab === 'senhas') fetchTickets();
     if (activeTab === 'aulas') fetchAulas();
     if (activeTab === 'notificacoes') fetchNotificacoes();
-    if (activeTab === 'sessoes') fetchSessoes();
   }, [activeTab]);
-
-  const handleLogoutAll = async () => {
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/logout/all`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: student?.id }),
-      });
-      await logout();
-      router.push('/aluno/login');
-    } catch {}
-  };
 
   if (isLoading) {
     return (
@@ -181,11 +173,9 @@ export default function StudentAccountPage() {
   if (!student) return null;
 
   const tabs: { key: Tab; label: string; icon: string }[] = [
-    { key: 'perfil', label: 'Perfil', icon: '👤' },
     { key: 'senhas', label: 'Senhas', icon: '🎫' },
     { key: 'aulas', label: 'Aulas', icon: '📚' },
     { key: 'notificacoes', label: `Notificações${naoLidas > 0 ? ` (${naoLidas})` : ''}`, icon: '🔔' },
-    { key: 'sessoes', label: 'Sessões', icon: '🔐' },
   ];
 
   const statusLabel: Record<string, string> = {
@@ -206,8 +196,11 @@ export default function StudentAccountPage() {
 
       <header className="bg-white px-6 py-4 shadow-sm flex items-center justify-between">
         <h1 className="text-lg font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-600 hidden sm:block">{student.nome}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600 hidden sm:block">
+            {student.nome}
+            {student.numero_estudante && <span className="text-gray-400 ml-1">#{student.numero_estudante}</span>}
+          </span>
           <button
             onClick={logout}
             className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg text-sm transition-colors"
@@ -220,17 +213,41 @@ export default function StudentAccountPage() {
       <main className="flex-1 max-w-4xl mx-auto w-full p-4 sm:p-8">
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 rounded-full bg-[#047857] flex items-center justify-center text-white text-2xl font-bold">
               {student.nome.charAt(0).toUpperCase()}
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-800">{student.nome}</h2>
-              <p className="text-gray-500">{student.email || 'Sem email registado'}</p>
-              {student.numero_estudante && (
-                <p className="text-sm text-gray-400">#{student.numero_estudante}</p>
-              )}
             </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div className="bg-gray-50 rounded-xl p-3">
+              <p className="text-xs text-gray-500 font-medium">Email</p>
+              <p className="text-sm text-gray-800">{student.email || '-'}</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3">
+              <p className="text-xs text-gray-500 font-medium">Telefone</p>
+              <p className="text-sm text-gray-800">{student.telefone || '-'}</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3">
+              <p className="text-xs text-gray-500 font-medium">Nº de Estudante</p>
+              <p className="text-sm text-gray-800">{student.numero_estudante || '-'}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Alterar senha
+            </button>
+            <button
+              onClick={handleLogoutAll}
+              className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-medium px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Terminar todas as sessões
+            </button>
           </div>
         </div>
 
@@ -251,43 +268,6 @@ export default function StudentAccountPage() {
             </button>
           ))}
         </div>
-
-        {/* Perfil Tab */}
-        {activeTab === 'perfil' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="font-bold text-gray-700 mb-4">Dados Pessoais</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 font-medium">Nome</p>
-                <p className="text-gray-800 font-medium">{student.nome}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 font-medium">Email</p>
-                <p className="text-gray-800">{student.email || '-'}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 font-medium">Nº de Estudante</p>
-                <p className="text-gray-800">{student.numero_estudante || '-'}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500 font-medium">Telefone</p>
-                <p className="text-gray-800">{student.telefone || '-'}</p>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <h4 className="font-bold text-gray-700 mb-3">Segurança</h4>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleLogoutAll}
-                  className="text-sm text-red-600 hover:text-red-800 font-medium border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors"
-                >
-                  Terminar todas as sessões
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Senhas Tab */}
         {activeTab === 'senhas' && (
@@ -450,45 +430,52 @@ export default function StudentAccountPage() {
           </div>
         )}
 
-        {/* Sessões Tab */}
-        {activeTab === 'sessoes' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-700">Sessões Ativas</h3>
-              <button
-                onClick={handleLogoutAll}
-                className="text-xs text-red-600 font-medium hover:underline"
-              >
-                Terminar todas
-              </button>
+        {/* Password Change Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+              <h3 className="font-bold text-gray-800 text-lg mb-4">Alterar Senha</h3>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Senha Atual</label>
+                  <input
+                    type="password"
+                    value={senhaAtual}
+                    onChange={e => setSenhaAtual(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#047857]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nova Senha</label>
+                  <input
+                    type="password"
+                    value={novaSenha}
+                    onChange={e => setNovaSenha(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#047857]"
+                    required
+                    minLength={6}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Mínimo de 6 caracteres</p>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowPasswordModal(false); setSenhaAtual(''); setNovaSenha(''); }}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 rounded-lg text-sm transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={alterandoSenha}
+                    className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
+                  >
+                    {alterandoSenha ? 'A alterar...' : 'Alterar'}
+                  </button>
+                </div>
+              </form>
             </div>
-            {carregandoSessoes ? (
-              <div className="p-8 text-center text-gray-500">A carregar...</div>
-            ) : sessoes.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
-                <p className="text-4xl mb-3">🔐</p>
-                <p>Nenhuma sessão ativa</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {sessoes.map((s: any) => (
-                  <div key={s.id} className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-800 font-medium">
-                        {s.user_agent?.substring(0, 50) || 'Desconhecido'}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {s.ip_address || 'IP desconhecido'} &middot;
-                        Criada em {new Date(s.created_at).toLocaleDateString('pt-PT')}
-                      </p>
-                    </div>
-                    <span className="text-xs text-gray-400">
-                      Expira {new Date(s.expires_at).toLocaleDateString('pt-PT')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 

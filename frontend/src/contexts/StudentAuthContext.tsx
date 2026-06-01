@@ -27,6 +27,8 @@ interface StudentAuthContextValue {
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
   getAccessToken: () => string | null;
+  changePassword: (senhaAtual: string, novaSenha: string) => Promise<void>;
+  logoutAll: () => Promise<void>;
 }
 
 const StudentAuthContext = createContext<StudentAuthContextValue | null>(null);
@@ -71,12 +73,30 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem(STORAGE_KEYS.student);
     const tokens = getStoredTokens();
     if (saved && tokens) {
-      const parsed = JSON.parse(saved) as Student;
       if (new Date(tokens.expiresAt) > new Date()) {
-        setStudent(parsed);
+        fetchStudentProfile(tokens.accessToken).then(profile => {
+          if (profile) {
+            localStorage.setItem(STORAGE_KEYS.student, JSON.stringify(profile));
+            setStudent(profile);
+          } else {
+            setStudent(JSON.parse(saved) as Student);
+          }
+        });
       } else {
         refreshTokens(tokens.refreshToken).then(success => {
-          if (!success) clearStoredTokens();
+          if (success) {
+            const newTokens = getStoredTokens();
+            if (newTokens?.accessToken) {
+              fetchStudentProfile(newTokens.accessToken).then(profile => {
+                if (profile) {
+                  localStorage.setItem(STORAGE_KEYS.student, JSON.stringify(profile));
+                  setStudent(profile);
+                }
+              });
+            }
+          } else {
+            clearStoredTokens();
+          }
         });
       }
     }
@@ -207,6 +227,43 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
     return getStoredTokens()?.accessToken || null;
   }, []);
 
+  const changePassword = useCallback(async (senhaAtual: string, novaSenha: string): Promise<void> => {
+    const token = getAccessToken();
+    if (!token) throw new Error('Não autenticado');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ senha_atual: senhaAtual, nova_senha: novaSenha }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao alterar senha');
+  }, [getAccessToken]);
+
+  const logoutAll = useCallback(async (): Promise<void> => {
+    const tokens = getStoredTokens();
+    if (student?.id) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/logout/all`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId: student.id }),
+        });
+      } catch {}
+    }
+    if (tokens?.refreshToken) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+        });
+      } catch {}
+    }
+    clearStoredTokens();
+    setStudent(null);
+    addToast('Todas as sessões terminadas', 'info');
+  }, [student, addToast, getAccessToken]);
+
   return (
     <StudentAuthContext.Provider value={{
       student,
@@ -219,6 +276,8 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
       logout,
       refreshSession,
       getAccessToken,
+      changePassword,
+      logoutAll,
     }}>
       {children}
     </StudentAuthContext.Provider>

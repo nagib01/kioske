@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { validate, studentLoginEmailSchema, studentLoginNifSchema, studentLoginQrSchema, studentRefreshSchema, studentQuickKioskSchema } from '../../src/shared/validation.js';
+import { validate, studentLoginEmailSchema, studentLoginNifSchema, studentLoginQrSchema, studentRefreshSchema, studentQuickKioskSchema, studentChangePasswordSchema } from '../../src/shared/validation.js';
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 const ACCESS_TOKEN_EXPIRY = '15m';
@@ -116,7 +116,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     const userAgent = request.headers['user-agent'] || 'unknown';
 
     const res = await fastify.pg.query(
-      `SELECT id, nome, email, senha_hash, escola_id, ativo, login_attempts, locked_until, email_verified_at
+      `SELECT id, nome, email, senha_hash, escola_id, ativo, login_attempts, locked_until, email_verified_at, numero_estudante, telefone
        FROM students WHERE email = $1`,
       [email]
     );
@@ -154,6 +154,8 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
         id: student.id,
         nome: student.nome,
         email: student.email,
+        numero_estudante: student.numero_estudante,
+        telefone: student.telefone,
         escola_id: student.escola_id,
       }
     });
@@ -321,6 +323,37 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
       `UPDATE student_sessions SET revoked_at = NOW() WHERE student_id = $1 AND revoked_at IS NULL`,
       [studentId]
     );
+
+    return reply.send({ success: true });
+  });
+
+  // ─── PUT /api/auth/student/password ───
+  fastify.put('/api/auth/student/password', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido' });
+    }
+
+    let parsed: { senha_atual: string; nova_senha: string };
+    try { parsed = validate(studentChangePasswordSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+
+    const studentId = request.user.sub;
+    const res = await fastify.pg.query(
+      'SELECT senha_hash FROM students WHERE id = $1',
+      [studentId]
+    );
+    const student = res.rows[0];
+    if (!student) return reply.status(404).send({ error: 'Aluno não encontrado' });
+
+    const valida = student.senha_hash && await bcrypt.compare(parsed.senha_atual, student.senha_hash);
+    if (!valida) return reply.status(400).send({ error: 'Senha atual incorreta' });
+
+    const novaHash = await bcrypt.hash(parsed.nova_senha, 10);
+    await fastify.pg.query('UPDATE students SET senha_hash = $1 WHERE id = $2', [novaHash, studentId]);
 
     return reply.send({ success: true });
   });

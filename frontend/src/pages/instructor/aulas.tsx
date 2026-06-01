@@ -16,6 +16,14 @@ export default function InstructorAulas() {
   const [form, setForm] = useState({
     student_id: '', tipo: 'pratica', data: '', hora_inicio: '', hora_fim: '', car_id: '', summary: '',
   });
+  const [studentSearch, setStudentSearch] = useState('');
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+
+  const selectedStudent = students.find(s => s.id === form.student_id);
+  const filteredStudents = students.filter(s =>
+    !studentSearch || s.nome.toLowerCase().includes(studentSearch.toLowerCase()) ||
+    s.numero_estudante.includes(studentSearch)
+  );
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('backoffice_token') : null;
 
@@ -54,8 +62,17 @@ export default function InstructorAulas() {
 
   useEffect(() => { fetchLessons(); }, [statusFilter]);
 
+  useEffect(() => {
+    if (!showStudentDropdown) return;
+    const close = () => setShowStudentDropdown(false);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [showStudentDropdown]);
+
   const resetForm = () => {
     setForm({ student_id: '', tipo: 'pratica', data: '', hora_inicio: '', hora_fim: '', car_id: '', summary: '' });
+    setStudentSearch('');
+    setShowStudentDropdown(false);
     setEditingId(null);
     setShowForm(false);
   };
@@ -207,13 +224,25 @@ export default function InstructorAulas() {
             <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-800 mb-4">{editingId ? 'Editar Aula' : 'Nova Aula'}</h3>
               <div className="space-y-3">
-                <select value={form.student_id} onChange={e => setForm({...form, student_id: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
-                  <option value="">Selecionar Aluno *</option>
-                  {students.map(s => (
-                    <option key={s.id} value={s.id}>{s.nome} ({s.numero_estudante})</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <input type="text" placeholder="Pesquisar aluno..." value={selectedStudent ? `${selectedStudent.nome} (${selectedStudent.numero_estudante})` : studentSearch}
+                    onFocus={() => { setStudentSearch(''); setShowStudentDropdown(true); }}
+                    onChange={e => { setStudentSearch(e.target.value); setForm({...form, student_id: ''}); setShowStudentDropdown(true); }}
+                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm" />
+                  {showStudentDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {filteredStudents.length === 0 ? (
+                        <div className="p-3 text-sm text-gray-400">Nenhum aluno encontrado</div>
+                      ) : filteredStudents.map(s => (
+                        <button key={s.id} type="button"
+                          onClick={() => { setForm({...form, student_id: s.id}); setStudentSearch(''); setShowStudentDropdown(false); }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-green-50 transition-colors ${form.student_id === s.id ? 'bg-green-50 font-bold text-[#047857]' : 'text-gray-700'}`}>
+                          {s.nome} <span className="text-gray-400">({s.numero_estudante})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})}
                     className="border border-gray-300 rounded-lg p-2.5 text-sm">

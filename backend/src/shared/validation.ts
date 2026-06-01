@@ -181,3 +181,8 @@ export const studentQuickKioskSchema = z.object({
   escolaId: z.string().optional(),
   telefone: z.string().optional(),
 });
+
+export const studentChangePasswordSchema = z.object({
+  senha_atual: z.string().min(1, 'Senha atual é obrigatória'),
+  nova_senha: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+});

@@ -58,14 +58,24 @@ export default function AdminAulas() {
     fetchLessons();
   };
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
     const token = localStorage.getItem('backoffice_token');
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (statusFilter) params.set('status', statusFilter);
     if (dataInicio) params.set('data_inicio', dataInicio);
     if (dataFim) params.set('data_fim', dataFim);
-    window.open(api(`/admin/lessons/export?${params}`), '_blank');
+    const res = await fetch(api(`/admin/lessons/export?${params}`), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return alert('Erro ao exportar');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aulas_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const statusBadge = (status: string) => {
