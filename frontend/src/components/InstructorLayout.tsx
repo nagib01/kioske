@@ -20,6 +20,9 @@ export default function InstructorLayout({ children, title = 'Instrutor | Kioske
   const handleLogout = () => {
     localStorage.removeItem('backoffice_token');
     localStorage.removeItem('backoffice_nome');
+    localStorage.removeItem('backoffice_escola');
+    localStorage.removeItem('backoffice_avatar');
+    localStorage.removeItem('backoffice_mesa');
     router.push('/login');
   };
 

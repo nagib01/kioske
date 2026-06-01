@@ -160,4 +160,23 @@ export async function instructorLessonRoutes(fastify: FastifyInstance) {
       return reply.send({ success: true });
     });
   });
+
+  // GET /api/instructor/students - List students for instructor (to assign lessons)
+  fastify.get('/api/instructor/students', async (request: any, reply) => {
+    if (!(await authInstructor(request, reply))) return;
+    const escolaId = request.user.escola_id;
+    if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
+    const { search } = request.query as any;
+    return withDb(fastify, async (client) => {
+      let query = 'SELECT id, nome, numero_estudante, categoria FROM students WHERE escola_id = $1 AND ativo = true';
+      const params: unknown[] = [escolaId];
+      if (search) {
+        query += ' AND (nome ILIKE $2 OR numero_estudante ILIKE $2)';
+        params.push(`%${search}%`);
+      }
+      query += ' ORDER BY nome ASC LIMIT 200';
+      const res = await client.query(query, params);
+      return reply.send(res.rows);
+    });
+  });
 }

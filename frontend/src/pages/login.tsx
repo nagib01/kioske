@@ -8,10 +8,18 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect if already logged in
     const token = localStorage.getItem('backoffice_token');
     if (token) {
-      router.push('/backoffice');
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role === 'instructor') {
+          router.push('/instructor/dashboard');
+        } else {
+          router.push('/backoffice');
+        }
+      } catch {
+        router.push('/backoffice');
+      }
     }
   }, [router]);
 
@@ -32,7 +40,11 @@ export default function Login() {
         if (data.nome) localStorage.setItem('backoffice_nome', data.nome);
         if (data.avatar_url) localStorage.setItem('backoffice_avatar', data.avatar_url);
 
-        router.push('/backoffice');
+        if (data.role === 'instructor') {
+          router.push('/instructor/dashboard');
+        } else {
+          router.push('/backoffice');
+        }
       } else {
         alert('Credenciais inválidas');
       }

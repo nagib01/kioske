@@ -30,12 +30,12 @@ export default function InstructorAulas() {
   };
 
   const fetchStudents = async () => {
-    const res = await fetch(api('/admin/students?limit=500'), {
+    const res = await fetch(api('/api/instructor/students'), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
       const data = await res.json();
-      setStudents(data.students || []);
+      setStudents(data || []);
     }
   };
 
