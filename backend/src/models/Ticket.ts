@@ -43,6 +43,7 @@ export class TicketModel {
         alertas?: string[];
         aluno_token?: string;
         aluno_nome?: string;
+        student_id?: string;
     } = {}): Promise<ITicket> {
         const alunoToken = data.aluno_token || null;
         const priorityLevel = typeof data.priority_level === 'number'
@@ -78,14 +79,15 @@ export class TicketModel {
                 triagem_at,
                 aluno_token,
                 mesa_atendimento,
-                aluno_nome
+                aluno_nome,
+                student_id
             )
              VALUES (
                 $1, $2, $3, $4, $5,
                 COALESCE($6, '[]'::jsonb),
                 NOW(),
                 COALESCE($7, gen_random_uuid()),
-                $8, $9
+                $8, $9, $10
              )
              RETURNING *`,
             [
@@ -97,7 +99,8 @@ export class TicketModel {
                 JSON.stringify(alertas),
                 alunoToken,
                 mesaAtendimento,
-                data.aluno_nome || null
+                data.aluno_nome || null,
+                data.student_id || null,
             ]
         );
 

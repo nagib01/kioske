@@ -21,6 +21,7 @@ export default function NovoAlunoPage() {
     numero_estudante: '',
     nome: '',
     email: '',
+    senha: '',
     telefone: '',
     endereco: '',
     data_nascimento: '',
@@ -88,11 +89,16 @@ export default function NovoAlunoPage() {
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
-              <input type="email" name="email" value={form.email} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Telefone</label>
+                <input type="email" name="email" value={form.email} onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Senha (para login do aluno)</label>
+                <input type="password" name="senha" value={form.senha} onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" placeholder="Deixe vazio para não definir senha" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Telefone</label>
               <input type="text" name="telefone" value={form.telefone} onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
             </div>

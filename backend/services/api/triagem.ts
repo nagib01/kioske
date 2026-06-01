@@ -93,11 +93,22 @@ export async function triagemRoutes(fastify: FastifyInstance) {
 
     const criarTicketHandler = async (request: any, reply: any) => {
         const body = request.body as any;
-        const { servicoId, respostas, escolaId: escolaIdBody, alunoToken } = body;
+        const { servicoId, respostas, escolaId: escolaIdBody, alunoToken, studentId } = body;
         const escolaId = escolaIdBody || (await getDefaultEscolaId(fastify));
 
         if (!servicoId || !escolaId) {
             return reply.status(400).send({ error: 'servicoId e escolaId são obrigatórios' });
+        }
+
+        // If no studentId provided, try to get from JWT (authenticated student)
+        let resolvedStudentId = studentId;
+        if (!resolvedStudentId) {
+            try {
+                await request.jwtVerify();
+                if (request.user?.role === 'student' && request.user?.sub) {
+                    resolvedStudentId = request.user.sub;
+                }
+            } catch {}
         }
 
         const respostasArr: RespostaTriagem[] = Array.isArray(respostas) ? respostas : [];
@@ -122,7 +133,9 @@ export async function triagemRoutes(fastify: FastifyInstance) {
                 priority: resultado.priority,
                 priority_level: resultado.priorityLevel,
                 alertas: resultado.alertas,
-                aluno_token: alunoToken
+                aluno_token: alunoToken,
+                aluno_nome: undefined,
+                student_id: resolvedStudentId,
             });
 
             const perguntasPorId = new Map<string, any>(perguntas.map((p: any) => [p.id, p]));

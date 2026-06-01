@@ -1,4 +1,6 @@
 import AuthGuard from "../components/AuthGuard";
+import { ToastProvider } from "../components/Toast";
+import { StudentAuthProvider } from "../contexts/StudentAuthContext";
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useEffect } from 'react';
@@ -24,9 +26,13 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="theme-color" content="#3b82f6" />
         <link rel="manifest" href="/manifest.json" />
       </Head>
-      <AuthGuard>
-        <Component {...pageProps} />
-      </AuthGuard>
+      <ToastProvider>
+        <StudentAuthProvider>
+          <AuthGuard>
+            <Component {...pageProps} />
+          </AuthGuard>
+        </StudentAuthProvider>
+      </ToastProvider>
     </>
   );
 }

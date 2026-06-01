@@ -37,6 +37,7 @@ export const criarTicketManualSchema = z.object({
   servicoId: z.string().min(1, 'servicoId é obrigatório'),
   alunoNome: z.string().optional(),
   escolaId: z.string().optional(),
+  studentId: z.string().optional(),
 });
 
 export const chamarTicketSchema = z.object({
@@ -83,6 +84,7 @@ export const criarAlunoSchema = z.object({
   numero_estudante: z.string().min(1, 'Número de estudante é obrigatório'),
   nome: z.string().min(1, 'Nome é obrigatório'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
+  senha: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
   telefone: z.string().optional(),
   endereco: z.string().optional(),
   data_nascimento: z.string().optional(),
@@ -116,4 +118,29 @@ export const aulaAlunoSchema = z.object({
 
 export const associarTicketSchema = z.object({
   ticketId: z.string().min(1, 'ticketId é obrigatório'),
+});
+
+// ─── Student Auth Schemas ───
+export const studentLoginEmailSchema = z.object({
+  email: z.string().email('Email inválido'),
+  senha: z.string().min(1, 'Senha é obrigatória'),
+});
+
+export const studentLoginNifSchema = z.object({
+  numero_estudante: z.string().min(1, 'Nº de estudante é obrigatório'),
+  data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
+});
+
+export const studentLoginQrSchema = z.object({
+  qrToken: z.string().min(1, 'QR token é obrigatório'),
+});
+
+export const studentRefreshSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token é obrigatório'),
+});
+
+export const studentQuickKioskSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  escolaId: z.string().optional(),
+  telefone: z.string().optional(),
 });

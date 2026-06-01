@@ -42,6 +42,8 @@ export async function kioskRoutes(fastify: FastifyInstance) {
     const escolaId = request.body?.escolaId || request.user?.escola_id || (await getDefaultEscolaId(fastify));
     if (!escolaId) return reply.status(400).send(ERR.MISSING_FIELD('escolaId'));
 
+    const studentId = request.body?.studentId as string | undefined;
+
     return withDb(fastify, async (client) => {
       const ticket = await TicketModel.criar(client, escolaId, servicoId, {
         aluno_token: undefined,
@@ -49,6 +51,7 @@ export async function kioskRoutes(fastify: FastifyInstance) {
         priority_level: 0,
         alertas: [],
         aluno_nome: alunoNome || undefined,
+        student_id: studentId || undefined,
       });
 
       const formatted = formatTicket(ticket);

@@ -51,15 +51,16 @@ export class StudentModel {
         estado_formacao?: string;
         data_matricula?: string;
         observacoes?: string;
+        senha_hash?: string;
     }): Promise<IStudent> {
         const res = await db.query(
-            `INSERT INTO students (escola_id, numero_estudante, nome, email, telefone, endereco, data_nascimento, documento_identificacao, categoria, estado_formacao, data_matricula, observacoes)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            `INSERT INTO students (escola_id, numero_estudante, nome, email, telefone, endereco, data_nascimento, documento_identificacao, categoria, estado_formacao, data_matricula, observacoes, senha_hash)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
              RETURNING *`,
             [escolaId, data.numero_estudante, data.nome, data.email || null, data.telefone || null,
              data.endereco || null, data.data_nascimento || null, data.documento_identificacao || null,
              data.categoria || 'B', data.estado_formacao || 'inscrito', data.data_matricula || new Date().toISOString().split('T')[0],
-             data.observacoes || null]
+             data.observacoes || null, data.senha_hash || null]
         );
         return res.rows[0];
     }

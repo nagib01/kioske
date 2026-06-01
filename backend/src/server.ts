@@ -25,7 +25,7 @@ function buildDatabaseUrl(): string {
     const host = process.env.DB_HOST || 'localhost';
     const port = process.env.DB_PORT || '5432';
     const user = process.env.DB_USER || 'postgres';
-    const password = process.env.DB_PASSWORD || '';
+    const password = process.env.DB_PASSWORD || 'Ucadija24*';
     const db = process.env.DB_NAME || user;
     return `postgresql://${user}:${encodeURIComponent(password)}@${host}:${port}/${db}`;
 }

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useRealtimeQueue } from '../hooks/useRealtimeQueue';
 import TriageForm, { PerguntaTriagem, RespostaTriagem } from '../components/TriageForm';
+import Link from 'next/link';
 
 interface Servico {
   id: string;
@@ -37,6 +38,7 @@ export default function AlunoPage() {
   const [carregandoTriagem, setCarregandoTriagem] = useState(false);
   const [escolaId, setEscolaId] = useState<string>('');
   const [servicos, setServicos] = useState<Servico[]>([]);
+  const [loggedStudentId, setLoggedStudentId] = useState<string | null>(null);
 
 
   const router = useRouter();
@@ -45,6 +47,7 @@ export default function AlunoPage() {
   useEffect(() => {
     const savedEscolaId = localStorage.getItem('kioske_escolaId');
     const savedToken = localStorage.getItem('kioske_token');
+    const savedStudent = localStorage.getItem('kioske_student');
     
     if (savedEscolaId) {
       setEscolaId(savedEscolaId);
@@ -52,6 +55,13 @@ export default function AlunoPage() {
       const defaultEscolaId = '1';
       setEscolaId(defaultEscolaId);
       localStorage.setItem('kioske_escolaId', defaultEscolaId);
+    }
+
+    if (savedStudent) {
+      try {
+        const parsed = JSON.parse(savedStudent);
+        if (parsed.id) setLoggedStudentId(parsed.id);
+      } catch {}
     }
 
     if (savedToken) {
@@ -127,6 +137,7 @@ export default function AlunoPage() {
           servicoId: servicoSelecionado.id,
           respostas,
           escolaId,
+          studentId: loggedStudentId,
         })
       });
       const data = await res.json();
@@ -175,6 +186,12 @@ export default function AlunoPage() {
 
         <header className="bg-white px-8 py-4 shadow-sm flex items-center justify-between">
           <h1 className="text-xl font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
+          <Link
+            href="/aluno/login"
+            className="text-sm text-[#047857] hover:text-[#065f46] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-4 py-2 transition-colors"
+          >
+            Entrar
+          </Link>
         </header>
 
         <main className="flex-1 flex flex-col items-center justify-center p-8">
@@ -203,6 +220,9 @@ export default function AlunoPage() {
 
         <header className="bg-white px-8 py-4 shadow-sm flex items-center justify-between">
           <h1 className="text-xl font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
+          <Link href="/aluno/login" className="text-sm text-[#047857] hover:text-[#065f46] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-4 py-2 transition-colors">
+            Entrar
+          </Link>
         </header>
 
         <main className="flex-1 flex flex-col items-center justify-center p-8">
@@ -241,6 +261,17 @@ export default function AlunoPage() {
 
         <header className="bg-[#E2E8F0] px-8 py-3 shadow-sm flex items-center justify-between">
           <h1 className="text-lg font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
+          <div className="flex items-center gap-2">
+            {loggedStudentId ? (
+              <Link href="/aluno/conta" className="text-xs text-[#047857] font-bold hover:underline">
+                Minha Conta
+              </Link>
+            ) : (
+              <Link href="/aluno/login" className="text-xs text-[#047857] font-bold border border-[#047857] rounded-lg px-3 py-1.5 hover:bg-[#047857] hover:text-white transition-colors">
+                Entrar
+              </Link>
+            )}
+          </div>
         </header>
 
         <main className="flex-1 flex flex-col items-center py-10 px-4">

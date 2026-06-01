@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import bcrypt from 'bcrypt';
 import { authAdmin, authBackoffice } from '../../src/shared/auth.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
@@ -59,7 +60,9 @@ export async function studentRoutes(fastify: FastifyInstance) {
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é obrigatório' });
 
     return withDb(fastify, async (client) => {
-      const student = await StudentModel.criar(client, escolaId, parsed);
+      const senha = request.body?.senha as string | undefined;
+      const senha_hash = senha ? await bcrypt.hash(senha, 10) : undefined;
+      const student = await StudentModel.criar(client, escolaId, { ...parsed, senha_hash });
       await registrarAuditoria(fastify, 'criar_aluno', request.user?.id, request.user?.nome, null, { studentId: student.id, nome: student.nome });
       return reply.status(201).send(student);
     });
