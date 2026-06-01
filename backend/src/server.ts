@@ -60,7 +60,9 @@ const ensureDatabaseSchema = async () => {
         `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS prioridade_base INT DEFAULT 0`,
         `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE`,
         `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS mesa_padrao VARCHAR(10) NOT NULL DEFAULT '01'`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`
+        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone VARCHAR(20)`,
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`
     ];
 
     for (const statement of statements) {

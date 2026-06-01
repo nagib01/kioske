@@ -93,6 +93,19 @@ const menuItems: MenuItem[] = [
     ),
     label: 'Cars',
     id: '/admin/viaturas'
+  },
+  {
+    href: '/admin/instrutores',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M6 21v-2a4 4 0 0 1 4-4" />
+        <circle cx="9" cy="7" r="4" />
+        <circle cx="16" cy="5" r="3" />
+      </svg>
+    ),
+    label: 'Instructors',
+    id: '/admin/instrutores'
   }
 ];
 

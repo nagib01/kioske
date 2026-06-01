@@ -186,3 +186,21 @@ export const studentChangePasswordSchema = z.object({
   senha_atual: z.string().min(1, 'Senha atual é obrigatória'),
   nova_senha: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
 });
+
+// ─── User / Instructor Schemas ───
+export const createUserSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  senha: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  role: z.enum(['admin', 'recepcionista', 'instructor']),
+  telefone: z.string().optional().or(z.literal('')),
+});
+
+export const updateUserSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório').optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  senha: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').optional(),
+  role: z.enum(['admin', 'recepcionista', 'instructor']).optional(),
+  telefone: z.string().optional().or(z.literal('')),
+  ativo: z.boolean().optional(),
+});

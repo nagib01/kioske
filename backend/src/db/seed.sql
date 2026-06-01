@@ -33,7 +33,10 @@ VALUES
   (1, 'Administrador Principal', 'admin@escola.com', '$2b$10$HGsBrznX4jq9dn.i/5vmrutNpUA0sDp1bJChpKg3J1r8s/1AGdyaS', 'admin', NULL, 1),
   (2, 'Maria Silva', 'maria.silva@escola.com', '$2b$10$qJPVKyZrJdqie0qdiAD/JuWOKAGyjXZUATowM6mijQ4Ec7mW7sI3i', 'recepcionista', NULL, 1),
   (3, 'João Santos', 'joao.santos@escola.com', '$2b$10$XvmHEgB.v16bDtyrTGKxguxKH2gDyuC286kVCQRGbcUG7KODyGxPq', 'recepcionista', NULL, 1),
-  (4, 'Carlos Pereira', 'instrutor@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1);
+   (4, 'Carlos Pereira', 'instrutor@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1),
+   (5, 'Ana Martins', 'ana.martins@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1),
+   (6, 'Rui Oliveira', 'rui.oliveira@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1),
+   (7, 'Sofia Costa', 'sofia.costa@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1);
 
 -- Inserir viaturas
 INSERT INTO cars (id, escola_id, matricula, marca, modelo, ano, categoria, observacoes, ativo)

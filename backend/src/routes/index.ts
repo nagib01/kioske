@@ -11,6 +11,7 @@ import { studentAuthRoutes } from '../../services/api/student_auth.js';
 import { carRoutes } from '../../services/api/cars.js';
 import { instructorLessonRoutes } from '../../services/api/instructor_lessons.js';
 import { adminLessonRoutes } from '../../services/api/admin_lessons.js';
+import { adminUserRoutes } from '../../services/api/admin_users.js';
 import { configureWebSocket } from '../../websocket/index.js';
 
 export async function registerRoutes(fastify: FastifyInstance) {
@@ -25,5 +26,6 @@ export async function registerRoutes(fastify: FastifyInstance) {
     await fastify.register(carRoutes);
     await fastify.register(instructorLessonRoutes);
     await fastify.register(adminLessonRoutes);
+    await fastify.register(adminUserRoutes);
     await configureWebSocket(fastify);
 }
