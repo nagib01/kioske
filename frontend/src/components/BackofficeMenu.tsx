@@ -23,6 +23,17 @@ const menuItems: MenuItem[] = [
     id: '/backoffice'
   },
   {
+    href: '/admin/fila',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    label: 'Queue Live',
+    id: '/admin/fila'
+  },
+  {
     href: '/admin/alunos',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -32,6 +43,42 @@ const menuItems: MenuItem[] = [
     ),
     label: 'Students',
     id: '/admin/alunos'
+  },
+  {
+    href: '/admin/funcionarios',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M6 21v-2a4 4 0 0 1 4-4" />
+        <circle cx="9" cy="7" r="4" />
+        <circle cx="16" cy="5" r="3" />
+      </svg>
+    ),
+    label: 'Employees',
+    id: '/admin/funcionarios'
+  },
+  {
+    href: '/admin/aulas',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+        <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5" />
+      </svg>
+    ),
+    label: 'Lessons',
+    id: '/admin/aulas'
+  },
+  {
+    href: '/admin/viaturas',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 17h14M5 17a2 2 0 0 1-2-2V9l3-3h12l3 3v6a2 2 0 0 1-2 2" />
+        <circle cx="7" cy="15" r="2" />
+        <circle cx="17" cy="15" r="2" />
+      </svg>
+    ),
+    label: 'Cars',
+    id: '/admin/viaturas'
   },
   {
     href: '/admin/servicos',
@@ -59,53 +106,6 @@ const menuItems: MenuItem[] = [
     ),
     label: 'Questionnaires',
     id: '/admin/questionarios'
-  },
-  {
-    href: '/admin/fila',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    label: 'Queue Live',
-    id: '/admin/fila'
-  },
-  {
-    href: '/admin/aulas',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-        <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5" />
-      </svg>
-    ),
-    label: 'Lessons',
-    id: '/admin/aulas'
-  },
-  {
-    href: '/admin/viaturas',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 17h14M5 17a2 2 0 0 1-2-2V9l3-3h12l3 3v6a2 2 0 0 1-2 2" />
-        <circle cx="7" cy="15" r="2" />
-        <circle cx="17" cy="15" r="2" />
-      </svg>
-    ),
-    label: 'Cars',
-    id: '/admin/viaturas'
-  },
-  {
-    href: '/admin/funcionarios',
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M6 21v-2a4 4 0 0 1 4-4" />
-        <circle cx="9" cy="7" r="4" />
-        <circle cx="16" cy="5" r="3" />
-      </svg>
-    ),
-    label: 'Employees',
-    id: '/admin/funcionarios'
   }
 ];
 
