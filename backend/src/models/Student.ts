@@ -33,9 +33,10 @@ export interface ITrainingRecord {
     data: string;
     hora_inicio?: string;
     hora_fim?: string;
-    instrutor?: string;
-    descricao?: string;
-    realizada: boolean;
+    car_id?: string;
+    instructor_id?: string;
+    summary?: string;
+    status: string;
 }
 
 export class StudentModel {
@@ -111,7 +112,7 @@ export class StudentModel {
                 (SELECT COUNT(*) FROM tickets t WHERE t.student_id = s.id) as total_tickets,
                 (SELECT COUNT(*) FROM tickets t WHERE t.student_id = s.id AND t.status = 'finished') as tickets_concluidos,
                 (SELECT COUNT(*) FROM training_records tr WHERE tr.student_id = s.id) as total_aulas,
-                (SELECT COUNT(*) FROM training_records tr WHERE tr.student_id = s.id AND tr.realizada = true) as aulas_realizadas
+                (SELECT COUNT(*) FROM training_records tr WHERE tr.student_id = s.id AND tr.status = 'concluida') as aulas_realizadas
              FROM students s WHERE s.id = $1`,
             [id]
         );
@@ -245,7 +246,7 @@ export class StudentModel {
         return res.rowCount > 0;
     }
 
-    // Training Records
+    // Training Records (legacy - kept for backward compat, new code should use LessonModel)
     static async listarAulas(db: any, studentId: string): Promise<ITrainingRecord[]> {
         const res = await db.query(
             'SELECT * FROM training_records WHERE student_id = $1 ORDER BY data DESC, created_at DESC',
@@ -259,15 +260,16 @@ export class StudentModel {
         data: string;
         hora_inicio?: string;
         hora_fim?: string;
-        instrutor?: string;
-        descricao?: string;
-        realizada?: boolean;
+        car_id?: string;
+        instructor_id?: string;
+        summary?: string;
+        status?: string;
     }): Promise<ITrainingRecord> {
         const res = await db.query(
-            `INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, instrutor, descricao, realizada)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            `INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, car_id, instructor_id, summary, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [studentId, data.tipo, data.data, data.hora_inicio || null, data.hora_fim || null,
-             data.instrutor || null, data.descricao || null, data.realizada !== false]
+             data.car_id || null, data.instructor_id || null, data.summary || null, data.status || 'agendada']
         );
         return res.rows[0];
     }

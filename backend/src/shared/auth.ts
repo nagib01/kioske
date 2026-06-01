@@ -34,6 +34,24 @@ export async function authOrHeaderAdmin(request: any, reply: any) {
   return authJwt(request, reply);
 }
 
+export async function authInstructor(request: any, reply: any) {
+  if (!(await authJwt(request, reply))) return false;
+  if (request.user.role !== 'instructor' && request.user.role !== 'admin') {
+    reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+    return false;
+  }
+  return true;
+}
+
+export async function authBackofficeOrInstructor(request: any, reply: any) {
+  if (!(await authJwt(request, reply))) return false;
+  if (!['admin', 'recepcionista', 'instructor'].includes(request.user.role)) {
+    reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+    return false;
+  }
+  return true;
+}
+
 export async function requireAdmin(request: any, reply: any) {
   try {
     await request.jwtVerify();

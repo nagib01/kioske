@@ -71,14 +71,22 @@ export default function AlunoProfilePage() {
     } catch {}
   }, [id]);
 
+  const fetchCars = useCallback(async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/cars`, { headers: getHeaders() });
+      if (res.ok) setCars(await res.json());
+    } catch {}
+  }, []);
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    Promise.all([fetchStudent(), fetchTickets(), fetchLessons(), fetchContacts()]).finally(() => setLoading(false));
+    Promise.all([fetchStudent(), fetchTickets(), fetchLessons(), fetchContacts(), fetchCars()]).finally(() => setLoading(false));
   }, [id]);
 
   const [newContact, setNewContact] = useState({ nome: '', parentesco: '', telefone: '', email: '' });
-  const [newLesson, setNewLesson] = useState({ tipo: 'pratica', data: new Date().toISOString().split('T')[0], hora_inicio: '', hora_fim: '', instrutor: '', descricao: '', realizada: true });
+  const [cars, setCars] = useState<any[]>([]);
+  const [newLesson, setNewLesson] = useState({ tipo: 'pratica', data: new Date().toISOString().split('T')[0], hora_inicio: '', hora_fim: '', car_id: '', summary: '', status: 'agendada' });
   const [associateTicketId, setAssociateTicketId] = useState('');
 
   const addContact = async () => {
@@ -103,12 +111,13 @@ export default function AlunoProfilePage() {
 
   const addLesson = async () => {
     if (!newLesson.data) return alert('Data é obrigatória');
+    if (!newLesson.hora_inicio || !newLesson.hora_fim) return alert('Hora de início e fim são obrigatórias');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/${id}/lessons`, {
         method: 'POST', headers: getHeaders(), body: JSON.stringify(newLesson),
       });
       if (!res.ok) throw new Error('Falha ao adicionar aula');
-      setNewLesson({ tipo: 'pratica', data: new Date().toISOString().split('T')[0], hora_inicio: '', hora_fim: '', instrutor: '', descricao: '', realizada: true });
+      setNewLesson({ tipo: 'pratica', data: new Date().toISOString().split('T')[0], hora_inicio: '', hora_fim: '', car_id: '', summary: '', status: 'agendada' });
       await fetchLessons();
     } catch (err: any) { alert(err.message); }
   };
@@ -322,17 +331,23 @@ export default function AlunoProfilePage() {
                 <input type="time" placeholder="Fim" value={newLesson.hora_fim}
                   onChange={e => setNewLesson({...newLesson, hora_fim: e.target.value})}
                   className="border border-gray-300 rounded-lg p-2.5 text-sm" />
-                <input type="text" placeholder="Instrutor" value={newLesson.instrutor}
-                  onChange={e => setNewLesson({...newLesson, instrutor: e.target.value})}
-                  className="border border-gray-300 rounded-lg p-2.5 text-sm" />
-                <input type="text" placeholder="Descrição" value={newLesson.descricao}
-                  onChange={e => setNewLesson({...newLesson, descricao: e.target.value})}
+                <select value={newLesson.car_id} onChange={e => setNewLesson({...newLesson, car_id: e.target.value})}
+                  className="border border-gray-300 rounded-lg p-2.5 text-sm">
+                  <option value="">Sem carro</option>
+                  {cars.map(c => (
+                    <option key={c.id} value={c.id}>{c.matricula} - {c.marca} {c.modelo}</option>
+                  ))}
+                </select>
+                <input type="text" placeholder="Sumário" value={newLesson.summary}
+                  onChange={e => setNewLesson({...newLesson, summary: e.target.value})}
                   className="border border-gray-300 rounded-lg p-2.5 text-sm col-span-2" />
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={newLesson.realizada}
-                    onChange={e => setNewLesson({...newLesson, realizada: e.target.checked})} />
-                  Realizada
-                </label>
+                <select value={newLesson.status} onChange={e => setNewLesson({...newLesson, status: e.target.value})}
+                  className="border border-gray-300 rounded-lg p-2.5 text-sm">
+                  <option value="agendada">Agendada</option>
+                  <option value="em_curso">Em Curso</option>
+                  <option value="concluida">Concluída</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
                 <button onClick={addLesson}
                   className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
                   Adicionar
@@ -346,8 +361,8 @@ export default function AlunoProfilePage() {
                     <th className="text-left p-3 text-xs font-bold text-gray-600">Tipo</th>
                     <th className="text-left p-3 text-xs font-bold text-gray-600">Data</th>
                     <th className="text-left p-3 text-xs font-bold text-gray-600">Horário</th>
-                    <th className="text-left p-3 text-xs font-bold text-gray-600">Instrutor</th>
-                    <th className="text-left p-3 text-xs font-bold text-gray-600">Descrição</th>
+                    <th className="text-left p-3 text-xs font-bold text-gray-600">Carro</th>
+                    <th className="text-left p-3 text-xs font-bold text-gray-600">Sumário</th>
                     <th className="text-left p-3 text-xs font-bold text-gray-600">Estado</th>
                     <th className="text-right p-3 text-xs font-bold text-gray-600">Ações</th>
                   </tr>
@@ -355,7 +370,17 @@ export default function AlunoProfilePage() {
                 <tbody>
                   {lessons.length === 0 ? (
                     <tr><td colSpan={7} className="text-center p-6 text-gray-500 text-sm">Nenhuma aula registada</td></tr>
-                  ) : lessons.map((l: any) => (
+                  ) : lessons.map((l: any) => {
+                    const statusColors: Record<string, string> = {
+                      agendada: 'bg-blue-100 text-blue-800',
+                      em_curso: 'bg-yellow-100 text-yellow-800',
+                      concluida: 'bg-green-100 text-green-800',
+                      cancelada: 'bg-red-100 text-red-800',
+                    };
+                    const statusLabels: Record<string, string> = {
+                      agendada: 'Agendada', em_curso: 'Em Curso', concluida: 'Concluída', cancelada: 'Cancelada',
+                    };
+                    return (
                     <tr key={l.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="p-3 text-sm">
                         <span className={`font-bold ${l.tipo === 'pratica' ? 'text-blue-600' : 'text-purple-600'}`}>
@@ -366,11 +391,11 @@ export default function AlunoProfilePage() {
                       <td className="p-3 text-sm text-gray-600">
                         {l.hora_inicio ? l.hora_inicio.substring(0, 5) : '-'}{l.hora_fim ? ` - ${l.hora_fim.substring(0, 5)}` : ''}
                       </td>
-                      <td className="p-3 text-sm text-gray-600">{l.instrutor || '-'}</td>
-                      <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{l.descricao || '-'}</td>
+                      <td className="p-3 text-sm text-gray-600">{l.car_matricula || '-'}</td>
+                      <td className="p-3 text-sm text-gray-600 max-w-xs truncate">{l.summary || '-'}</td>
                       <td className="p-3">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${l.realizada ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                          {l.realizada ? 'Realizada' : 'Pendente'}
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${statusColors[l.status] || 'bg-gray-100'}`}>
+                          {statusLabels[l.status] || l.status}
                         </span>
                       </td>
                       <td className="p-3 text-right">
@@ -379,7 +404,8 @@ export default function AlunoProfilePage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

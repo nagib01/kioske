@@ -377,7 +377,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
               ativo, email_verified_at, last_login_at, created_at,
               (SELECT COUNT(*) FROM tickets WHERE student_id = students.id) as total_tickets,
               (SELECT COUNT(*) FROM tickets WHERE student_id = students.id AND status = 'finished') as tickets_concluidos,
-              (SELECT COUNT(*) FROM training_records WHERE student_id = students.id AND realizada = true) as aulas_realizadas
+              (SELECT COUNT(*) FROM training_records WHERE student_id = students.id AND status = 'concluida') as aulas_realizadas
        FROM students WHERE id = $1`,
       [studentId]
     );
@@ -478,5 +478,86 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     );
 
     return reply.send({ sessions: res.rows });
+  });
+
+  // ─── GET /api/auth/student/lessons ─── (student sees their own lessons)
+  fastify.get('/api/auth/student/lessons', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    }
+
+    const studentId = request.user.sub;
+    const { LessonModel } = await import('../../src/models/Lesson.js');
+    const res = await fastify.pg.query(
+      `SELECT tr.*,
+              c.matricula as car_matricula,
+              u.nome as instructor_nome
+       FROM training_records tr
+       LEFT JOIN cars c ON c.id = tr.car_id
+       LEFT JOIN users u ON u.id = tr.instructor_id
+       WHERE tr.student_id = $1
+       ORDER BY tr.data DESC, tr.created_at DESC`,
+      [studentId]
+    );
+    return reply.send(res.rows);
+  });
+
+  // ─── GET /api/auth/student/notifications ───
+  fastify.get('/api/auth/student/notifications', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    }
+
+    const studentId = request.user.sub;
+    const { NotificationModel } = await import('../../src/models/Notification.js');
+    const notifications = await NotificationModel.listar(fastify.pg, studentId);
+    const naoLidas = await NotificationModel.contarNaoLidas(fastify.pg, studentId);
+    return reply.send({ notifications, naoLidas });
+  });
+
+  // ─── PUT /api/auth/student/notifications/:id/read ───
+  fastify.put('/api/auth/student/notifications/:id/read', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    }
+
+    const studentId = request.user.sub;
+    const { id } = request.params as any;
+    const { NotificationModel } = await import('../../src/models/Notification.js');
+    const ok = await NotificationModel.marcarLida(fastify.pg, id, studentId);
+    if (!ok) return reply.status(404).send({ error: 'Notificação não encontrada' });
+    return reply.send({ success: true });
+  });
+
+  // ─── PUT /api/auth/student/notifications/read-all ───
+  fastify.put('/api/auth/student/notifications/read-all', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    }
+
+    const studentId = request.user.sub;
+    const { NotificationModel } = await import('../../src/models/Notification.js');
+    await NotificationModel.marcarTodasLidas(fastify.pg, studentId);
+    return reply.send({ success: true });
   });
 }

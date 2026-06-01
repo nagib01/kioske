@@ -122,16 +122,31 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_log_acao ON audit_log (acao, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_ticket ON audit_log (ticket_id);
 
--- Tabela de utilizadores (admins, recepcionistas, etc.)
+-- Tabela de utilizadores (admins, recepcionistas, instrutores, etc.)
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     nome VARCHAR(200) NOT NULL,
     email VARCHAR(200) UNIQUE,
     senha_hash VARCHAR(200),
-    role VARCHAR(50) NOT NULL DEFAULT 'user', -- admin, recepcionista, user
+    role VARCHAR(50) NOT NULL DEFAULT 'user', -- admin, recepcionista, instructor, user
     avatar_url TEXT,
     escola_id BIGINT REFERENCES escolas(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabela de viaturas (carros da escola)
+CREATE TABLE IF NOT EXISTS cars (
+    id BIGSERIAL PRIMARY KEY,
+    escola_id BIGINT NOT NULL REFERENCES escolas(id) ON DELETE CASCADE,
+    matricula VARCHAR(20) NOT NULL,
+    marca VARCHAR(100) NOT NULL,
+    modelo VARCHAR(100) NOT NULL,
+    ano INT,
+    categoria VARCHAR(10) NOT NULL,
+    observacoes TEXT,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(escola_id, matricula)
 );
 
 -- ============================================================
@@ -180,11 +195,23 @@ CREATE TABLE IF NOT EXISTS training_records (
     data DATE NOT NULL DEFAULT CURRENT_DATE,
     hora_inicio TIME,
     hora_fim TIME,
-    instrutor VARCHAR(200),
-    descricao TEXT,
-    realizada BOOLEAN NOT NULL DEFAULT TRUE,
+    car_id BIGINT REFERENCES cars(id) ON DELETE SET NULL,
+    instructor_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    summary TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'agendada',
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Migrate existing data (safe to run repeatedly)
+ALTER TABLE training_records ADD COLUMN IF NOT EXISTS car_id BIGINT REFERENCES cars(id) ON DELETE SET NULL;
+ALTER TABLE training_records ADD COLUMN IF NOT EXISTS instructor_id BIGINT REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE training_records ADD COLUMN IF NOT EXISTS summary TEXT;
+UPDATE training_records SET summary = descricao WHERE summary IS NULL AND descricao IS NOT NULL;
+ALTER TABLE training_records ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'agendada';
+UPDATE training_records SET status = CASE WHEN realizada = true THEN 'concluida' ELSE 'agendada' END WHERE status = 'agendada';
+ALTER TABLE training_records DROP COLUMN IF EXISTS instrutor;
+ALTER TABLE training_records DROP COLUMN IF EXISTS descricao;
+ALTER TABLE training_records DROP COLUMN IF EXISTS realizada;
 
 CREATE INDEX IF NOT EXISTS idx_students_escola ON students (escola_id, ativo);
 CREATE INDEX IF NOT EXISTS idx_students_nome ON students (nome);
@@ -193,6 +220,9 @@ CREATE INDEX IF NOT EXISTS idx_students_categoria ON students (categoria);
 CREATE INDEX IF NOT EXISTS idx_students_estado ON students (estado_formacao);
 CREATE INDEX IF NOT EXISTS idx_student_contacts_student ON student_contacts (student_id);
 CREATE INDEX IF NOT EXISTS idx_training_records_student ON training_records (student_id, data DESC);
+CREATE INDEX IF NOT EXISTS idx_training_records_instructor ON training_records (instructor_id, data DESC);
+CREATE INDEX IF NOT EXISTS idx_training_records_status ON training_records (status);
+CREATE INDEX IF NOT EXISTS idx_cars_escola ON cars (escola_id, ativo);
 
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS student_id BIGINT REFERENCES students(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_tickets_student ON tickets (student_id);
@@ -243,3 +273,17 @@ CREATE INDEX IF NOT EXISTS idx_student_login_history_student ON student_login_hi
 ALTER TABLE students ADD COLUMN IF NOT EXISTS login_attempts INT NOT NULL DEFAULT 0;
 ALTER TABLE students ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP;
 ALTER TABLE students ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
+
+-- Notificações para alunos
+CREATE TABLE IF NOT EXISTS student_notifications (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    tipo VARCHAR(30) NOT NULL, -- nova_aula, aula_alterada, aula_cancelada
+    titulo VARCHAR(200) NOT NULL,
+    mensagem TEXT,
+    lesson_id BIGINT REFERENCES training_records(id) ON DELETE SET NULL,
+    lida BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_notifications_student ON student_notifications (student_id, lida, created_at DESC);

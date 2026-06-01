@@ -5,7 +5,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const backofficePaths = ['/backoffice', '/admin'];
+  const backofficePaths = ['/backoffice', '/admin', '/instructor'];
 
   // List of paths that don't require authentication
   const publicPaths = ['/login', '/aluno', '/servicos', '/chamadas', '/_error'];

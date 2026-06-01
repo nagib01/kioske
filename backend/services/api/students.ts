@@ -3,9 +3,10 @@ import bcrypt from 'bcrypt';
 import { authAdmin, authBackoffice } from '../../src/shared/auth.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
-import { validate, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, aulaAlunoSchema, associarTicketSchema } from '../../src/shared/validation.js';
+import { validate, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { StudentModel } from '../../src/models/Student.js';
+import { LessonModel } from '../../src/models/Lesson.js';
 
 export async function studentRoutes(fastify: FastifyInstance) {
 
@@ -130,14 +131,14 @@ export async function studentRoutes(fastify: FastifyInstance) {
     });
   });
 
-  // ========== TRAINING RECORDS ==========
+  // ========== TRAINING RECORDS (LESSONS) ==========
 
   // GET /api/admin/students/:id/lessons
   fastify.get('/admin/students/:id/lessons', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
     return withDb(fastify, async (client) => {
-      const lessons = await StudentModel.listarAulas(client, id);
+      const lessons = await LessonModel.listarPorAluno(client, id);
       return reply.send(lessons);
     });
   });
@@ -147,9 +148,9 @@ export async function studentRoutes(fastify: FastifyInstance) {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
     let parsed: any;
-    try { parsed = validate(aulaAlunoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    try { parsed = validate(lessonSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
     return withDb(fastify, async (client) => {
-      const lesson = await StudentModel.adicionarAula(client, id, parsed);
+      const lesson = await LessonModel.criar(client, { ...parsed, student_id: id });
       return reply.status(201).send(lesson);
     });
   });
@@ -159,7 +160,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
     if (!(await authAdmin(request, reply))) return;
     const { lessonId } = request.params as any;
     return withDb(fastify, async (client) => {
-      const ok = await StudentModel.removerAula(client, lessonId);
+      const ok = await LessonModel.excluir(client, lessonId);
       if (!ok) return reply.status(404).send({ error: 'Aula não encontrada' });
       return reply.send({ success: true });
     });

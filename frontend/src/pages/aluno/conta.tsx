@@ -20,11 +20,23 @@ interface Aula {
   data: string;
   hora_inicio?: string;
   hora_fim?: string;
-  instrutor?: string;
-  realizada: boolean;
+  car_matricula?: string;
+  instructor_nome?: string;
+  summary?: string;
+  status: string;
 }
 
-type Tab = 'perfil' | 'senhas' | 'aulas' | 'sessoes';
+interface Notification {
+  id: string;
+  tipo: string;
+  titulo: string;
+  mensagem?: string;
+  lesson_id?: string;
+  lida: boolean;
+  created_at: string;
+}
+
+type Tab = 'perfil' | 'senhas' | 'aulas' | 'notificacoes' | 'sessoes';
 
 export default function StudentAccountPage() {
   const router = useRouter();
@@ -34,9 +46,12 @@ export default function StudentAccountPage() {
   const [activeTab, setActiveTab] = useState<Tab>('perfil');
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [aulas, setAulas] = useState<Aula[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [naoLidas, setNaoLidas] = useState(0);
   const [sessoes, setSessoes] = useState<any[]>([]);
   const [carregandoTickets, setCarregandoTickets] = useState(false);
   const [carregandoAulas, setCarregandoAulas] = useState(false);
+  const [carregandoNotificacoes, setCarregandoNotificacoes] = useState(false);
   const [carregandoSessoes, setCarregandoSessoes] = useState(false);
 
   useEffect(() => {
@@ -74,7 +89,7 @@ export default function StudentAccountPage() {
     setCarregandoAulas(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/students/${student.id}/lessons`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/lessons`,
         { headers: authHeaders() }
       );
       if (res.ok) setAulas(await res.json());
@@ -84,6 +99,39 @@ export default function StudentAccountPage() {
       setCarregandoAulas(false);
     }
   }, [student, authHeaders, addToast]);
+
+  const fetchNotificacoes = useCallback(async () => {
+    if (!student) return;
+    setCarregandoNotificacoes(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/notifications`,
+        { headers: authHeaders() }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+        setNaoLidas(data.naoLidas || 0);
+      }
+    } catch {
+    } finally {
+      setCarregandoNotificacoes(false);
+    }
+  }, [student, authHeaders]);
+
+  const marcarLida = async (id: string) => {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/notifications/${id}/read`, {
+      method: 'PUT', headers: authHeaders(),
+    });
+    fetchNotificacoes();
+  };
+
+  const marcarTodasLidas = async () => {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/notifications/read-all`, {
+      method: 'PUT', headers: authHeaders(),
+    });
+    fetchNotificacoes();
+  };
 
   const fetchSessoes = useCallback(async () => {
     if (!student) return;
@@ -106,6 +154,7 @@ export default function StudentAccountPage() {
   useEffect(() => {
     if (activeTab === 'senhas') fetchTickets();
     if (activeTab === 'aulas') fetchAulas();
+    if (activeTab === 'notificacoes') fetchNotificacoes();
     if (activeTab === 'sessoes') fetchSessoes();
   }, [activeTab]);
 
@@ -135,6 +184,7 @@ export default function StudentAccountPage() {
     { key: 'perfil', label: 'Perfil', icon: '👤' },
     { key: 'senhas', label: 'Senhas', icon: '🎫' },
     { key: 'aulas', label: 'Aulas', icon: '📚' },
+    { key: 'notificacoes', label: `Notificações${naoLidas > 0 ? ` (${naoLidas})` : ''}`, icon: '🔔' },
     { key: 'sessoes', label: 'Sessões', icon: '🔐' },
   ];
 
@@ -315,11 +365,22 @@ export default function StudentAccountPage() {
                       <th className="text-left p-3 text-xs font-bold text-gray-600">Data</th>
                       <th className="text-left p-3 text-xs font-bold text-gray-600">Horário</th>
                       <th className="text-left p-3 text-xs font-bold text-gray-600">Instrutor</th>
+                      <th className="text-left p-3 text-xs font-bold text-gray-600">Carro</th>
                       <th className="text-left p-3 text-xs font-bold text-gray-600">Estado</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {aulas.map(a => (
+                    {aulas.map(a => {
+                      const statusColors: Record<string, string> = {
+                        agendada: 'bg-blue-100 text-blue-800',
+                        em_curso: 'bg-yellow-100 text-yellow-800',
+                        concluida: 'bg-green-100 text-green-800',
+                        cancelada: 'bg-red-100 text-red-800',
+                      };
+                      const statusLabels: Record<string, string> = {
+                        agendada: 'Agendada', em_curso: 'Em Curso', concluida: 'Concluída', cancelada: 'Cancelada',
+                      };
+                      return (
                       <tr key={a.id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="p-3 text-sm">
                           <span className={`font-bold ${a.tipo === 'pratica' ? 'text-blue-600' : 'text-purple-600'}`}>
@@ -333,18 +394,57 @@ export default function StudentAccountPage() {
                           {a.hora_inicio?.substring(0, 5) || '-'}
                           {a.hora_fim ? ` - ${a.hora_fim.substring(0, 5)}` : ''}
                         </td>
-                        <td className="p-3 text-sm text-gray-600">{a.instrutor || '-'}</td>
+                        <td className="p-3 text-sm text-gray-600">{a.instructor_nome || '-'}</td>
+                        <td className="p-3 text-sm text-gray-600">{a.car_matricula || '-'}</td>
                         <td className="p-3">
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                            a.realizada ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {a.realizada ? 'Realizada' : 'Pendente'}
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${statusColors[a.status] || 'bg-gray-100'}`}>
+                            {statusLabels[a.status] || a.status}
                           </span>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notificações Tab */}
+        {activeTab === 'notificacoes' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-gray-700">Notificações</h3>
+              {naoLidas > 0 && (
+                <button onClick={marcarTodasLidas} className="text-xs text-[#047857] font-medium hover:underline">
+                  Marcar todas como lidas
+                </button>
+              )}
+            </div>
+            {carregandoNotificacoes ? (
+              <div className="p-8 text-center text-gray-500">A carregar...</div>
+            ) : notifications.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">
+                <p className="text-4xl mb-3">🔔</p>
+                <p>Nenhuma notificação</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {notifications.map(n => (
+                  <div key={n.id} className={`p-4 flex items-start gap-3 ${!n.lida ? 'bg-blue-50/50' : ''}`}>
+                    <div className="flex-1">
+                      <p className={`text-sm ${n.lida ? 'text-gray-700' : 'text-gray-900 font-bold'}`}>{n.titulo}</p>
+                      {n.mensagem && <p className="text-xs text-gray-500 mt-1">{n.mensagem}</p>}
+                      <p className="text-xs text-gray-400 mt-1">{new Date(n.created_at).toLocaleDateString('pt-PT')} {new Date(n.created_at).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    {!n.lida && (
+                      <button onClick={() => marcarLida(n.id)} className="text-xs text-[#047857] font-medium hover:underline shrink-0 mt-1">
+                        Marcar lida
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
