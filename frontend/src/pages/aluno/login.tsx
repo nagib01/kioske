@@ -92,11 +92,6 @@ export default function StudentLoginPage() {
             </form>
           </div>
 
-          <div className="text-center mt-6">
-            <button onClick={() => router.push('/aluno')} className="text-sm text-gray-500 hover:text-gray-700 font-medium">
-              Continuar sem sessão &rarr;
-            </button>
-          </div>
         </div>
       </main>
     </div>

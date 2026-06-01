@@ -5,7 +5,7 @@ type Area = 'kioske' | 'monitor' | 'student' | 'staff';
 
 const AREA_ROUTES: Record<Area, { allowed: string[]; rootRedirect: string }> = {
   kioske: {
-    allowed: ['/', '/servicos'],
+    allowed: ['/', '/servicos', '/aluno'],
     rootRedirect: '/servicos',
   },
   monitor: {
@@ -13,7 +13,7 @@ const AREA_ROUTES: Record<Area, { allowed: string[]; rootRedirect: string }> = {
     rootRedirect: '/chamadas',
   },
   student: {
-    allowed: ['/', '/aluno', '/aluno/conta', '/aluno/login'],
+    allowed: ['/', '/aluno/conta', '/aluno/login'],
     rootRedirect: '/aluno/conta',
   },
   staff: {
