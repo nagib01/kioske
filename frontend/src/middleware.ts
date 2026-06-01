@@ -1,22 +1,39 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_ROUTES = ['/', '/servicos', '/chamadas', '/aluno'];
-const STAFF_ROUTES = ['/login', '/backoffice', '/admin', '/instructor'];
+type Area = 'kioske' | 'monitor' | 'student' | 'staff';
+
+const AREA_ROUTES: Record<Area, { allowed: string[]; rootRedirect: string }> = {
+  kioske: {
+    allowed: ['/', '/servicos'],
+    rootRedirect: '/servicos',
+  },
+  monitor: {
+    allowed: ['/', '/chamadas'],
+    rootRedirect: '/chamadas',
+  },
+  student: {
+    allowed: ['/', '/aluno', '/aluno/conta', '/aluno/login'],
+    rootRedirect: '/aluno/conta',
+  },
+  staff: {
+    allowed: ['/', '/login', '/backoffice', '/admin', '/instructor'],
+    rootRedirect: '/login',
+  },
+};
 
 export function middleware(request: NextRequest) {
-  const area = request.headers.get('x-app-area') || 'public';
+  const area = (request.headers.get('x-app-area') || 'kioske') as Area;
   const { pathname } = request.nextUrl;
+  const config = AREA_ROUTES[area];
 
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'));
-  const isStaffRoute = STAFF_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'));
-
-  if (area === 'public' && isStaffRoute) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL(config.rootRedirect, request.url));
   }
 
-  if (area === 'staff' && !isStaffRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const allowed = config.allowed.some(route => pathname === route || pathname.startsWith(route + '/'));
+  if (!allowed) {
+    return NextResponse.redirect(new URL(config.rootRedirect, request.url));
   }
 
   return NextResponse.next();

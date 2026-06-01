@@ -67,7 +67,7 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/aluno"
+            href="/aluno/conta"
             className="bg-slate-800/50 backdrop-blur p-5 sm:p-6 rounded-2xl border border-slate-700 hover:border-emerald-500 hover:bg-slate-800 transition-all duration-300 group active:scale-[0.98]"
           >
             <div className="flex items-center gap-3 sm:flex-col sm:text-center">
@@ -79,7 +79,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-base sm:text-xl font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">Acompanhamento</h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-0.5 sm:mt-1 line-clamp-2">Veja a sua posição na fila pelo telemóvel</p>
+                <p className="text-xs sm:text-sm text-slate-400 mt-0.5 sm:mt-1 line-clamp-2">Aceda à sua área de aluno para consultar senhas e aulas</p>
               </div>
             </div>
           </Link>
