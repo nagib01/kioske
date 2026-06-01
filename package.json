@@ -1,0 +1,20 @@
+{
+  "name": "kioske",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "start": "concurrently -n backend,frontend -c blue,green \"cd backend && npm start\" \"cd frontend && npm start\"",
+    "db:migrate": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/schema.sql",
+    "db:schema": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/schema.sql",
+    "db:seed": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/seed.sql",
+    "db:seed-triage": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/seed-triage.sql",
+    "db:setup": "npm run db:schema && npm run db:seed && npm run db:seed-triage"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

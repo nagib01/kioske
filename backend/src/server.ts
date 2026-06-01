@@ -5,7 +5,6 @@ import cors from '@fastify/cors';
 import { registerRoutes } from './routes/index.js';
 import rateLimit from '@fastify/rate-limit';
 import { logger } from './shared/logger.js';
-import { runMigrations } from './db/migrate.js';
 
 if (!process.env.NODE_ENV) {
     logger.error('NODE_ENV is missing from the environment configuration');
@@ -70,7 +69,6 @@ const ensureDatabaseSchema = async () => {
 };
 
 await ensureDatabaseSchema();
-await runMigrations(fastify);
 
 await registerRoutes(fastify);
 

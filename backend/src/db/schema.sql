@@ -133,3 +133,113 @@ CREATE TABLE IF NOT EXISTS users (
     escola_id BIGINT REFERENCES escolas(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- ============================================================
+-- Squished from migrations (001_cleanup_legacy, 002_create_students, 003_student_auth)
+-- ============================================================
+
+-- Clean up legacy tables and columns
+ALTER TABLE tickets DROP COLUMN IF EXISTS documentos_ok;
+DROP TABLE IF EXISTS regras_triagem;
+
+-- Create students table
+CREATE TABLE IF NOT EXISTS students (
+    id BIGSERIAL PRIMARY KEY,
+    escola_id BIGINT NOT NULL REFERENCES escolas(id) ON DELETE CASCADE,
+    numero_estudante VARCHAR(50) NOT NULL,
+    nome VARCHAR(200) NOT NULL,
+    email VARCHAR(200),
+    telefone VARCHAR(50),
+    endereco TEXT,
+    data_nascimento DATE,
+    documento_identificacao VARCHAR(50),
+    categoria VARCHAR(10) NOT NULL DEFAULT 'B',
+    estado_formacao VARCHAR(30) NOT NULL DEFAULT 'inscrito',
+    data_matricula DATE DEFAULT CURRENT_DATE,
+    observacoes TEXT,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(escola_id, numero_estudante)
+);
+
+CREATE TABLE IF NOT EXISTS student_contacts (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    nome VARCHAR(200) NOT NULL,
+    parentesco VARCHAR(50),
+    telefone VARCHAR(50),
+    email VARCHAR(200),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS training_records (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    tipo VARCHAR(20) NOT NULL DEFAULT 'pratica',
+    data DATE NOT NULL DEFAULT CURRENT_DATE,
+    hora_inicio TIME,
+    hora_fim TIME,
+    instrutor VARCHAR(200),
+    descricao TEXT,
+    realizada BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_students_escola ON students (escola_id, ativo);
+CREATE INDEX IF NOT EXISTS idx_students_nome ON students (nome);
+CREATE INDEX IF NOT EXISTS idx_students_numero ON students (escola_id, numero_estudante);
+CREATE INDEX IF NOT EXISTS idx_students_categoria ON students (categoria);
+CREATE INDEX IF NOT EXISTS idx_students_estado ON students (estado_formacao);
+CREATE INDEX IF NOT EXISTS idx_student_contacts_student ON student_contacts (student_id);
+CREATE INDEX IF NOT EXISTS idx_training_records_student ON training_records (student_id, data DESC);
+
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS student_id BIGINT REFERENCES students(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_tickets_student ON tickets (student_id);
+
+-- Student auth
+ALTER TABLE students ADD COLUMN IF NOT EXISTS senha_hash VARCHAR(200);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS student_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    refresh_token VARCHAR(500) NOT NULL UNIQUE,
+    user_agent TEXT,
+    ip_address VARCHAR(45),
+    expires_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_sessions_token ON student_sessions (refresh_token);
+CREATE INDEX IF NOT EXISTS idx_student_sessions_student ON student_sessions (student_id);
+
+CREATE TABLE IF NOT EXISTS student_qr_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    qr_token VARCHAR(200) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_qr_tokens_token ON student_qr_tokens (qr_token);
+CREATE INDEX IF NOT EXISTS idx_student_qr_tokens_student ON student_qr_tokens (student_id);
+
+CREATE TABLE IF NOT EXISTS student_login_history (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    metodo VARCHAR(30) NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    sucesso BOOLEAN NOT NULL DEFAULT TRUE,
+    falha_motivo VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_login_history_student ON student_login_history (student_id, created_at DESC);
+
+ALTER TABLE students ADD COLUMN IF NOT EXISTS login_attempts INT NOT NULL DEFAULT 0;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;

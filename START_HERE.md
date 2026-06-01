@@ -78,12 +78,11 @@ Escolha de acordo com o seu tempo disponível:
 
 1️⃣ APLICAR SCHEMA + SEED (3 minutos)
 
-   docker exec kioske_db psql -U postgres -d kioske_db < backend/src/db/schema.sql
-   docker exec kioske_db psql -U postgres -d kioske_db < backend/src/db/seed-triage.sql
+   npm run db:setup
 
-2️⃣ REINICIAR BACKEND (1 minuto)
+2️⃣ INICIAR BACKEND (1 minuto)
 
-   docker-compose restart backend
+   npm run dev
 
 3️⃣ TESTAR (escolha um)
 
@@ -125,10 +124,10 @@ MODIFICADOS:
 Verificar que tudo funciona:
 
 1. Schema criado?
-   docker exec kioske_db psql -U postgres -d kioske_db -c "\\dt triage*"
+   psql -U postgres -d kiosque -c "\dt triage*"
 
 2. Dados inseridos?
-   docker exec kioske_db psql -U postgres -d kioske_db -c "SELECT COUNT(*) FROM triage_questions;"
+   psql -U postgres -d kiosque -c "SELECT COUNT(*) FROM triage_questions;"
 
 3. API funciona?
    curl -H "X-Role: admin" http://localhost:3001/admin/triage/perguntas?servicoId=e1111111-1111-1111-1111-111111111111
@@ -169,8 +168,7 @@ Leia:
   • IMPLEMENTACAO_TRIAGEM.md → troubleshooting
   • TRIAGE_API_DOCS.md    → referência API
 
-Ou verifique os logs:
-  docker logs kioske_backend
+Ou verifique os logs no terminal onde o backend está a rodar.
 
 ===============================
 
