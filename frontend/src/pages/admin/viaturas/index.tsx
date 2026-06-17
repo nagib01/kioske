@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
+import { useToast } from '../../../components/Toast';
 
 type Car = {
   id: string;
@@ -24,6 +25,7 @@ type CarForm = {
 const emptyCar: CarForm = { matricula: '', marca: '', modelo: '', ano: undefined, categoria: 'B', observacoes: '' };
 
 export default function AdminViaturas() {
+  const { addToast } = useToast();
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -70,7 +72,7 @@ export default function AdminViaturas() {
       fetchCars();
     } else {
       const err = await res.json();
-      alert(err.error || 'Erro ao salvar viatura');
+      addToast(err.error || 'Erro ao salvar viatura', 'error');
     }
   };
 

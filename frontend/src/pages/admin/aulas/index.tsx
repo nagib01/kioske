@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
+import { useToast } from '../../../components/Toast';
 
 type Lesson = {
   id: string;
@@ -16,6 +17,7 @@ type Lesson = {
 };
 
 export default function AdminAulas() {
+  const { addToast } = useToast();
   const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [total, setTotal] = useState(0);
@@ -68,7 +70,7 @@ export default function AdminAulas() {
     const res = await fetch(api(`/admin/lessons/export?${params}`), {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) return alert('Erro ao exportar');
+    if (!res.ok) return addToast('Erro ao exportar', 'error');
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

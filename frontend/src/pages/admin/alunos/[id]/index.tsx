@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import BackofficeLayout from '../../../../components/BackofficeLayout';
+import { useToast } from '../../../../components/Toast';
 
 const ESTADOS_FORMACAO: Record<string, string> = {
   inscrito: 'Inscrito', em_formacao: 'Em Formação', teorico_concluido: 'Teórico Concluído',
@@ -21,6 +22,7 @@ const estadoBadge = (estado: string) => {
 type Tab = 'perfil' | 'tickets' | 'aulas' | 'contactos';
 
 export default function AlunoProfilePage() {
+  const { addToast } = useToast();
   const router = useRouter();
   const { id } = router.query;
   const [student, setStudent] = useState<any>(null);
@@ -90,7 +92,7 @@ export default function AlunoProfilePage() {
   const [associateTicketId, setAssociateTicketId] = useState('');
 
   const addContact = async () => {
-    if (!newContact.nome) return alert('Nome é obrigatório');
+    if (!newContact.nome) return addToast('Nome é obrigatório', 'warning');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/${id}/contacts`, {
         method: 'POST', headers: getHeaders(), body: JSON.stringify(newContact),
@@ -98,7 +100,7 @@ export default function AlunoProfilePage() {
       if (!res.ok) throw new Error('Falha ao adicionar contacto');
       setNewContact({ nome: '', parentesco: '', telefone: '', email: '' });
       await fetchContacts();
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { addToast(err.message, 'error'); }
   };
 
   const deleteContact = async (contactId: string) => {
@@ -110,8 +112,8 @@ export default function AlunoProfilePage() {
   };
 
   const addLesson = async () => {
-    if (!newLesson.data) return alert('Data é obrigatória');
-    if (!newLesson.hora_inicio || !newLesson.hora_fim) return alert('Hora de início e fim são obrigatórias');
+    if (!newLesson.data) return addToast('Data é obrigatória', 'warning');
+    if (!newLesson.hora_inicio || !newLesson.hora_fim) return addToast('Hora de início e fim são obrigatórias', 'warning');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/${id}/lessons`, {
         method: 'POST', headers: getHeaders(), body: JSON.stringify(newLesson),
@@ -119,7 +121,7 @@ export default function AlunoProfilePage() {
       if (!res.ok) throw new Error('Falha ao adicionar aula');
       setNewLesson({ tipo: 'pratica', data: new Date().toISOString().split('T')[0], hora_inicio: '', hora_fim: '', car_id: '', summary: '', status: 'agendada' });
       await fetchLessons();
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { addToast(err.message, 'error'); }
   };
 
   const deleteLesson = async (lessonId: string) => {
@@ -131,7 +133,7 @@ export default function AlunoProfilePage() {
   };
 
   const associateTicket = async () => {
-    if (!associateTicketId) return alert('ID do ticket é obrigatório');
+    if (!associateTicketId) return addToast('ID do ticket é obrigatório', 'warning');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/${id}/tickets`, {
         method: 'POST', headers: getHeaders(), body: JSON.stringify({ ticketId: associateTicketId }),
@@ -139,7 +141,7 @@ export default function AlunoProfilePage() {
       if (!res.ok) throw new Error('Falha ao associar ticket');
       setAssociateTicketId('');
       await fetchTickets();
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { addToast(err.message, 'error'); }
   };
 
   if (loading) {

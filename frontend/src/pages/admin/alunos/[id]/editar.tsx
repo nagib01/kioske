@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BackofficeLayout from '../../../../components/BackofficeLayout';
+import { useToast } from '../../../../components/Toast';
 
 const CATEGORIAS = ['A', 'B', 'C', 'D', 'BE', 'CE', 'DE'];
 const ESTADOS_FORMACAO = [
@@ -15,6 +16,7 @@ const ESTADOS_FORMACAO = [
 ];
 
 export default function EditarAlunoPage() {
+  const { addToast } = useToast();
   const router = useRouter();
   const { id } = router.query;
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export default function EditarAlunoPage() {
           ativo: data.ativo !== false,
         });
       } catch (err: any) {
-        alert(err.message);
+        addToast(err.message, 'error');
         router.push('/admin/alunos');
       } finally {
         setLoading(false);
@@ -81,7 +83,7 @@ export default function EditarAlunoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.numero_estudante || !form.nome || !form.categoria) {
-      alert('Preencha os campos obrigatórios');
+      addToast('Preencha os campos obrigatórios', 'warning');
       return;
     }
     setSaving(true);
@@ -97,7 +99,7 @@ export default function EditarAlunoPage() {
       }
       router.push(`/admin/alunos/${id}`);
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     } finally {
       setSaving(false);
     }

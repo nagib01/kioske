@@ -66,6 +66,13 @@ export async function instructorLessonRoutes(fastify: FastifyInstance) {
         }
       }
 
+      if (parsed.tipo === 'pratica' && parsed.car_id && parsed.categoria) {
+        const carRes = await client.query('SELECT categoria FROM cars WHERE id = $1', [parsed.car_id]);
+        if (carRes.rows.length && carRes.rows[0].categoria !== parsed.categoria) {
+          return reply.status(400).send({ error: 'Viatura incompatível com a categoria da aula' });
+        }
+      }
+
       const lesson = await LessonModel.criar(client, {
         ...parsed,
         instructor_id: instructorId,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
+import { useToast } from '../../../components/Toast';
 
 type Instrutor = {
   id: string;
@@ -22,6 +23,7 @@ type InstrutorForm = {
 const emptyForm: InstrutorForm = { nome: '', email: '', senha: '', role: 'instructor', telefone: '' };
 
 export default function AdminInstrutores() {
+  const { addToast } = useToast();
   const [users, setUsers] = useState<Instrutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -73,7 +75,7 @@ export default function AdminInstrutores() {
       fetchUsers();
     } else {
       const err = await res.json();
-      alert(err.error || 'Erro ao salvar');
+      addToast(err.error || 'Erro ao salvar', 'error');
     }
   };
 

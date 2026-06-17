@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
+import { useToast } from '../../components/Toast';
 
 interface Servico {
   id: string;
@@ -12,6 +13,7 @@ interface Servico {
 }
 
 export default function AdminServicosPage() {
+  const { addToast } = useToast();
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +117,7 @@ export default function AdminServicosPage() {
       setIsModalOpen(false);
       await fetchServicos();
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -129,7 +131,7 @@ export default function AdminServicosPage() {
       if (!res.ok) throw new Error('Falha ao desativar serviço');
       await fetchServicos();
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     }
   };
 

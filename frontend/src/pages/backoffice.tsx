@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import BackofficeMenu from '../components/BackofficeMenu';
+import { useToast } from '../components/Toast';
 
 interface ServicoOption {
   id: string;
@@ -22,6 +23,7 @@ interface Ticket {
 }
 
 export default function Backoffice() {
+  const { addToast } = useToast();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -161,7 +163,7 @@ export default function Backoffice() {
       // Get first waiting ticket from current queue
       const proximoTicket = tickets.find(t => t.estado === 'waiting');
       if (!proximoTicket) {
-        alert('Nenhum cliente aguardando.');
+        addToast('Nenhum cliente aguardando.', 'warning');
         setLoading(false);
         return;
       }
@@ -178,11 +180,11 @@ export default function Backoffice() {
         // Reload queue after calling
         await loadQueue();
       } else {
-        alert('Erro ao chamar cliente.');
+        addToast('Erro ao chamar cliente.', 'error');
       }
     } catch (err) {
       console.error('Erro ao chamar próximo:', err);
-      alert('Erro ao chamar cliente.');
+      addToast('Erro ao chamar cliente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -227,7 +229,7 @@ export default function Backoffice() {
   };
 
   const handleCriarTicket = async () => {
-    if (!novoTicketServico) { alert('Selecione um servico'); return; }
+    if (!novoTicketServico) { addToast('Selecione um servico', 'warning'); return; }
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/tickets`, {
         method: 'POST',
@@ -244,11 +246,11 @@ export default function Backoffice() {
         await loadQueue();
       } else {
         const errData = await res.json();
-        alert(errData.error || 'Erro ao criar senha');
+        addToast(errData.error || 'Erro ao criar senha', 'error');
       }
     } catch (err) {
       console.error('Erro ao criar ticket', err);
-      alert('Erro ao criar senha');
+      addToast('Erro ao criar senha', 'error');
     }
   };
 
@@ -265,11 +267,11 @@ export default function Backoffice() {
         await loadQueue();
       } else {
         const errData = await res.json();
-        alert(errData.error || 'Erro ao transferir');
+        addToast(errData.error || 'Erro ao transferir', 'error');
       }
     } catch (err) {
       console.error('Erro ao transferir', err);
-      alert('Erro ao transferir senha');
+      addToast('Erro ao transferir senha', 'error');
     }
   };
 

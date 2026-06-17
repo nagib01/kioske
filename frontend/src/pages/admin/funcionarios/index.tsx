@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
+import { useToast } from '../../../components/Toast';
 
 type Employee = {
   id: string;
@@ -34,6 +35,7 @@ const roleColors: Record<string, string> = {
 const emptyForm: EmployeeForm = { nome: '', email: '', senha: '', role: 'instructor', telefone: '' };
 
 export default function AdminFuncionarios() {
+  const { addToast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -85,7 +87,7 @@ export default function AdminFuncionarios() {
       fetchEmployees();
     } else {
       const err = await res.json();
-      alert(err.error || 'Erro ao salvar');
+      addToast(err.error || 'Erro ao salvar', 'error');
     }
   };
 

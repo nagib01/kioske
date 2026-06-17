@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import BackofficeLayout from '../../../components/BackofficeLayout';
+import { useToast } from '../../../components/Toast';
 
 interface Student {
   id: string;
@@ -50,6 +51,7 @@ const estadoBadge = (estado: string) => {
 };
 
 export default function AdminAlunosPage() {
+  const { addToast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function AdminAlunosPage() {
       setStudents(data.students || []);
       setTotal(data.total || 0);
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -111,7 +113,7 @@ export default function AdminAlunosPage() {
       await fetchStudents();
       await fetchDashboard();
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     }
   };
 

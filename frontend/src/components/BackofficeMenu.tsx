@@ -19,7 +19,7 @@ const menuItems: MenuItem[] = [
         <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
-    label: 'Dashboard',
+    label: 'Painel',
     id: '/backoffice'
   },
   {
@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
         <polyline points="12 6 12 12 16 14" />
       </svg>
     ),
-    label: 'Queue Live',
+    label: 'Fila ao Vivo',
     id: '/admin/fila'
   },
   {
@@ -41,7 +41,7 @@ const menuItems: MenuItem[] = [
         <circle cx="12" cy="7" r="4" />
       </svg>
     ),
-    label: 'Students',
+    label: 'Alunos',
     id: '/admin/alunos'
   },
   {
@@ -54,7 +54,7 @@ const menuItems: MenuItem[] = [
         <circle cx="16" cy="5" r="3" />
       </svg>
     ),
-    label: 'Employees',
+    label: 'Funcionários',
     id: '/admin/funcionarios'
   },
   {
@@ -65,7 +65,7 @@ const menuItems: MenuItem[] = [
         <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5" />
       </svg>
     ),
-    label: 'Lessons',
+    label: 'Aulas',
     id: '/admin/aulas'
   },
   {
@@ -77,7 +77,7 @@ const menuItems: MenuItem[] = [
         <circle cx="17" cy="15" r="2" />
       </svg>
     ),
-    label: 'Cars',
+    label: 'Viaturas',
     id: '/admin/viaturas'
   },
   {
@@ -92,7 +92,7 @@ const menuItems: MenuItem[] = [
         <line x1="3" y1="18" x2="3.01" y2="18" />
       </svg>
     ),
-    label: 'Services',
+    label: 'Serviços',
     id: '/admin/servicos'
   },
   {
@@ -104,7 +104,7 @@ const menuItems: MenuItem[] = [
         <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     ),
-    label: 'Questionnaires',
+    label: 'Questionários',
     id: '/admin/questionarios'
   }
 ];

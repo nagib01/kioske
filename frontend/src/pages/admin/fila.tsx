@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
+import { useToast } from '../../components/Toast';
 
 interface Ticket {
   id: string;
@@ -20,6 +21,7 @@ interface Stats {
 }
 
 export default function AdminFilaPage() {
+  const { addToast } = useToast();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<Stats>({ atendidosHoje: 0, tempoMedioEspera: 0 });
   const [loading, setLoading] = useState(true);
@@ -93,7 +95,7 @@ export default function AdminFilaPage() {
       // Refresh list immediately after action
       await fetchFila(true);
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     } finally {
       setActionLoading(null);
     }
@@ -192,6 +194,11 @@ export default function AdminFilaPage() {
               <p className="text-gray-500 font-medium">A carregar fila...</p>
             </div>
           ) : (
+            (() => {
+              const filteredTickets = statusFilter
+                ? tickets.filter(t => t.estado === statusFilter)
+                : tickets.filter(t => t.estado === 'waiting' || t.estado === 'called');
+            return (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
@@ -204,7 +211,7 @@ export default function AdminFilaPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {tickets.length === 0 ? (
+                {filteredTickets.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-gray-500">
                       <div className="text-lg font-medium text-gray-500 mb-3">Nenhum ticket em espera</div>
@@ -213,7 +220,7 @@ export default function AdminFilaPage() {
                     </td>
                   </tr>
                 ) : (
-                  tickets.map((ticket) => (
+                  filteredTickets.map((ticket) => (
                     <tr 
                       key={ticket.id} 
                       className={`transition-colors ${ticket.estado === 'called' ? 'bg-green-50/50' : 'hover:bg-gray-50'}`}
@@ -315,6 +322,7 @@ export default function AdminFilaPage() {
                 )}
               </tbody>
             </table>
+            )})()
           )}
         </div>
         <div className="mt-4 text-center">

@@ -130,6 +130,7 @@ export const lessonSchema = z.object({
     car_id: z.string().optional(),
     summary: z.string().optional(),
     status: z.enum(['agendada', 'em_curso', 'concluida', 'cancelada']).optional(),
+    categoria: z.string().optional(),
 });
 
 export const lessonUpdateSchema = z.object({
@@ -141,6 +142,7 @@ export const lessonUpdateSchema = z.object({
     car_id: z.string().optional(),
     summary: z.string().optional(),
     status: z.enum(['agendada', 'em_curso', 'concluida', 'cancelada']).optional(),
+    categoria: z.string().optional(),
 });
 
 // ─── Car Schemas ───

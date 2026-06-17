@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+clearimport { useEffect, useState } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
+import { useToast } from '../../components/Toast';
 
 interface Opcao {
   id?: string;
@@ -26,6 +27,7 @@ interface Servico {
 }
 
 export default function AdminQuestionariosPage() {
+  const { addToast } = useToast();
   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +140,7 @@ export default function AdminQuestionariosPage() {
       setIsModalOpen(false);
       await fetchDados();
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     }
   };
 
@@ -152,7 +154,7 @@ export default function AdminQuestionariosPage() {
       if (!res.ok) throw new Error('Falha ao desativar pergunta');
       await fetchDados();
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     }
   };
 

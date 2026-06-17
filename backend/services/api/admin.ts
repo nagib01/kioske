@@ -210,5 +210,94 @@ export async function adminRoutes(fastify: FastifyInstance) {
             return reply.send({ pergunta: res.rows[0] });
         });
     });
+
+    // ==================== OPÇÕES DE TRIAGEM ====================
+
+    fastify.post('/admin/opcoes', async (request: any, reply) => {
+        if (!(await authAdmin(request, reply))) return;
+        const { question_id, label, value, ordem, regra } = request.body as any;
+        if (!question_id || !label || !value) {
+            return reply.status(400).send({ error: 'question_id, label e value são obrigatórios' });
+        }
+        return withDb(fastify, async (client) => {
+            const result = await client.query(
+                `INSERT INTO triage_question_options (question_id, label, value, ordem, regra, ativo)
+                 VALUES ($1, $2, $3, $4, $5, true)
+                 RETURNING *`,
+                [question_id, label, value, ordem || 0, JSON.stringify(regra || {})]
+            );
+            return reply.send({ opcao: result.rows[0] });
+        });
+    });
+
+    fastify.put('/admin/opcoes/:id', async (request: any, reply) => {
+        if (!(await authAdmin(request, reply))) return;
+        const { id } = request.params as any;
+        const { label, value, ordem, regra, ativo } = request.body as any;
+        return withDb(fastify, async (client) => {
+            const result = await client.query(
+                `UPDATE triage_question_options
+                 SET label = COALESCE($2, label),
+                     value = COALESCE($3, value),
+                     ordem = COALESCE($4, ordem),
+                     regra = COALESCE($5::jsonb, regra),
+                     ativo = COALESCE($6, ativo),
+                     updated_at = NOW()
+                 WHERE id = $1
+                 RETURNING *`,
+                [id, label, value, ordem, regra ? JSON.stringify(regra) : null, ativo]
+            );
+            if (!result.rows.length) {
+                return reply.status(404).send({ error: 'Opção não encontrada' });
+            }
+            return reply.send({ opcao: result.rows[0] });
+        });
+    });
+
+    fastify.delete('/admin/opcoes/:id', async (request: any, reply) => {
+        if (!(await authAdmin(request, reply))) return;
+        const { id } = request.params as any;
+        return withDb(fastify, async (client) => {
+            const result = await client.query(
+                `UPDATE triage_question_options SET ativo = false, updated_at = NOW() WHERE id = $1 RETURNING *`,
+                [id]
+            );
+            if (!result.rows.length) {
+                return reply.status(404).send({ error: 'Opção não encontrada' });
+            }
+            return reply.send({ opcao: result.rows[0] });
+        });
+    });
+
+    // ==================== AVALIAR TRIAGEM ====================
+
+    fastify.post('/admin/triage/avaliar', async (request: any, reply) => {
+        if (!(await authAdmin(request, reply))) return;
+        const { pergunta_resposta_pairs } = request.body as any;
+        if (!pergunta_resposta_pairs || !Array.isArray(pergunta_resposta_pairs)) {
+            return reply.status(400).send({ error: 'pergunta_resposta_pairs deve ser um array' });
+        }
+        return withDb(fastify, async (client) => {
+            let priority_level = 0;
+            const alertas = new Set<string>();
+            for (const pair of pergunta_resposta_pairs) {
+                const { opcao_id } = pair;
+                if (!opcao_id) continue;
+                const resultOpcao = await client.query(
+                    `SELECT regra FROM triage_question_options WHERE id = $1`,
+                    [opcao_id]
+                );
+                if (!resultOpcao.rows.length) continue;
+                const regra = resultOpcao.rows[0].regra || {};
+                if (regra.priority_level) {
+                    priority_level = Math.max(priority_level, regra.priority_level);
+                }
+                if (regra.alerta) {
+                    alertas.add(regra.alerta);
+                }
+            }
+            return reply.send({ priority_level, alertas: Array.from(alertas) });
+        });
+    });
 }
 // end adminRoutes

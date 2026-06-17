@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import InstructorLayout from '../../components/InstructorLayout';
+import { useToast } from '../../components/Toast';
 
-type Student = { id: string; nome: string; numero_estudante: string };
+type Student = { id: string; nome: string; numero_estudante: string; categoria: string };
 type Car = { id: string; matricula: string; marca: string; modelo: string; categoria: string };
 
 export default function InstructorAulas() {
+  const { addToast } = useToast();
   const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const [lessons, setLessons] = useState<any[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -14,7 +16,7 @@ export default function InstructorAulas() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
-    student_id: '', tipo: 'pratica', data: '', hora_inicio: '', hora_fim: '', car_id: '', summary: '',
+    student_id: '', tipo: 'pratica', data: '', hora_inicio: '', hora_fim: '', car_id: '', summary: '', categoria: '',
   });
   const [studentSearch, setStudentSearch] = useState('');
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
@@ -24,6 +26,7 @@ export default function InstructorAulas() {
     !studentSearch || s.nome.toLowerCase().includes(studentSearch.toLowerCase()) ||
     s.numero_estudante.includes(studentSearch)
   );
+  const filteredCars = cars.filter(c => !form.categoria || form.tipo === 'teorica' || c.categoria === form.categoria);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('backoffice_token') : null;
 
@@ -70,7 +73,7 @@ export default function InstructorAulas() {
   }, [showStudentDropdown]);
 
   const resetForm = () => {
-    setForm({ student_id: '', tipo: 'pratica', data: '', hora_inicio: '', hora_fim: '', car_id: '', summary: '' });
+    setForm({ student_id: '', tipo: 'pratica', data: '', hora_inicio: '', hora_fim: '', car_id: '', summary: '', categoria: '' });
     setStudentSearch('');
     setShowStudentDropdown(false);
     setEditingId(null);
@@ -86,6 +89,7 @@ export default function InstructorAulas() {
       hora_fim: lesson.hora_fim || '',
       car_id: lesson.car_id || '',
       summary: lesson.summary || '',
+      categoria: lesson.categoria || '',
     });
     setEditingId(lesson.id);
     setShowForm(true);
@@ -105,7 +109,7 @@ export default function InstructorAulas() {
       fetchLessons();
     } else {
       const err = await res.json();
-      alert(err.error || 'Erro ao salvar aula');
+      addToast(err.error || 'Erro ao salvar aula', 'error');
     }
   };
 
@@ -235,7 +239,7 @@ export default function InstructorAulas() {
                         <div className="p-3 text-sm text-gray-400">Nenhum aluno encontrado</div>
                       ) : filteredStudents.map(s => (
                         <button key={s.id} type="button"
-                          onClick={() => { setForm({...form, student_id: s.id}); setStudentSearch(''); setShowStudentDropdown(false); }}
+                          onClick={() => { setForm({...form, student_id: s.id, categoria: s.categoria || ''}); setStudentSearch(''); setShowStudentDropdown(false); }}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-green-50 transition-colors ${form.student_id === s.id ? 'bg-green-50 font-bold text-[#047857]' : 'text-gray-700'}`}>
                           {s.nome} <span className="text-gray-400">({s.numero_estudante})</span>
                         </button>
@@ -258,13 +262,20 @@ export default function InstructorAulas() {
                   <input type="time" value={form.hora_fim} onChange={e => setForm({...form, hora_fim: e.target.value})}
                     className="border border-gray-300 rounded-lg p-2.5 text-sm" placeholder="Fim" />
                 </div>
-                <select value={form.car_id} onChange={e => setForm({...form, car_id: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
-                  <option value="">Sem carro</option>
-                  {cars.map(c => (
-                    <option key={c.id} value={c.id}>{c.matricula} - {c.marca} {c.modelo} (Cat. {c.categoria})</option>
-                  ))}
-                </select>
+                {form.tipo === 'pratica' && (
+                  <>
+                    <input type="text" value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})}
+                      placeholder="Categoria de carta (ex: B)" readOnly={!!selectedStudent}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-gray-50" />
+                    <select value={form.car_id} onChange={e => setForm({...form, car_id: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
+                      <option value="">Sem carro</option>
+                      {filteredCars.map(c => (
+                        <option key={c.id} value={c.id}>{c.matricula} - {c.marca} {c.modelo} (Cat. {c.categoria})</option>
+                      ))}
+                    </select>
+                  </>
+                )}
                 <textarea placeholder="Sumário / Observações" value={form.summary}
                   onChange={e => setForm({...form, summary: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg p-2.5 text-sm" rows={3} />

@@ -9,12 +9,14 @@ export interface ILesson {
     instructor_id?: string;
     summary?: string;
     status: string;
+    categoria?: string;
     created_at: Date;
 }
 
 export interface ILessonWithJoins extends ILesson {
     student_nome: string;
     student_numero_estudante: string;
+    student_categoria?: string;
     car_matricula?: string;
     instructor_nome?: string;
 }
@@ -25,6 +27,7 @@ export class LessonModel {
             `SELECT tr.*,
                 s.nome as student_nome,
                 s.numero_estudante as student_numero_estudante,
+                s.categoria as student_categoria,
                 c.matricula as car_matricula,
                 u.nome as instructor_nome
              FROM training_records tr
@@ -42,6 +45,7 @@ export class LessonModel {
             `SELECT tr.*,
                 s.nome as student_nome,
                 s.numero_estudante as student_numero_estudante,
+                s.categoria as student_categoria,
                 c.matricula as car_matricula,
                 u.nome as instructor_nome
              FROM training_records tr
@@ -63,6 +67,7 @@ export class LessonModel {
         let query = `SELECT tr.*,
                 s.nome as student_nome,
                 s.numero_estudante as student_numero_estudante,
+                s.categoria as student_categoria,
                 c.matricula as car_matricula,
                 u.nome as instructor_nome
              FROM training_records tr
@@ -156,7 +161,7 @@ export class LessonModel {
 
         const res = await db.query(
             `SELECT tr.*, s.nome as student_nome, s.numero_estudante as student_numero_estudante,
-                c.matricula as car_matricula, u.nome as instructor_nome
+                s.categoria as student_categoria, c.matricula as car_matricula, u.nome as instructor_nome
              ${baseQuery} ${where}
              ORDER BY ${safeSort} ${order}
              LIMIT $${idx} OFFSET $${idx + 1}`,
@@ -176,12 +181,14 @@ export class LessonModel {
         instructor_id?: string;
         summary?: string;
         status?: string;
+        categoria?: string;
     }): Promise<ILesson> {
         const res = await db.query(
-            `INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, car_id, instructor_id, summary, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            `INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, car_id, instructor_id, summary, status, categoria)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
             [data.student_id, data.tipo, data.data, data.hora_inicio, data.hora_fim,
-             data.car_id || null, data.instructor_id || null, data.summary || null, data.status || 'agendada']
+             data.car_id || null, data.instructor_id || null, data.summary || null, data.status || 'agendada',
+             data.categoria || null]
         );
         return res.rows[0];
     }
@@ -196,6 +203,7 @@ export class LessonModel {
         instructor_id: string;
         summary: string;
         status: string;
+        categoria: string;
     }>): Promise<ILesson | null> {
         const fields: string[] = [];
         const values: unknown[] = [];
@@ -277,7 +285,7 @@ export class LessonModel {
 
         const proximasRes = await db.query(
             `SELECT tr.*, s.nome as student_nome, s.numero_estudante as student_numero_estudante,
-                c.matricula as car_matricula, u.nome as instructor_nome
+                s.categoria as student_categoria, c.matricula as car_matricula, u.nome as instructor_nome
              FROM training_records tr
              JOIN students s ON s.id = tr.student_id
              LEFT JOIN cars c ON c.id = tr.car_id

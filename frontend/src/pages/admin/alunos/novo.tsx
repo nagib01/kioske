@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BackofficeLayout from '../../../components/BackofficeLayout';
+import { useToast } from '../../../components/Toast';
 
 const CATEGORIAS = ['A', 'B', 'C', 'D', 'BE', 'CE', 'DE'];
 const ESTADOS_FORMACAO = [
@@ -15,6 +16,7 @@ const ESTADOS_FORMACAO = [
 ];
 
 export default function NovoAlunoPage() {
+  const { addToast } = useToast();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -46,7 +48,7 @@ export default function NovoAlunoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.numero_estudante || !form.nome || !form.categoria) {
-      alert('Preencha os campos obrigatórios');
+      addToast('Preencha os campos obrigatórios', 'warning');
       return;
     }
     setSaving(true);
@@ -62,7 +64,7 @@ export default function NovoAlunoPage() {
       }
       router.push('/admin/alunos');
     } catch (err: any) {
-      alert(err.message);
+      addToast(err.message, 'error');
     } finally {
       setSaving(false);
     }

@@ -199,6 +199,7 @@ CREATE TABLE IF NOT EXISTS training_records (
     instructor_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
     summary TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'agendada',
+    categoria VARCHAR(10),
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -209,6 +210,7 @@ ALTER TABLE training_records ADD COLUMN IF NOT EXISTS summary TEXT;
 UPDATE training_records SET summary = descricao WHERE summary IS NULL AND descricao IS NOT NULL;
 ALTER TABLE training_records ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'agendada';
 UPDATE training_records SET status = CASE WHEN realizada = true THEN 'concluida' ELSE 'agendada' END WHERE status = 'agendada';
+ALTER TABLE training_records ADD COLUMN IF NOT EXISTS categoria VARCHAR(10);
 ALTER TABLE training_records DROP COLUMN IF EXISTS instrutor;
 ALTER TABLE training_records DROP COLUMN IF EXISTS descricao;
 ALTER TABLE training_records DROP COLUMN IF EXISTS realizada;
