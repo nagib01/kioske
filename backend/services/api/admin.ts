@@ -1,9 +1,42 @@
 import { FastifyInstance } from 'fastify';
+import { z } from 'zod';
 import { authAdmin } from '../../src/shared/auth.js';
 import { getDefaultEscolaId as getEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { validate, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
+
+const atualizarServicoSchema = z.object({
+  nome: z.string().min(1).optional(),
+  prioridade_base: z.number().optional(),
+  ativo: z.boolean().optional(),
+  codigo_prefixo: z.string().optional(),
+  tempo_medio_atendimento: z.number().optional(),
+  mesa_padrao: z.string().optional(),
+  mesas: z.array(z.string()).optional(),
+});
+
+const criarOpcaoSchemaAlt = z.object({
+  question_id: z.string().min(1, 'question_id é obrigatório'),
+  label: z.string().min(1, 'label é obrigatório'),
+  value: z.string().min(1, 'value é obrigatório'),
+  ordem: z.number().optional(),
+  regra: z.any().optional(),
+});
+
+const atualizarOpcaoSchema = z.object({
+  label: z.string().min(1).optional(),
+  value: z.string().min(1).optional(),
+  ordem: z.number().optional(),
+  regra: z.any().optional(),
+  ativo: z.boolean().optional(),
+});
+
+const avaliarTriagemSchema = z.object({
+  pergunta_resposta_pairs: z.array(z.object({
+    opcao_id: z.string().min(1),
+  })).min(1, 'pergunta_resposta_pairs deve conter pelo menos um par'),
+});
 
 export async function adminRoutes(fastify: FastifyInstance) {
 
@@ -43,7 +76,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
         if (!(await authAdmin(request, reply))) return;
         const { id } = request.params as any;
         if (!id) return reply.status(400).send({ error: 'id é necessário' });
-        const { nome, prioridade_base, ativo, codigo_prefixo, tempo_medio_atendimento, mesa_padrao } = request.body as any;
+        let parsed: any;
+        try { parsed = validate(atualizarServicoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const { nome, prioridade_base, ativo, codigo_prefixo, tempo_medio_atendimento, mesa_padrao, mesas } = parsed;
         return withDb(fastify, async (client) => {
             const res = await client.query(
                 `UPDATE servicos
@@ -52,10 +87,11 @@ export async function adminRoutes(fastify: FastifyInstance) {
                      ativo = COALESCE($4,ativo),
                      codigo_prefixo = COALESCE($5,codigo_prefixo),
                      tempo_medio_atendimento = COALESCE($6,tempo_medio_atendimento),
-                     mesa_padrao = COALESCE($7,mesa_padrao)
+                     mesa_padrao = COALESCE($7,mesa_padrao),
+                     mesas = COALESCE($8::text[], mesas)
                  WHERE id = $1
                  RETURNING *`,
-                [id, nome, prioridade_base, ativo, codigo_prefixo, tempo_medio_atendimento, mesa_padrao]
+                [id, nome, prioridade_base, ativo, codigo_prefixo, tempo_medio_atendimento, mesa_padrao, mesas || null]
             );
             await registrarAuditoria(fastify, 'editar_servico', request.user?.id, request.user?.nome, null, { servicoId: id });
             return reply.send({ servico: res.rows[0] });
@@ -215,10 +251,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     fastify.post('/admin/opcoes', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        const { question_id, label, value, ordem, regra } = request.body as any;
-        if (!question_id || !label || !value) {
-            return reply.status(400).send({ error: 'question_id, label e value são obrigatórios' });
-        }
+        let parsed: any;
+        try { parsed = validate(criarOpcaoSchemaAlt, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const { question_id, label, value, ordem, regra } = parsed;
         return withDb(fastify, async (client) => {
             const result = await client.query(
                 `INSERT INTO triage_question_options (question_id, label, value, ordem, regra, ativo)
@@ -233,7 +268,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
     fastify.put('/admin/opcoes/:id', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
         const { id } = request.params as any;
-        const { label, value, ordem, regra, ativo } = request.body as any;
+        let parsed: any;
+        try { parsed = validate(atualizarOpcaoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const { label, value, ordem, regra, ativo } = parsed;
         return withDb(fastify, async (client) => {
             const result = await client.query(
                 `UPDATE triage_question_options
@@ -273,10 +310,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     fastify.post('/admin/triage/avaliar', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        const { pergunta_resposta_pairs } = request.body as any;
-        if (!pergunta_resposta_pairs || !Array.isArray(pergunta_resposta_pairs)) {
-            return reply.status(400).send({ error: 'pergunta_resposta_pairs deve ser um array' });
-        }
+        let parsed: any;
+        try { parsed = validate(avaliarTriagemSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const { pergunta_resposta_pairs } = parsed;
         return withDb(fastify, async (client) => {
             let priority_level = 0;
             const alertas = new Set<string>();

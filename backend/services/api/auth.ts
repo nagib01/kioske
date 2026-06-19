@@ -26,7 +26,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         const token = fastify.jwt.sign({
             id: user.id, email: user.email, role: user.role,
             nome: user.nome, avatar_url: user.avatar_url, escola_id: user.escola_id
-        });
+        }, { expiresIn: '8h' });
 
         await registrarAuditoria(fastify, 'login', user.id, user.nome, null, { email });
 

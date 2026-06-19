@@ -6,38 +6,27 @@ Olá! Aqui está a implementação completa do sistema de triagem dinâmica para
 📖 LEIA PRIMEIRO
 ===============
 
-Escolha de acordo com o seu tempo disponível:
+Documentação disponível no código-fonte:
 
-⚡ SUPER RÁPIDO (5 minutos)
-→ SUMARIO_EXECUTIVO.md
-  - Status final
-  - Números/entregáveis
-  - Checklist de validação
+📖 Motor de Triagem
+→ backend/services/TriagemEngine.ts
+  - 100% rule-based JSON
+  - JSDoc completo com tipos, fluxo e exemplos
+  - 9 testes unitários em backend/services/TriagemEngine.test.ts
 
-🚀 RÁPIDO (20 minutos)
-→ QUICK_START_TRIAGEM.md
-  - Aplicar schema + seed
-  - Testes com curl
-  - Acessar UIs
+📖 API Endpoints
+→ backend/services/api/triagem.ts
+→ backend/services/api/admin.ts (CRUD perguntas/opções)
+→ backend/services/api/recepcionista.ts (chamar/finalizar/transferir)
 
-📚 COMPLETO (1 hora)
-→ README_TRIAGEM.md (este é o índice master)
-  - Mapa de todos ficheiros
-  - Diagrama de dados
-  - Testes recomendados
-  - Referência rápida
+📖 Schema BD
+→ backend/src/db/schema.sql (295 linhas)
+→ backend/src/db/seed-triage.sql (167 linhas, 8 perguntas de exemplo)
 
-🔧 IMPLEMENTAÇÃO (30 minutos)
-→ IMPLEMENTACAO_TRIAGEM.md
-  - Setup passo-a-passo
-  - Troubleshooting
-  - Explicação técnica completa
-
-📖 API REFERENCE (para devs)
-→ TRIAGE_API_DOCS.md
-  - Todos os 8 endpoints
-  - Curl examples
-  - Estrutura de dados
+📖 UI Admin
+→ frontend/src/pages/admin/questionarios.tsx
+→ frontend/src/pages/admin/servicos.tsx
+→ frontend/src/pages/admin/fila.tsx
 
 ===============================
 
@@ -97,14 +86,13 @@ Escolha de acordo com o seu tempo disponível:
 =======================
 
 NOVOS:
-  backend/services/api/admin_triage.ts     (203 linhas) - Admin API endpoints
-  frontend/src/pages/admin/triage.tsx      (283 linhas) - Admin UI
-  backend/src/db/seed-triage.sql           (106 linhas) - Dados exemplo
+  backend/src/db/seed-triage.sql           (167 linhas) - Dados exemplo
 
 MODIFICADOS:
+  backend/services/api/admin.ts            (+CRUD perguntas/opções triagem)
   backend/src/db/schema.sql                (+regra JSONB, +priority_level INT)
-  backend/src/server.ts                    (+adminTriageRoutes)
-  frontend/src/pages/aluno.tsx             (+escolaId, endpoints)
+  frontend/src/pages/admin/questionarios.tsx (397 linhas) - Admin UI
+  frontend/src/pages/aluno.tsx             (+triagem iterativa)
 
 ===============================
 
@@ -152,9 +140,9 @@ Automáticamente calculado baseado nas respostas.
 💡 PRÓXIMOS PASSOS
 ==================
 
-1. Ler QUICK_START_TRIAGEM.md (20 minutos)
-2. Aplicar schema + seed
-3. Testar endpoints
+1. Aplicar schema + seed: npm run db:setup
+2. Iniciar: npm run dev
+3. Aceder a http://localhost:3000/admin/questionarios
 4. Criar suas próprias perguntas no admin
 5. Customizar regras (priority_level + alertas)
 
@@ -192,14 +180,12 @@ Todos os requisitos implementados:
 📞 DOCUMENTAÇÃO
 ===============
 
-Ficheiros de documentação criados:
-
-1. SUMARIO_EXECUTIVO.md       (250 linhas) - Visão executiva
-2. QUICK_START_TRIAGEM.md     (150 linhas) - Quick start 20 min
-3. IMPLEMENTACAO_TRIAGEM.md   (300 linhas) - Setup completo
-4. TRIAGE_API_DOCS.md         (455 linhas) - API reference
-5. README_TRIAGEM.md          (350 linhas) - Índice master
-6. Este ficheiro              (este que está a ler)
+Documentação disponível no código:
+1. backend/services/TriagemEngine.ts  (JSDoc completo)
+2. backend/services/TriagemEngine.test.ts  (9 testes)
+3. backend/src/db/schema.sql  (modelo de dados)
+4. backend/src/db/seed-triage.sql  (dados de exemplo)
+5. Este ficheiro
 
 ===============================
 

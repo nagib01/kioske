@@ -19,24 +19,14 @@ if (!process.env.DATABASE_URL) {
     process.exit(1);
 }
 
-function buildDatabaseUrl(): string {
-    if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
-    const host = process.env.DB_HOST || 'localhost';
-    const port = process.env.DB_PORT || '5432';
-    const user = process.env.DB_USER || 'postgres';
-    const password = process.env.DB_PASSWORD || 'Ucadija24*';
-    const db = process.env.DB_NAME || user;
-    return `postgresql://${user}:${encodeURIComponent(password)}@${host}:${port}/${db}`;
-}
-
-function parseCorsOrigins(): string | string[] {
-    const raw = process.env.CORS_ORIGIN || '*';
-    if (raw === '*') return '*';
-    return raw.split(',').map(s => s.trim()).filter(Boolean);
-}
-
-const databaseUrl = buildDatabaseUrl();
+const databaseUrl = process.env.DATABASE_URL!;
 logger.info(`Database: ${databaseUrl.replace(/\/\/.*:.*@/, '//***:***@')}`);
+
+const corsOrigins = process.env.CORS_ORIGIN === '*'
+    ? '*' as const
+    : (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(s => s.trim()).filter(Boolean);
+
+logger.info(`CORS origins: ${JSON.stringify(corsOrigins)}`);
 
 const fastify = Fastify({
     logger: true,
@@ -44,33 +34,19 @@ const fastify = Fastify({
     requestTimeout: 30000,
 });
 
-const corsOrigins = parseCorsOrigins();
-logger.info(`CORS origins: ${JSON.stringify(corsOrigins)}`);
-
 await fastify.register(cors, { origin: corsOrigins });
 await fastify.register(postgres, { connectionString: databaseUrl });
 await fastify.register(jwt, { secret: process.env.JWT_SECRET! });
 await fastify.register(rateLimit, { max: 200, timeWindow: '1 minute' });
 
-const ensureDatabaseSchema = async () => {
-    const statements = [
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS codigo_prefixo VARCHAR(5) NOT NULL DEFAULT 'A'`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS proximo_numero INT NOT NULL DEFAULT 1`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS tempo_medio_atendimento INT NOT NULL DEFAULT 10`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS prioridade_base INT DEFAULT 0`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT TRUE`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS mesa_padrao VARCHAR(10) NOT NULL DEFAULT '01'`,
-        `ALTER TABLE servicos ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`,
-        `ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone VARCHAR(20)`,
-        `ALTER TABLE users ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`
-    ];
-
-    for (const statement of statements) {
-        await fastify.pg.query(statement);
+fastify.get('/health', async (_request, reply) => {
+    try {
+        await fastify.pg.query('SELECT 1');
+        return reply.send({ status: 'ok', timestamp: new Date().toISOString() });
+    } catch {
+        return reply.status(503).send({ status: 'error', message: 'database unreachable' });
     }
-};
-
-await ensureDatabaseSchema();
+});
 
 await registerRoutes(fastify);
 

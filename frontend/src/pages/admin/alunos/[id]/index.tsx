@@ -118,7 +118,7 @@ export default function AlunoProfilePage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/${id}/lessons`, {
         method: 'POST', headers: getHeaders(), body: JSON.stringify(newLesson),
       });
-      if (!res.ok) throw new Error('Falha ao adicionar aula');
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Falha ao adicionar aula'); }
       setNewLesson({ tipo: 'pratica', data: new Date().toISOString().split('T')[0], hora_inicio: '', hora_fim: '', car_id: '', summary: '', status: 'agendada' });
       await fetchLessons();
     } catch (err: any) { addToast(err.message, 'error'); }

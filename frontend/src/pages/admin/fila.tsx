@@ -28,6 +28,8 @@ export default function AdminFilaPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [showDeskModal, setShowDeskModal] = useState(false);
+  const [pendingTicket, setPendingTicket] = useState<Ticket | null>(null);
 
   const getHeaders = () => {
     const token = localStorage.getItem('backoffice_token');
@@ -77,22 +79,41 @@ export default function AdminFilaPage() {
     return () => clearInterval(interval);
   }, [fetchFila]);
 
-  const handleAction = async (ticketId: string, action: 'chamar' | 'finalizar') => {
-    setActionLoading(ticketId);
+  const confirmCall = async (mesa: string) => {
+    if (!pendingTicket) return;
+    const ticket = pendingTicket;
+    setShowDeskModal(false);
+    setPendingTicket(null);
+    setActionLoading(ticket.id);
     try {
-      const endpoint = action === 'chamar' 
-        ? `/api/recepcionista/chamar/${ticketId}`
-        : `/api/recepcionista/finalizar/${ticketId}`;
-        
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recepcionista/chamar/${ticket.id}`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ mesa: '' }),
+        body: JSON.stringify({ mesa }),
       });
+      if (!res.ok) throw new Error('Falha ao chamar ticket');
+      await fetchFila(true);
+    } catch (err: any) {
+      addToast(err.message, 'error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-      if (!res.ok) throw new Error(`Falha ao ${action} ticket`);
-      
-      // Refresh list immediately after action
+  const handleAction = async (ticket: Ticket, action: 'chamar' | 'finalizar') => {
+    if (action === 'chamar') {
+      setPendingTicket(ticket);
+      setShowDeskModal(true);
+      return;
+    }
+    setActionLoading(ticket.id);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recepcionista/finalizar/${ticket.id}`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: '{}',
+      });
+      if (!res.ok) throw new Error('Falha ao finalizar ticket');
       await fetchFila(true);
     } catch (err: any) {
       addToast(err.message, 'error');
@@ -273,7 +294,7 @@ export default function AdminFilaPage() {
                       <td className="py-4 px-6 text-right">
                         {ticket.estado === 'waiting' && (
                           <button 
-                            onClick={() => handleAction(ticket.id, 'chamar')}
+                            onClick={() => handleAction(ticket, 'chamar')}
                             disabled={actionLoading !== null}
                             className={`px-4 py-2 font-bold rounded-lg transition-all ${
                               actionLoading === ticket.id 
@@ -288,7 +309,7 @@ export default function AdminFilaPage() {
                         {ticket.estado === 'called' && (
                           <>
                             <button
-                              onClick={() => handleAction(ticket.id, 'finalizar')}
+                              onClick={() => handleAction(ticket, 'finalizar')}
                               disabled={actionLoading !== null}
                               className={`px-3 py-2 font-bold rounded-lg transition-all mr-1 ${
                                 actionLoading === ticket.id
@@ -331,6 +352,60 @@ export default function AdminFilaPage() {
           </a>
         </div>
       </div>
+
+      {showDeskModal && pendingTicket && (
+        <DesktopModal
+          ticket={pendingTicket}
+          onConfirm={confirmCall}
+          onCancel={() => { setShowDeskModal(false); setPendingTicket(null); }}
+        />
+      )}
     </BackofficeLayout>
+  );
+}
+
+function DesktopModal({ ticket, onConfirm, onCancel }: {
+  ticket: Ticket;
+  onConfirm: (mesa: string) => void;
+  onCancel: () => void;
+}) {
+  const [mesa, setMesa] = useState(ticket.mesa_atendimento || '01');
+
+  const increment = () => setMesa(v => String(Number(v) + 1).padStart(2, '0'));
+  const decrement = () => setMesa(v => String(Math.max(1, Number(v) - 1)).padStart(2, '0'));
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onCancel}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="p-6 sm:p-8 text-center">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Service Desk</p>
+          <div className="flex items-center justify-center gap-3 my-4">
+            <button onClick={decrement} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl font-bold flex items-center justify-center transition-colors">−</button>
+            <input
+              type="text"
+              value={mesa}
+              onChange={e => setMesa(e.target.value.replace(/\D/g, '').slice(0, 2))}
+              className="w-24 text-center text-5xl sm:text-6xl font-black text-[#047857] bg-transparent border-none outline-none focus:ring-0 p-0"
+            />
+            <button onClick={increment} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl font-bold flex items-center justify-center transition-colors">+</button>
+          </div>
+          <p className="text-sm font-medium text-gray-500 mb-6">waiting + called</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => onConfirm(mesa)}
+              className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
+            >
+              OK
+            </button>
+            <button
+              onClick={onCancel}
+              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

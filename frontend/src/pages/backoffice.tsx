@@ -27,15 +27,19 @@ export default function Backoffice() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const refreshCountRef = useRef(0);
+  const isLoadingRef = useRef(false);
 
-  const [userNome, setUserNome] = useState('Maria Silva');
+  const [userNome, setUserNome] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
-  const [mesaSelecionada, setMesaSelecionada] = useState('01');
+  const [mesaSelecionada, setMesaSelecionada] = useState('');
   const [alertasSistema, setAlertasSistema] = useState<{mensagem: string, tipo: string}[]>([]);
   const [stats, setStats] = useState({ atendidosHoje: 0, tempoMedioEspera: 0 });
 
   const [showNewTicket, setShowNewTicket] = useState(false);
   const [servicos, setServicos] = useState<ServicoOption[]>([]);
+  const [servicosComMesas, setServicosComMesas] = useState<any[]>([]);
   const [novoTicketServico, setNovoTicketServico] = useState('');
   const [novoTicketNome, setNovoTicketNome] = useState('');
   const [showTransfer, setShowTransfer] = useState<string | null>(null);
@@ -50,18 +54,20 @@ export default function Backoffice() {
   };
 
   const loadQueue = async () => {
-    setLoading(true);
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+    const id = ++refreshCountRef.current;
     try {
       const escolaId = localStorage.getItem('backoffice_escola');
       if (!escolaId) {
         console.error('Nenhuma escola selecionada');
         setAlertasSistema(prev => [...prev, { mensagem: 'Erro: nenhuma escola configurada.', tipo: 'error' }]);
-        setLoading(false);
         return;
       }
 
       // Fetch school-wide queue, ordered by priority_level DESC, created_at ASC
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fila/escola/${escolaId}`, { headers: getAuthHeaders() });
+      if (id !== refreshCountRef.current) return;
       if (response.ok) {
         const data = await response.json();
         
@@ -74,9 +80,9 @@ export default function Backoffice() {
           criado_em: t.created_at,
           estado: t.estado || 'waiting',
           posicao_fila: t.posicao_fila || 0,
-          prioridade: false, // Legacy field, not used anymore
-          prioridade_nivel: t.priority_level || 0, // NEW: 0=normal, 1=medium, 2=urgent
-          alertas: t.alertas || [], // NEW: array of alert types
+          prioridade: false,
+          prioridade_nivel: t.priority_level || 0,
+          alertas: t.alertas || [],
           mesa_atendimento: t.mesa_atendimento || '',
         }));
         
@@ -107,20 +113,34 @@ export default function Backoffice() {
         setAlertasSistema(Array.from(alertasUnicos).map(a => ({ mensagem: String(a), tipo: 'warning' })));
       }
     } catch (err) {
+      if (id !== refreshCountRef.current) return;
       console.error('Erro ao carregar fila:', err);
       setAlertasSistema(prev => [...prev, { mensagem: 'Erro ao conectar à fila em tempo real.', tipo: 'error' }]);
     } finally {
-      setLoading(false);
+      if (id === refreshCountRef.current) {
+        isLoadingRef.current = false;
+      }
     }
   };
 
 
   const setupWebSocket = (token: string) => {
+    // Clean up any existing connection first
+    if (wsRef.current) {
+      wsRef.current.onclose = null;
+      wsRef.current.onerror = null;
+      wsRef.current.onmessage = null;
+      wsRef.current.onopen = null;
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        wsRef.current.close();
+      }
+    }
+
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL!;
-    
     const ws = new WebSocket(`${wsUrl}/ws`);
     
     ws.onopen = () => {
+      setWsConnected(true);
       // Register as receptionist for the school
       const escolaId = localStorage.getItem('backoffice_escola');
       ws.send(JSON.stringify({
@@ -144,14 +164,14 @@ export default function Backoffice() {
       }
     };
     
-    ws.onerror = (error) => {
-      console.error('Erro WebSocket:', error);
-      setAlertasSistema(prev => [...prev, { mensagem: 'Conexão em tempo real perdida. Recarregando...', tipo: 'warning' }]);
+    ws.onerror = () => {
+      setWsConnected(false);
     };
     
     ws.onclose = () => {
-      console.log('WebSocket desconectado. Tentando reconectar em 5s...');
-      setTimeout(() => setupWebSocket(token), 5000);
+      setWsConnected(false);
+      // Retry connection after 3s
+      setTimeout(() => setupWebSocket(token), 3000);
     };
     
     wsRef.current = ws;
@@ -207,7 +227,7 @@ export default function Backoffice() {
 
     const pollingInterval = setInterval(() => {
       loadQueue();
-    }, 10000);
+    }, 3000);
 
     return () => {
       wsRef.current?.close();
@@ -218,10 +238,17 @@ export default function Backoffice() {
 
   const carregarServicos = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/servicos`);
-      if (res.ok) {
-        const data = await res.json();
+      const [resPublic, resAdmin] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/servicos`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/servicos`, { headers: getAuthHeaders() }).catch(() => null),
+      ]);
+      if (resPublic.ok) {
+        const data = await resPublic.json();
         setServicos(Array.isArray(data) ? data : []);
+      }
+      if (resAdmin && resAdmin.ok) {
+        const data = await resAdmin.json();
+        setServicosComMesas(data.servicos || []);
       }
     } catch (err) {
       console.error('Erro ao carregar servicos', err);
@@ -278,6 +305,10 @@ export default function Backoffice() {
   const pessoasAguardando = tickets.filter(t => t.estado === 'waiting').length;
   const prioritarios = tickets.filter(t => t.estado === 'waiting' && (t.prioridade_nivel === 2 || t.prioridade_nivel === 1)).length;
 
+  const allMesas = servicosComMesas.length > 0
+    ? Array.from(new Set(servicosComMesas.flatMap((s: any) => s.mesas || [s.mesa_padrao || '01'])))
+    : ['01', '02', '03', '04'];
+
   return (
     <div className="min-h-screen flex bg-[#F8FAFC] font-sans">
       <Head>
@@ -293,14 +324,14 @@ export default function Backoffice() {
         <BackofficeMenu activeRoute="/backoffice" />
         <div className="p-6 border-t border-gray-100 flex items-center gap-3">
           {userAvatar ? (
-            <img src={userAvatar} alt={userNome} className="w-10 h-10 rounded-full object-cover" />
+            <img src={userAvatar} alt={userNome || ''} className="w-10 h-10 rounded-full object-cover" />
           ) : (
             <div className="w-10 h-10 bg-[#047857] rounded-full flex items-center justify-center text-white font-bold uppercase">
-              {userNome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+              {(userNome || '??').split(' ').map(n => n[0]).slice(0, 2).join('')}
             </div>
           )}
           <div>
-            <p className="text-sm font-bold text-gray-800">{userNome}</p>
+            <p className="text-sm font-bold text-gray-800">{userNome || 'Utilizador'}</p>
             <p className="text-xs text-gray-500">Rececionista</p>
           </div>
         </div>
@@ -321,15 +352,12 @@ export default function Backoffice() {
               }}
               className="ml-4 border border-gray-200 rounded-lg p-2 text-sm text-[#047857] font-bold bg-green-50 focus:outline-none"
             >
-              <option value="01">Mesa 01</option>
-              <option value="02">Mesa 02</option>
-              <option value="03">Mesa 03</option>
-              <option value="04">Mesa 04</option>
+              {allMesas.map(m => <option key={m} value={m}>Mesa {m}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-4">
-            <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span> ONLINE
+            <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-2 ${wsConnected ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+              <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-yellow-500'}`}></span> {wsConnected ? 'LIVE' : 'POLLING'}
             </span>
           </div>
         </header>

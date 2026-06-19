@@ -40,119 +40,22 @@ Este documento mapeia todos os ficheiros criados e modificados durante a refator
 
 ---
 
-## 📖 Ficheiros de Documentação (Criados)
+## 📖 Documentação no Código
 
-### 1. `TRIAGE_ENGINE_REFACTORED.md`
-**Status**: ✅ **NOVO**
+A documentação do motor de triagem está nos próprios ficheiros de código:
 
-**Conteúdo:**
-- Resumo das mudanças
-- O que foi removido (hardcoding)
-- O que foi adicionado (flexibilidade)
-- Exemplo: Criando regras JSON
-- Estrutura de dados (tipos TypeScript)
-- Fluxo de processamento
-- Ficheiros modificados
-- Notas importantes
-- Próximos passos
-
-**Quando ler:** **PRIMEIRO** - Para entender o contexto geral
-
-**Tempo de leitura**: ~5 minutos
+- **`backend/services/TriagemEngine.ts`** — JSDoc completo com tipos, fluxo, exemplos de regras JSON e parâmetros
+- **`backend/services/TriagemEngine.test.ts`** — 9 testes unitários que documentam casos de uso (trigger.equals, trigger.in, alertas, prioridades)
+- **`backend/services/api/triagem.ts`** — Endpoints da API de triagem com exemplos de payload
+- **`backend/src/db/seed-triage.sql`** — 8 perguntas de exemplo com regras JSON
 
 ---
 
-### 2. `TRIAGE_RULES_GUIDE.md`
-**Status**: ✅ **NOVO**
+## 💻 Ficheiros de Código
 
-**Conteúdo:**
-- Conceitos fundamentais (Trigger, Effects)
-- 5 padrões de regras comuns
-- 4 exemplos por cenário (Saúde, Agendamento, Educação, Empresarial)
-- Validação e testes
-- Boas práticas (Do's e Don'ts)
-- Suporte e debug
-
-**Quando ler:** Quando criar ou modificar regras JSON
-
-**Tempo de leitura**: ~15 minutos
-
-**Usar como**: Referência ao estruturar novas regras
-
----
-
-### 3. `TRIAGE_FLOW_DIAGRAM.md`
-**Status**: ✅ **NOVO**
-
-**Conteúdo:**
-- Fluxo visual em ASCII
-- Exemplo prático: Triagem cardíaca
-- Lógica de combinação (múltiplas regras)
-- Antes vs Depois (hardcoding vs regras)
-- Testes casos especiais
-- Performance
-- Validações necessárias
-
-**Quando ler:** Para entender visualmente como o motor funciona
-
-**Tempo de leitura**: ~10 minutos
-
-**Usar como**: Explicação para stakeholders
-
----
-
-## 💻 Ficheiros de Código (Criados)
-
-### 1. `backend/services/TriagemEngine.examples.ts`
-**Status**: ✅ **NOVO**
-
-**Conteúdo:**
-- 6 exemplos práticos de uso do motor
-- Casos de teste unitários
-- SQL para inserir dados na BD
-- Exemplos de curl para testar via API
-
-**Quando usar:**
-- Referência ao escrever testes
-- Entender como chamar `TriagemEngine.processar()`
-- Visualizar diferentes cenários
-
-**Executar como:**
-```bash
-# Não é executado diretamente - usar como referência
-# Copiar exemplos SQL para testes
-```
-
----
-
-### 2. `TEST_TRIAGE_ENGINE.sql`
-**Status**: ✅ **NOVO**
-
-**Conteúdo:**
-- 5 exemplos de perguntas com regras completas
-  1. Urgência médica
-  2. Validação de documentação
-  3. Sintomas críticos (múltiplos valores)
-  4. Alerta incondicional
-  5. Combinação complexa
-- Inserção de todas as perguntas
-- Inserção de todas as opções
-- Queries de validação
-- Exemplos de curl
-- Script de limpeza (optional)
-
-**Quando usar:**
-```bash
-# Para inserir dados de teste na BD:
-psql -U seu_usuario -d sua_db -f TEST_TRIAGE_ENGINE.sql
-
-# Ou copiar e colar os inserts no seu cliente SQL
-```
-
-**Resultado esperado:**
-- 5 novas perguntas criadas
-- ~40 novas opções criadas
-- Todas com regras JSON válidas
+- **`backend/services/TriagemEngine.ts`** — Motor de triagem rule-based (167 linhas)
+- **`backend/services/TriagemEngine.test.ts`** — 9 testes unitários
+- **`backend/src/db/seed-triage.sql`** — Seed de exemplo (8 perguntas, 20 opções com regras JSON)
 
 ---
 
@@ -187,24 +90,18 @@ psql -U seu_usuario -d sua_db -f TEST_TRIAGE_ENGINE.sql
 
 ---
 
-## 📊 Mapa Visual de Dependências
+## 📊 Mapa de Dependências
 
 ```
-INÍCIO: Ler TRIAGE_ENGINE_REFACTORED.md
+1. LER: backend/services/TriagemEngine.ts (JSDoc + tipos)
    ↓
-ENTENDER: Ler TRIAGE_FLOW_DIAGRAM.md
+2. CRIAR/ALTERAR REGRAS: backend/src/db/seed-triage.sql (exemplos)
    ↓
-PREPARAR: Executar TEST_TRIAGE_ENGINE.sql
+3. TESTAR: npm test (backend)
    ↓
-TESTAR: Usar TriagemEngine.examples.ts como referência
+4. VALIDAR UI: http://localhost:3000/admin/questionarios
    ↓
-CRIAR REGRAS: Usar TRIAGE_RULES_GUIDE.md
-   ↓
-IMPLEMENTAR: Seguir IMPLEMENTATION_CHECKLIST.md
-   ↓
-VALIDAR: Usar queries de TEST_TRIAGE_ENGINE.sql
-   ↓
-MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
+5. CRIAR REGRAS: Coluna regras (JSONB) em triage_questions / triage_question_options
 ```
 
 ---
@@ -214,52 +111,41 @@ MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
 ### Para Desenvolvedores
 
 1. **Dia 1**
-   - [ ] Ler `TRIAGE_ENGINE_REFACTORED.md` (5 min)
-   - [ ] Ler `TRIAGE_FLOW_DIAGRAM.md` (10 min)
-   - [ ] Revisar `TriagemEngine.ts` (10 min)
+   - [ ] Revisar `backend/services/TriagemEngine.ts` (10 min)
+   - [ ] Revisar `backend/services/api/triagem.ts` (10 min)
 
 2. **Dia 2**
-   - [ ] Executar `TEST_TRIAGE_ENGINE.sql` (5 min)
+   - [ ] Executar `backend/src/db/seed-triage.sql` (5 min)
    - [ ] Testar endpoints (10 min)
-   - [ ] Criar testes unitários (30 min)
+   - [ ] Executar `npm test` para validar (1 min)
 
 3. **Dia 3**
-   - [ ] Seguir `IMPLEMENTATION_CHECKLIST.md` (variável)
-   - [ ] Completar todas as fases (2-4 horas)
+   - [ ] Criar novas perguntas via UI em `/admin/questionarios`
+   - [ ] Adicionar regras JSON nas opções
 
 ---
 
 ### Para Administradores/Product Owners
 
 1. **Visão Geral**
-   - [ ] Ler `TRIAGE_ENGINE_REFACTORED.md` (5 min)
-   - [ ] Ver diagramas em `TRIAGE_FLOW_DIAGRAM.md` (5 min)
+   - [ ] Aceder a `/admin/questionarios` para gerir perguntas
+   - [ ] Ver seed data em `backend/src/db/seed-triage.sql`
 
 2. **Criação de Regras**
-   - [ ] Ler `TRIAGE_RULES_GUIDE.md` (15 min)
-   - [ ] Copiar exemplos de `TEST_TRIAGE_ENGINE.sql` (10 min)
-   - [ ] Adaptar regras para seu caso (variável)
-
-3. **Monitoramento**
-   - [ ] Revisar Fase 6 de `IMPLEMENTATION_CHECKLIST.md` (5 min)
-   - [ ] Configurar alertas (variável)
+   - [ ] Usar UI Admin para criar perguntas e opções
+   - [ ] Adicionar regras JSON nas opções (priority_level, alerta)
 
 ---
 
 ### Para QA/Testing
 
 1. **Preparação**
-   - [ ] Ler `IMPLEMENTATION_CHECKLIST.md` Fase 3 e 4 (20 min)
-   - [ ] Ler `TriagemEngine.examples.ts` (10 min)
+   - [ ] Executar `npm test` no backend (9 testes TriagemEngine)
+   - [ ] Testar UI em `/admin/questionarios`
 
 2. **Testes**
-   - [ ] Executar testes unitários de referência (30 min)
-   - [ ] Executar testes de integração de referência (30 min)
-   - [ ] Validar com dados reais (1+ hora)
-
-3. **Documentação**
-   - [ ] Usar exemplos como base para cenários de teste
-   - [ ] Documentar casos encontrados
+   - [ ] Validar criação de ticket com triagem via `/aluno`
+   - [ ] Verificar priority_level e alertas no backoffice `/backoffice`
 
 ---
 
@@ -270,17 +156,15 @@ MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
 ```
 1. Clonar repositório
    ↓
-2. Ler TRIAGE_ENGINE_REFACTORED.md
+2. npm run db:setup (criar schema + seed)
    ↓
-3. Executar TEST_TRIAGE_ENGINE.sql
+3. npm run dev
    ↓
-4. Testar endpoint com curl
+4. Aceder a http://localhost:3000/admin/questionarios
    ↓
-5. Executar testes (Fase 3-4 do checklist)
+5. npm test (validar motor de triagem)
    ↓
-6. Validar em ambiente de teste
-   ↓
-7. Passar para produção
+6. Testar fluxo completo em /aluno + /backoffice
 ```
 
 ### Criação de Novas Regras
@@ -288,19 +172,15 @@ MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
 ```
 1. Entender necessidade do negócio
    ↓
-2. Desenhar regras (usar TRIAGE_RULES_GUIDE.md como referência)
+2. Aceder a /admin/questionarios
    ↓
-3. Escrever JSON das regras
+3. Criar pergunta com opções
    ↓
-4. Validar JSON (usar jsonlint.com)
+4. Adicionar regra JSON na opção (ex: {"priority_level": 2, "alerta": "urgencia"})
    ↓
-5. Inserir na BD (INSERT SQL ou admin UI)
+5. Testar via /aluno (selecionar serviço → responder → verificar prioridade)
    ↓
-6. Testar com curl (usar TEST_TRIAGE_ENGINE.sql como template)
-   ↓
-7. Validar resultado no ticket criado
-   ↓
-8. Monitorar em produção
+6. Validar resultado no backoffice (/backoffice)
 ```
 
 ### Debugging de Problemas
@@ -308,19 +188,13 @@ MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
 ```
 1. Problema identificado
    ↓
-2. Reproduzir com curl/API
+2. Verificar regras: SELECT * FROM triage_question_options WHERE regra != '{}'
    ↓
-3. Verificar regras na BD (SELECT * FROM triage_questions)
+3. Testar com TriagemEngine.test.ts como referência
    ↓
-4. Validar JSON (usar TRIAGE_RULES_GUIDE.md)
+4. Verificar logs do backend
    ↓
-5. Usar exemplos de TriagemEngine.examples.ts para comparar
-   ↓
-6. Adicionar console.log() no engine se necessário
-   ↓
-7. Corrigir regra ou código
-   ↓
-8. Testar novamente
+5. Corrigir regra ou código
 ```
 
 ---
@@ -328,42 +202,38 @@ MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
 ## 📦 Checklist de Ficheiros
 
 ### Código
-- [x] `backend/services/TriagemEngine.ts` - Modificado
-- [x] `backend/services/api/triagem.ts` - Modificado
+- [x] `backend/services/TriagemEngine.ts` - Motor de triagem rule-based
+- [x] `backend/services/TriagemEngine.test.ts` - 9 testes unitários
+- [x] `backend/services/api/triagem.ts` - Endpoints de triagem
+- [x] `backend/services/api/admin.ts` - CRUD perguntas/opções
+- [x] `frontend/src/pages/admin/questionarios.tsx` - UI Admin
 
 ### Documentação
-- [x] `TRIAGE_ENGINE_REFACTORED.md`
-- [x] `TRIAGE_RULES_GUIDE.md`
-- [x] `TRIAGE_FLOW_DIAGRAM.md`
-- [x] `IMPLEMENTATION_CHECKLIST.md`
+- [x] `backend/services/TriagemEngine.ts` (JSDoc inline)
 - [x] `README_TRIAGE_DOCUMENTATION.md` (este ficheiro)
 
-### Exemplos e Testes
-- [x] `backend/services/TriagemEngine.examples.ts`
-- [x] `TEST_TRIAGE_ENGINE.sql`
+### Dados
+- [x] `backend/src/db/seed-triage.sql` - 8 perguntas, 20 opções
 
 ---
 
 ## 🚀 Próximos Passos
 
 1. **Imediatamente**
-   - Ler `TRIAGE_ENGINE_REFACTORED.md`
-   - Revisar mudanças no código
+   - Revisar `backend/services/TriagemEngine.ts`
+   - Executar `npm test` no backend
 
 2. **Dentro de 1 dia**
-   - Executar `TEST_TRIAGE_ENGINE.sql`
-   - Testar endpoints
-   - Completar testes unitários (Fase 3)
+   - Aplicar schema + seed (`npm run db:setup`)
+   - Testar endpoints via UI (`/admin/questionarios`, `/aluno`)
 
 3. **Dentro de 1 semana**
-   - Completar `IMPLEMENTATION_CHECKLIST.md`
-   - Validar com dados reais
+   - Validar com dados reais (criar perguntas personalizadas)
    - Passar para staging
 
 4. **Dentro de 2 semanas**
    - Deploy em produção
    - Monitorar comportamento
-   - Recolher feedback
 
 ---
 
@@ -372,19 +242,15 @@ MONITORAR: Referência em IMPLEMENTATION_CHECKLIST.md Fase 6
 ### Como testar rapidamente
 ```bash
 # 1. Inserir dados de teste
-psql -U seu_usuario -d sua_db -f TEST_TRIAGE_ENGINE.sql
+npm run db:seed-triage
 
-# 2. Testar um caso
-curl -X POST http://localhost:3000/api/triagem \
+# 2. Testar endpoints via curl
+curl -X POST http://localhost:3001/api/triagem/finalizar \
   -H "Content-Type: application/json" \
-  -d '{
-    "servicoId": "seu-uuid",
-    "escolaId": "seu-uuid",
-    "respostas": [{"perguntaId": "q-urgencia", "resposta": "emergencia"}]
-  }'
+  -d '{"servicoId": 1, "escolaId": 1, "respostas": []}'
 
-# 3. Verificar resultado na BD
-SELECT * FROM tickets ORDER BY created_at DESC LIMIT 1;
+# 3. Verificar resultado
+curl http://localhost:3001/api/fila
 ```
 
 ### Como validar regras
@@ -410,10 +276,9 @@ console.log('Resultado:', resultado);
 
 Se tiver dúvidas:
 
-1. Verifique a documentação relevante acima
-2. Procure exemplos em `TriagemEngine.examples.ts`
-3. Use as queries de validação em `TEST_TRIAGE_ENGINE.sql`
-4. Reveja `TRIAGE_RULES_GUIDE.md` para boas práticas
+1. Reveja `backend/services/TriagemEngine.ts` (JSDoc completo)
+2. Execute `npm test` no backend para validar regras
+3. Verifique a BD: `SELECT * FROM triage_question_options WHERE regra != '{}'`
 
 ---
 

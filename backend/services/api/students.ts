@@ -7,13 +7,14 @@ import { validate, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, 
 import { withDb } from '../../src/shared/db.js';
 import { StudentModel } from '../../src/models/Student.js';
 import { LessonModel } from '../../src/models/Lesson.js';
+import { NotificationModel } from '../../src/models/Notification.js';
 
 export async function studentRoutes(fastify: FastifyInstance) {
 
   // GET /api/admin/students/dashboard - Stats dashboard
   fastify.get('/admin/students/dashboard', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || (await getDefaultEscolaId(fastify));
+    const escolaId = request.user.escola_id || request.headers['x-escola-id'] || (await getDefaultEscolaId(fastify));
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
     return withDb(fastify, async (client) => {
       const data = await StudentModel.dashboard(client, escolaId);
@@ -24,7 +25,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   // GET /api/admin/students - List with search/filters
   fastify.get('/admin/students', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || request.query.escolaId || (await getDefaultEscolaId(fastify));
+    const escolaId = request.user.escola_id || request.headers['x-escola-id'] || request.query.escolaId || (await getDefaultEscolaId(fastify));
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
 
     const { search, categoria, estado_formacao, ativo, page, limit, sort, order } = request.query as any;
@@ -148,9 +149,18 @@ export async function studentRoutes(fastify: FastifyInstance) {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
     let parsed: any;
-    try { parsed = validate(lessonSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    try { parsed = validate(lessonSchema, { ...request.body, student_id: id }); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
     return withDb(fastify, async (client) => {
       const lesson = await LessonModel.criar(client, { ...parsed, student_id: id });
+
+      await NotificationModel.criar(client, {
+        student_id: id,
+        tipo: 'nova_aula',
+        titulo: 'Nova aula agendada',
+        mensagem: `Aula de ${parsed.tipo} no dia ${parsed.data} às ${parsed.hora_inicio}`,
+        lesson_id: lesson.id,
+      });
+
       return reply.status(201).send(lesson);
     });
   });

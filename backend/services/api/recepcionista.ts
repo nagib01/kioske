@@ -79,8 +79,8 @@ export async function recepcionistaRoutes(fastify: FastifyInstance) {
             const ticket = await TicketModel.chamarTicket(client, ticketId, mesa);
             if (!ticket) return reply.status(404).send({ error: 'Ticket não encontrado' });
             const payload = formatTicket(ticket);
-            notificarAluno(ticket.aluno_token, { evento: 'chamado', dados: payload });
-            notificarFila(ticket.escola_id, 'ticket_chamado', payload);
+            try { notificarAluno(ticket.aluno_token, { evento: 'chamado', dados: payload }); } catch { fastify.log.warn('WS notify aluno failed'); }
+            try { notificarFila(ticket.escola_id, 'ticket_chamado', payload); } catch { fastify.log.warn('WS notify fila failed'); }
             await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, ticketId, { mesa, metodo: 'recepcionista' });
             return reply.send({ ticket: payload });
         });
@@ -101,8 +101,8 @@ export async function recepcionistaRoutes(fastify: FastifyInstance) {
             const ticket = await TicketModel.chamarTicket(client, proximo.id, mesa);
             if (!ticket) return reply.status(404).send({ error: 'Ticket não encontrado' });
             const payload = formatTicket(ticket);
-            notificarAluno(ticket.aluno_token, { evento: 'chamado', dados: payload });
-            notificarFila(ticket.escola_id, 'ticket_chamado', payload);
+            try { notificarAluno(ticket.aluno_token, { evento: 'chamado', dados: payload }); } catch { fastify.log.warn('WS notify aluno failed'); }
+            try { notificarFila(ticket.escola_id, 'ticket_chamado', payload); } catch { fastify.log.warn('WS notify fila failed'); }
             await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, ticket.id, { mesa, metodo: 'next' });
             return reply.send({ ticket: payload });
         });
@@ -117,7 +117,7 @@ export async function recepcionistaRoutes(fastify: FastifyInstance) {
             const ticket = await TicketModel.finalizarTicket(client, ticketId);
             if (!ticket) return reply.status(404).send({ error: 'Ticket não encontrado' });
             const payload = { ...formatTicket(ticket), posicao_fila: ticket.posicao };
-            notificarFila(ticket.escola_id, 'ticket_finalizado', payload);
+            try { notificarFila(ticket.escola_id, 'ticket_finalizado', payload); } catch { fastify.log.warn('WS notify failed'); }
             await registrarAuditoria(fastify, 'finalizar_ticket', request.user?.id, request.user?.nome, ticketId, { metodo: 'recepcionista' });
             return reply.send({ ticket: payload });
         });

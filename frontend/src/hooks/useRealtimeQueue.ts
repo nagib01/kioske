@@ -23,7 +23,7 @@ export function useRealtimeQueue(token: string | null) {
 
       ws.onopen = () => {
         setIsConnected(true);
-        ws.send(JSON.stringify({ type: 'auth', token }));
+        ws.send(JSON.stringify({ action: 'register', role: 'aluno', alunoToken: token }));
       };
 
       ws.onmessage = (event) => {

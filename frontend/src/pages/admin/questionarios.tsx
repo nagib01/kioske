@@ -1,4 +1,4 @@
-clearimport { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
 import { useToast } from '../../components/Toast';
 

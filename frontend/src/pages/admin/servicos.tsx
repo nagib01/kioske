@@ -10,6 +10,7 @@ interface Servico {
   prioridade_base: number;
   ativo: boolean;
   mesa_padrao: string;
+  mesas?: string[];
 }
 
 export default function AdminServicosPage() {
@@ -27,7 +28,18 @@ export default function AdminServicosPage() {
   const [tempoMedio, setTempoMedio] = useState(10);
   const [prioridadeBase, setPrioridadeBase] = useState(0);
   const [mesaPadrao, setMesaPadrao] = useState('01');
+  const [mesas, setMesas] = useState<string[]>(['01', '02', '03', '04']);
   const [ativo, setAtivo] = useState(true);
+
+  const ALL_TABLES = process.env.NEXT_PUBLIC_AVAILABLE_TABLES
+    ? process.env.NEXT_PUBLIC_AVAILABLE_TABLES.split(',').map(t => t.trim())
+    : ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+
+  const toggleMesa = (mesa: string) => {
+    setMesas(prev =>
+      prev.includes(mesa) ? prev.filter(m => m !== mesa) : [...prev, mesa].sort()
+    );
+  };
 
   useEffect(() => {
     fetchServicos();
@@ -70,6 +82,7 @@ export default function AdminServicosPage() {
     setTempoMedio(10);
     setPrioridadeBase(0);
     setMesaPadrao('01');
+    setMesas(['01', '02', '03', '04']);
     setAtivo(true);
     setIsModalOpen(true);
   };
@@ -81,6 +94,7 @@ export default function AdminServicosPage() {
     setTempoMedio(s.tempo_medio_atendimento);
     setPrioridadeBase(s.prioridade_base);
     setMesaPadrao(s.mesa_padrao || '01');
+    setMesas(s.mesas && s.mesas.length > 0 ? s.mesas : ['01', '02', '03', '04']);
     setAtivo(s.ativo);
     setIsModalOpen(true);
   };
@@ -94,6 +108,7 @@ export default function AdminServicosPage() {
         tempo_medio_atendimento: tempoMedio,
         prioridade_base: prioridadeBase,
         mesa_padrao: mesaPadrao,
+        mesas,
         ativo
       };
 
@@ -164,7 +179,7 @@ export default function AdminServicosPage() {
                   <th className="py-4 px-6 font-bold text-gray-600">Nome do Serviço</th>
                   <th className="py-4 px-6 font-bold text-gray-600">Prefixo</th>
                   <th className="py-4 px-6 font-bold text-gray-600">Tempo Médio (min)</th>
-                  <th className="py-4 px-6 font-bold text-gray-600">Mesa Padrão</th>
+                  <th className="py-4 px-6 font-bold text-gray-600">Mesas</th>
                   <th className="py-4 px-6 font-bold text-gray-600">Estado</th>
                   <th className="py-4 px-6 font-bold text-gray-600 text-right">Ações</th>
                 </tr>
@@ -182,7 +197,11 @@ export default function AdminServicosPage() {
                       <td className="py-4 px-6 font-medium text-gray-800">{servico.nome}</td>
                       <td className="py-4 px-6 text-gray-600">{servico.codigo_prefixo}</td>
                       <td className="py-4 px-6 text-gray-600">{servico.tempo_medio_atendimento}</td>
-                      <td className="py-4 px-6 text-gray-600">{servico.mesa_padrao || '01'}</td>
+                      <td className="py-4 px-6 text-gray-600">
+                        {servico.mesas && servico.mesas.length > 0
+                          ? servico.mesas.map(m => `M${m}`).join(', ')
+                          : servico.mesa_padrao || '01'}
+                      </td>
                       <td className="py-4 px-6">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${servico.ativo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {servico.ativo ? 'Ativo' : 'Inativo'}
@@ -232,13 +251,38 @@ export default function AdminServicosPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mesa Padrão</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mesa Padrão (chamada)</label>
                 <select value={mesaPadrao} onChange={e => setMesaPadrao(e.target.value)} className="w-full border border-gray-300 rounded-lg p-2">
-                  <option value="01">Mesa 01</option>
-                  <option value="02">Mesa 02</option>
-                  <option value="03">Mesa 03</option>
-                  <option value="04">Mesa 04</option>
+                  {mesas.map(m => <option key={m} value={m}>Mesa {m}</option>)}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mesas deste serviço (máx 4)</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {ALL_TABLES.map(mesa => {
+                    const selected = mesas.includes(mesa);
+                    const atLimit = !selected && mesas.length >= 4;
+                    return (
+                      <button
+                        key={mesa}
+                        type="button"
+                        disabled={atLimit}
+                        onClick={() => toggleMesa(mesa)}
+                        className={`py-2 px-1 rounded-lg text-sm font-bold border-2 transition-all ${
+                          selected
+                            ? 'bg-[#047857] text-white border-[#047857]'
+                            : atLimit
+                            ? 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed'
+                            : 'bg-white text-gray-600 border-gray-300 hover:border-[#047857] hover:text-[#047857]'
+                        }`}
+                      >
+                        M{mesa}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">Selecione até 4 mesas. Usadas no ecrã de TV (monitor).</p>
               </div>
 
               {editingId && (

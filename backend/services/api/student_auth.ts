@@ -275,7 +275,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
       `SELECT ss.*, s.nome, s.email, s.escola_id, s.ativo
        FROM student_sessions ss
        JOIN students s ON s.id = ss.student_id
-       WHERE ss.refresh_token = $1 AND ss.revoked_at IS NULL AND ss.expires_at > NOW()`,
+       WHERE ss.refresh_token = $1`,
       [refreshToken]
     );
     const session = res.rows[0];
@@ -287,6 +287,18 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     if (!session.ativo) {
       await revokeSession(fastify, refreshToken);
       return reply.status(403).send({ error: 'Conta desativada', code: 'ACCOUNT_DISABLED' });
+    }
+
+    if (session.revoked_at) {
+      await fastify.pg.query(
+        `UPDATE student_sessions SET revoked_at = NOW() WHERE student_id = $1 AND revoked_at IS NULL`,
+        [session.student_id]
+      );
+      return reply.status(401).send({ error: 'Refresh token reutilizado. Todas as sessões foram revogadas por segurança.', code: 'TOKEN_REUSE_DETECTED' });
+    }
+
+    if (session.expires_at <= new Date()) {
+      return reply.status(401).send({ error: 'Refresh token expirado', code: 'EXPIRED_REFRESH_TOKEN' });
     }
 
     await revokeSession(fastify, refreshToken);

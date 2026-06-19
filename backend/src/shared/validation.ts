@@ -56,6 +56,7 @@ export const criarServicoSchema = z.object({
   codigo_prefixo: z.string().optional(),
   tempo_medio_atendimento: z.number().optional(),
   mesa_padrao: z.string().optional(),
+  mesas: z.array(z.string()).optional(),
 });
 
 export const criarPerguntaSchema = z.object({

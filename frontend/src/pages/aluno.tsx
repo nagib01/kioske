@@ -39,21 +39,27 @@ export default function AlunoPage() {
   const [escolaId, setEscolaId] = useState<string>('');
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [loggedStudentId, setLoggedStudentId] = useState<string | null>(null);
+  const [kioskToken, setKioskToken] = useState<string | null>(null);
 
   const router = useRouter();
   const { queueData, isConnected } = useRealtimeQueue(token);
 
   useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kiosk/token`)
+      .then(r => r.json())
+      .then(d => { if (d.token) setKioskToken(d.token); })
+      .catch(() => {});
+
     const savedEscolaId = localStorage.getItem('kioske_escolaId');
     const savedToken = localStorage.getItem('kioske_token');
     const savedStudent = localStorage.getItem('kioske_student');
 
     if (savedEscolaId) {
       setEscolaId(savedEscolaId);
-    } else {
-      const defaultEscolaId = '1';
-      setEscolaId(defaultEscolaId);
-      localStorage.setItem('kioske_escolaId', defaultEscolaId);
+    } else if (process.env.NEXT_PUBLIC_DEFAULT_ESCOLA_ID) {
+      const envEscolaId = process.env.NEXT_PUBLIC_DEFAULT_ESCOLA_ID;
+      setEscolaId(envEscolaId);
+      localStorage.setItem('kioske_escolaId', envEscolaId);
     }
 
     if (savedStudent) {
@@ -88,7 +94,7 @@ export default function AlunoPage() {
         token: queueData.token || prev!.token,
         posicao_fila: queueData.posicao_fila !== undefined ? queueData.posicao_fila : prev!.posicao_fila,
         estado: queueData.estado || prev!.estado,
-        tempo_estimado_min: Math.max((queueData.posicao_fila || 0 - 1) * (servicoSelecionado?.tempo_medio_atendimento || 10), 0)
+        tempo_estimado_min: Math.max(((queueData.posicao_fila || 1) - 1) * (servicoSelecionado?.tempo_medio_atendimento || 10), 0)
       }));
     }
   }, [queueData, servicoSelecionado]);
@@ -137,6 +143,7 @@ export default function AlunoPage() {
           respostas,
           escolaId,
           studentId: loggedStudentId,
+          kioskToken,
         })
       });
       const data = await res.json();

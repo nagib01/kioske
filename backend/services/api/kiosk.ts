@@ -58,8 +58,8 @@ export async function kioskRoutes(fastify: FastifyInstance) {
       const qrCode = await gerarQRCode(ticket.aluno_token);
 
       const out = { ...formatted, qrCode };
-      try { notificarFila(escolaId, 'novo_ticket', out); } catch { fastify.log.debug('WS notify failed'); }
-      try { notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }); } catch { fastify.log.debug('WS notify failed'); }
+      try { notificarFila(escolaId, 'novo_ticket', out); } catch { fastify.log.warn('WS notify failed'); }
+      try { notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }); } catch { fastify.log.warn('WS notify failed'); }
 
       await registrarAuditoria(fastify, 'criar_ticket', request.user?.id, request.user?.nome, ticket.id, {
         servicoId, alunoNome, metodo: 'manual'
@@ -89,7 +89,7 @@ export async function kioskRoutes(fastify: FastifyInstance) {
       if (!updated) return reply.status(404).send(ERR.NOT_FOUND('Ticket'));
       const formatted = formatTicket(updated);
 
-      try { notificarFila(updated.escola_id, 'ticket_chamado', formatted); } catch { fastify.log.debug('WS notify failed'); }
+      try { notificarFila(updated.escola_id, 'ticket_chamado', formatted); } catch { fastify.log.warn('WS notify failed'); }
 
       await registrarAuditoria(fastify, 'transferir_ticket', request.user?.id, request.user?.nome, id, {
         mesa_origem: ticket.mesa_atendimento,

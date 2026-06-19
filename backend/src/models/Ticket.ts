@@ -36,6 +36,7 @@ export class TicketModel {
     /**
      * Cria um ticket para o serviço e escola indicados.
      * Gera `aluno_token` automaticamente se não fornecido.
+     * Retry automático em caso de deadlock (código 40P01 / 55P03).
      */
     static async criar(db: any, escolaId: string, servicoId: string, data: {
         priority?: boolean;
@@ -45,6 +46,29 @@ export class TicketModel {
         aluno_nome?: string;
         student_id?: string;
     } = {}): Promise<ITicket> {
+        const MAX_RETRIES = 3;
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                return await this._criar(db, escolaId, servicoId, data);
+            } catch (err: any) {
+                const isDeadlock = err.code === '40P01' || err.code === '55P03';
+                if (isDeadlock && attempt < MAX_RETRIES) {
+                    continue;
+                }
+                throw err;
+            }
+        }
+        throw new Error('Max retries exceeded');
+    }
+
+    private static async _criar(db: any, escolaId: string, servicoId: string, data: {
+        priority?: boolean;
+        priority_level?: number | 'high' | 'medium' | 'normal';
+        alertas?: string[];
+        aluno_token?: string;
+        aluno_nome?: string;
+        student_id?: string;
+    }): Promise<ITicket> {
         const alunoToken = data.aluno_token || null;
         const priorityLevel = typeof data.priority_level === 'number'
             ? data.priority_level
@@ -185,7 +209,7 @@ export class TicketModel {
 
     static async chamarTicket(db: any, ticketId: string, mesa?: string) {
         const res = await db.query(
-            `UPDATE tickets SET status = 'called', updated_at = NOW(), mesa_atendimento = $2 WHERE id = $1 RETURNING *`,
+            `UPDATE tickets SET status = 'called', updated_at = NOW(), mesa_atendimento = COALESCE(NULLIF($2, ''), mesa_atendimento) WHERE id = $1 RETURNING *`,
             [ticketId, mesa || null]
         );
         if (res.rows.length) {

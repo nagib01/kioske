@@ -19,27 +19,43 @@ interface Ticket {
   updated_at: string;
 }
 
-const TABLES = ['01', '02', '03', '04'];
-const TABLE_LABELS: Record<string, string> = {
-  '01': 'MESA 01', '02': 'MESA 02', '03': 'MESA 03', '04': 'MESA 04',
-};
-const AVG_SERVICE_TIME = 12;
+interface Servico {
+  id: string;
+  nome: string;
+  mesas?: string[];
+}
+
+const TABLES = (process.env.NEXT_PUBLIC_MONITOR_TABLES || '01,02,03,04').split(',').map(t => t.trim());
+const TABLE_LABELS: Record<string, string> = Object.fromEntries(
+  TABLES.map(t => [t, `MESA ${t}`])
+);
+const AVG_SERVICE_TIME = parseInt(process.env.NEXT_PUBLIC_AVG_SERVICE_TIME || '12', 10);
 
 export default function ChamadasPage() {
   const [waitingTickets, setWaitingTickets] = useState<Ticket[]>([]);
   const [currentCalled, setCurrentCalled] = useState<Ticket | null>(null);
   const [calledByTable, setCalledByTable] = useState<Record<string, Ticket>>({});
+  const [servicos, setServicos] = useState<Servico[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
   const wsRef = useRef<WebSocket | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playChime = () => {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio('/chime.mp3');
+      }
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    } catch {}
+  };
 
   const processQueueData = useCallback((tickets: Ticket[]) => {
     const waiting = tickets.filter(t => t.estado === 'waiting');
-    const called = tickets.filter(
-      t => t.estado === 'called' && t.mesa_atendimento && TABLES.includes(t.mesa_atendimento)
-    );
+    const called = tickets.filter(t => t.estado === 'called' && t.mesa_atendimento);
 
     const sortedWaiting = [...waiting].sort((a, b) => {
       if (b.prioridade_nivel !== a.prioridade_nivel) return b.prioridade_nivel - a.prioridade_nivel;
@@ -66,9 +82,10 @@ export default function ChamadasPage() {
     }
   }, []);
 
-  const carregarFila = useCallback(async () => {
+  const carregarFila = useCallback(async (escolaOverride?: string) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fila`);
+      const escolaId = escolaOverride || localStorage.getItem('backoffice_escola') || process.env.NEXT_PUBLIC_DEFAULT_ESCOLA_ID || '1';
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fila?escolaId=${encodeURIComponent(escolaId)}`);
       if (!res.ok) throw new Error('Falha ao carregar fila');
       const data: Ticket[] = await res.json();
       processQueueData(data);
@@ -81,8 +98,21 @@ export default function ChamadasPage() {
     }
   }, [processQueueData]);
 
+  const carregarServicos = useCallback(async () => {
+    try {
+      const escolaId = localStorage.getItem('backoffice_escola') || process.env.NEXT_PUBLIC_DEFAULT_ESCOLA_ID || '1';
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/servicos?escolaId=${encodeURIComponent(escolaId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setServicos(Array.isArray(data) ? data : []);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
-    carregarFila();
+    const escolaId = localStorage.getItem('backoffice_escola') || process.env.NEXT_PUBLIC_DEFAULT_ESCOLA_ID || '1';
+
+    carregarServicos().then(() => carregarFila(escolaId));
 
     const updateClock = () => {
       const now = new Date();
@@ -98,7 +128,7 @@ export default function ChamadasPage() {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        ws.send(JSON.stringify({ type: 'auth', isPublicDisplay: true }));
+        ws.send(JSON.stringify({ action: 'register', role: 'monitor', escolaId }));
       };
 
       ws.onmessage = (event) => {
@@ -107,14 +137,13 @@ export default function ChamadasPage() {
           if (msg.evento === 'ticket_chamado') {
             const ticket = msg.dados as Ticket;
             setCurrentCalled(ticket);
-            if (ticket.mesa_atendimento && TABLES.includes(ticket.mesa_atendimento)) {
+            if (ticket.mesa_atendimento) {
               setCalledByTable(prev => ({ ...prev, [ticket.mesa_atendimento!]: ticket }));
             }
-            const audio = new Audio('/chime.mp3');
-            audio.play().catch(() => {});
+            playChime();
           }
           if (['novo_ticket', 'ticket_finalizado'].includes(msg.evento)) {
-            carregarFila();
+            carregarFila(escolaId);
           }
         } catch {}
       };
@@ -124,16 +153,27 @@ export default function ChamadasPage() {
     };
 
     connectWs();
-    const pollingInterval = setInterval(carregarFila, 5000);
+    const pollingInterval = setInterval(() => carregarFila(escolaId), 5000);
 
     return () => {
       clearInterval(clockInterval);
       clearInterval(pollingInterval);
       wsRef.current?.close();
     };
-  }, [carregarFila]);
+  }, [carregarFila, carregarServicos]);
 
   const waitingList = waitingTickets.slice(0, 5);
+
+  const visibleMesas = servicos.length > 0
+    ? Array.from(new Set(servicos.flatMap(s => s.mesas || TABLES)))
+    : TABLES;
+
+  const servicoPorMesa: Record<string, string> = {};
+  for (const s of servicos) {
+    for (const m of (s.mesas || [])) {
+      servicoPorMesa[m] = s.nome;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
@@ -162,13 +202,17 @@ export default function ChamadasPage() {
         <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col">
           {/* Table grid - compact on mobile */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
-            {TABLES.map(table => {
+            {visibleMesas.map(table => {
               const ticket = calledByTable[table];
+              const servicoNome = servicoPorMesa[table];
               return (
                 <div key={table} className={`bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center shadow-sm border flex flex-col justify-center items-center min-h-[3.5rem] sm:min-h-[5rem] ${ticket ? 'border-gray-100' : 'border-dashed border-gray-300'}`}>
                   <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">{TABLE_LABELS[table]}</p>
                   {ticket ? (
-                    <p className="text-lg sm:text-2xl md:text-3xl font-black text-gray-700">{ticket.token}</p>
+                    <>
+                      <p className="text-lg sm:text-2xl md:text-3xl font-black text-gray-700">{ticket.token}</p>
+                      {servicoNome && <p className="text-[8px] sm:text-[10px] text-gray-400 mt-0.5 truncate max-w-full">{servicoNome}</p>}
+                    </>
                   ) : (
                     <p className="text-base sm:text-xl font-bold text-gray-300">---</p>
                   )}
