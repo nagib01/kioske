@@ -91,7 +91,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-bold text-[#047857] border-r border-gray-300 pr-4">KIOSKE DIGITAL UNIVERSAL</h2>
             <span className="text-gray-600 font-medium">{userRole === 'admin' ? 'Painel da Administração' : 'Painel da Rececionista'}</span>
-            {(activeRoute === '/backoffice' || activeRoute === '/admin/fila') && (
+            {(activeRoute === '/' || activeRoute === '/fila') && (
               <select 
                 value={mesaSelecionada} 
                 onChange={(e) => {

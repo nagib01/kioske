@@ -151,7 +151,7 @@ export default function AdminServicosPage() {
   };
 
   return (
-    <BackofficeLayout activeRoute="/admin/servicos" title="Administração - Serviços | Kioske Digital">
+    <BackofficeLayout activeRoute="/servicos" title="Administração - Serviços | Kioske Digital">
       <div className="p-8 max-w-6xl mx-auto w-full">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-800">Gerir Serviços</h2>

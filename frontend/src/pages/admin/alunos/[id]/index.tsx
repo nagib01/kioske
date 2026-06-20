@@ -146,7 +146,7 @@ export default function AlunoProfilePage() {
 
   if (loading) {
     return (
-      <BackofficeLayout activeRoute="/admin/alunos" title="Aluno | Kioske Digital">
+      <BackofficeLayout activeRoute="/alunos" title="Aluno | Kioske Digital">
         <div className="p-8 text-center text-gray-500">Carregando...</div>
       </BackofficeLayout>
     );
@@ -154,7 +154,7 @@ export default function AlunoProfilePage() {
 
   if (!student) {
     return (
-      <BackofficeLayout activeRoute="/admin/alunos" title="Aluno | Kioske Digital">
+      <BackofficeLayout activeRoute="/alunos" title="Aluno | Kioske Digital">
         <div className="p-8 text-center text-gray-500">Aluno não encontrado</div>
       </BackofficeLayout>
     );
@@ -168,7 +168,7 @@ export default function AlunoProfilePage() {
   ];
 
   return (
-    <BackofficeLayout activeRoute="/admin/alunos" title={`${student.nome} | Kioske Digital`}>
+    <BackofficeLayout activeRoute="/alunos" title={`${student.nome} | Kioske Digital`}>
       <div className="p-8 max-w-6xl mx-auto w-full">
 
         {/* Profile Header */}
@@ -196,7 +196,7 @@ export default function AlunoProfilePage() {
                 </div>
               </div>
             </div>
-            <Link href={`/admin/alunos/${id}/editar`}
+            <Link href={`/alunos/${id}/editar`}
               className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-6 rounded-lg transition-colors text-sm">
               Editar
             </Link>

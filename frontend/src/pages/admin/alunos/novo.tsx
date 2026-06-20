@@ -62,7 +62,7 @@ export default function NovoAlunoPage() {
         const err = await res.json();
         throw new Error(err.error || 'Falha ao criar aluno');
       }
-      router.push('/admin/alunos');
+      router.push('/alunos');
     } catch (err: any) {
       addToast(err.message, 'error');
     } finally {
@@ -71,7 +71,7 @@ export default function NovoAlunoPage() {
   };
 
   return (
-    <BackofficeLayout activeRoute="/admin/alunos" title="Novo Aluno | Kioske Digital">
+    <BackofficeLayout activeRoute="/alunos" title="Novo Aluno | Kioske Digital">
       <div className="p-8 max-w-3xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Novo Aluno</h2>
@@ -152,7 +152,7 @@ export default function NovoAlunoPage() {
               className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50">
               {saving ? 'A Salvar...' : 'Salvar Aluno'}
             </button>
-            <button type="button" onClick={() => router.push('/admin/alunos')}
+            <button type="button" onClick={() => router.push('/alunos')}
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-8 rounded-lg transition-colors">
               Cancelar
             </button>

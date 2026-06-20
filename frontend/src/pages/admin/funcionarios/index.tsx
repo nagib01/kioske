@@ -101,7 +101,7 @@ export default function AdminFuncionarios() {
   };
 
   return (
-    <BackofficeLayout activeRoute="/admin/funcionarios" title="Funcionários | Backoffice">
+    <BackofficeLayout activeRoute="/funcionarios" title="Funcionários | Backoffice">
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Gestão de Funcionários</h1>

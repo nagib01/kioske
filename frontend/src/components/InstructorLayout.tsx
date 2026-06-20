@@ -40,7 +40,7 @@ export default function InstructorLayout({ children, title = 'Instrutor | Kioske
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
-          <Link href="/instructor/dashboard"
+          <Link href="/instrutor/dashboard"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               isActive('/instructor/dashboard') ? 'bg-green-50 text-[#047857] font-bold border-r-4 border-[#047857]' : 'text-gray-600 hover:bg-gray-50'
             }`}>
@@ -50,7 +50,7 @@ export default function InstructorLayout({ children, title = 'Instrutor | Kioske
             </svg>
             Dashboard
           </Link>
-          <Link href="/instructor/aulas"
+          <Link href="/instrutor/aulas"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               isActive('/instructor/aulas') ? 'bg-green-50 text-[#047857] font-bold border-r-4 border-[#047857]' : 'text-gray-600 hover:bg-gray-50'
             }`}>

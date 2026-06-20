@@ -16,7 +16,7 @@ export default function StudentLoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      router.push('/aluno/conta');
+      router.push('/');
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -27,7 +27,7 @@ export default function StudentLoginPage() {
     setCarregando(true);
     try {
       await login(email, senha);
-      router.push('/aluno/conta');
+      router.push('/');
     } catch (err: any) {
       const msg = err.message || 'Credenciais inválidas';
       setErro(msg);

@@ -120,7 +120,7 @@ export default function AdminAlunosPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <BackofficeLayout activeRoute="/admin/alunos" title="Alunos | Kioske Digital">
+    <BackofficeLayout activeRoute="/alunos" title="Alunos | Kioske Digital">
       <div className="p-8 max-w-7xl mx-auto w-full">
 
         {/* Dashboard Cards */}
@@ -149,7 +149,7 @@ export default function AdminAlunosPage() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Gestão de Alunos</h2>
           <Link
-            href="/admin/alunos/novo"
+            href="/alunos/novo"
             className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 px-6 rounded-lg transition-colors"
           >
             + Novo Aluno

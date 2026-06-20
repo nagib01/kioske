@@ -325,7 +325,7 @@ export default function Backoffice() {
           <h1 className="text-lg font-bold text-[#047857]">Backoffice Terminal</h1>
           <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Driving School Admin</p>
         </div>
-        <BackofficeMenu activeRoute="/backoffice" role={userRole} />
+        <BackofficeMenu activeRoute="/" role={userRole} />
         <div className="p-6 border-t border-gray-100 flex items-center gap-3">
           {userAvatar ? (
             <img src={userAvatar} alt={userNome || ''} className="w-10 h-10 rounded-full object-cover" />
@@ -490,7 +490,7 @@ export default function Backoffice() {
                   </ul>
                 )}
                 <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
-                  <a href="/admin/fila" className="text-sm font-bold text-[#047857] hover:underline">Ver Lista Completa</a>
+                  <a href="/fila" className="text-sm font-bold text-[#047857] hover:underline">Ver Lista Completa</a>
                 </div>
               </div>
             </div>

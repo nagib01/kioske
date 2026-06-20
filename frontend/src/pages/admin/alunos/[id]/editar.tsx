@@ -66,7 +66,7 @@ export default function EditarAlunoPage() {
         });
       } catch (err: any) {
         addToast(err.message, 'error');
-        router.push('/admin/alunos');
+        router.push('/alunos');
       } finally {
         setLoading(false);
       }
@@ -97,7 +97,7 @@ export default function EditarAlunoPage() {
         const err = await res.json();
         throw new Error(err.error || 'Falha ao atualizar aluno');
       }
-      router.push(`/admin/alunos/${id}`);
+      router.push(`/alunos/${id}`);
     } catch (err: any) {
       addToast(err.message, 'error');
     } finally {
@@ -107,14 +107,14 @@ export default function EditarAlunoPage() {
 
   if (loading) {
     return (
-      <BackofficeLayout activeRoute="/admin/alunos" title="Editar Aluno | Kioske Digital">
+      <BackofficeLayout activeRoute="/alunos" title="Editar Aluno | Kioske Digital">
         <div className="p-8 text-center text-gray-500">Carregando...</div>
       </BackofficeLayout>
     );
   }
 
   return (
-    <BackofficeLayout activeRoute="/admin/alunos" title="Editar Aluno | Kioske Digital">
+    <BackofficeLayout activeRoute="/alunos" title="Editar Aluno | Kioske Digital">
       <div className="p-8 max-w-3xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Editar Aluno</h2>
@@ -197,7 +197,7 @@ export default function EditarAlunoPage() {
               className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50">
               {saving ? 'A Salvar...' : 'Guardar Alterações'}
             </button>
-            <button type="button" onClick={() => router.push(`/admin/alunos/${id}`)}
+            <button type="button" onClick={() => router.push(`/alunos/${id}`)}
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-8 rounded-lg transition-colors">
               Cancelar
             </button>

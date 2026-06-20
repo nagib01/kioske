@@ -179,7 +179,7 @@ export default function AdminQuestionariosPage() {
   };
 
   return (
-    <BackofficeLayout activeRoute="/admin/questionarios" title="Administração - Triagem | Kioske Digital">
+    <BackofficeLayout activeRoute="/questionarios" title="Administração - Triagem | Kioske Digital">
       <div className="p-8 max-w-6xl mx-auto w-full">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-800">Gerir Questionários</h2>

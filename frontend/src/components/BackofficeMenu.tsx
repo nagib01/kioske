@@ -10,7 +10,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   {
-    href: '/backoffice',
+    href: '/',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -20,10 +20,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Painel',
-    id: '/backoffice'
+    id: '/'
   },
   {
-    href: '/admin/fila',
+    href: '/fila',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -31,10 +31,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Fila ao Vivo',
-    id: '/admin/fila'
+    id: '/fila'
   },
   {
-    href: '/admin/alunos',
+    href: '/alunos',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -42,10 +42,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Alunos',
-    id: '/admin/alunos'
+    id: '/alunos'
   },
   {
-    href: '/admin/funcionarios',
+    href: '/funcionarios',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
@@ -55,10 +55,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Funcionários',
-    id: '/admin/funcionarios'
+    id: '/funcionarios'
   },
   {
-    href: '/admin/aulas',
+    href: '/aulas',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
@@ -66,10 +66,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Aulas',
-    id: '/admin/aulas'
+    id: '/aulas'
   },
   {
-    href: '/admin/viaturas',
+    href: '/viaturas',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M5 17h14M5 17a2 2 0 0 1-2-2V9l3-3h12l3 3v6a2 2 0 0 1-2 2" />
@@ -78,10 +78,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Viaturas',
-    id: '/admin/viaturas'
+    id: '/viaturas'
   },
   {
-    href: '/admin/servicos',
+    href: '/servicos',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="8" y1="6" x2="21" y2="6" />
@@ -93,10 +93,10 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Serviços',
-    id: '/admin/servicos'
+    id: '/servicos'
   },
   {
-    href: '/admin/questionarios',
+    href: '/questionarios',
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -105,13 +105,13 @@ const menuItems: MenuItem[] = [
       </svg>
     ),
     label: 'Questionários',
-    id: '/admin/questionarios'
+    id: '/questionarios'
   }
 ];
 
 const roleAllowed: Record<string, string[]> = {
   admin: menuItems.map(m => m.id),
-  recepcionista: ['/backoffice', '/admin/fila'],
+  recepcionista: ['/', '/fila'],
 };
 
 interface BackofficeMenuProps {

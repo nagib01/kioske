@@ -78,7 +78,7 @@ export default function InstructorDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-gray-700">Próximas Aulas</h3>
-            <Link href="/instructor/aulas" className="text-[#047857] text-sm font-medium hover:underline">
+            <Link href="/instrutor/aulas" className="text-[#047857] text-sm font-medium hover:underline">
               Ver Todas
             </Link>
           </div>

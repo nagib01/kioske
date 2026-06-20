@@ -89,7 +89,7 @@ export default function AdminInstrutores() {
   };
 
   return (
-    <BackofficeLayout activeRoute="/admin/instrutores" title="Instrutores | Backoffice">
+    <BackofficeLayout activeRoute="/instrutores" title="Instrutores | Backoffice">
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Gestão de Instrutores</h1>

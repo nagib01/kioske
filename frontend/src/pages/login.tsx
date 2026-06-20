@@ -41,9 +41,9 @@ export default function Login() {
         if (data.role) localStorage.setItem('backoffice_role', data.role);
 
         if (data.role === 'instructor') {
-          router.push('/instructor/dashboard');
+          router.push('/instrutor/dashboard');
         } else {
-          router.push('/backoffice');
+          router.push('/');
         }
       } else {
         addToast('Credenciais inválidas', 'error');

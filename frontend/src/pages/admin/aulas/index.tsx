@@ -103,7 +103,7 @@ export default function AdminAulas() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <BackofficeLayout activeRoute="/admin/aulas" title="Aulas | Backoffice">
+    <BackofficeLayout activeRoute="/aulas" title="Aulas | Backoffice">
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Registo de Aulas</h1>

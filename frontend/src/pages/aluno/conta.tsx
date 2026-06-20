@@ -47,7 +47,7 @@ export default function StudentAccountPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/aluno/login');
+      router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -323,7 +323,7 @@ export default function StudentAccountPage() {
 
         <div className="mt-4">
           <button
-            onClick={() => router.push('/aluno')}
+            onClick={() => router.push('/')}
             className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3.5 px-5 rounded-xl transition-colors shadow-sm text-sm"
           >
             Retirar Nova Senha
