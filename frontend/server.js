@@ -10,6 +10,7 @@ const KIOSKE_PORT = parseInt(process.env.KIOSKE_PORT || '3000', 10);
 const STAFF_PORT = parseInt(process.env.STAFF_PORT || '3002', 10);
 const MONITOR_PORT = parseInt(process.env.MONITOR_PORT || '3003', 10);
 const STUDENT_PORT = parseInt(process.env.STUDENT_PORT || '3004', 10);
+const LANDING_PORT = parseInt(process.env.LANDING_PORT || '3005', 10);
 
 app.prepare().then(() => {
   createServer((req, res) => {
@@ -48,5 +49,14 @@ app.prepare().then(() => {
     console.log(`> Student (BYOD) on http://localhost:${STUDENT_PORT} → https://aluno.stonemark.pt`);
   });
 
-  console.log(`> Ready: kioske=${KIOSKE_PORT} staff=${STAFF_PORT} monitor=${MONITOR_PORT} student=${STUDENT_PORT}`);
+  createServer((req, res) => {
+    req.headers['x-app-area'] = 'landing';
+    const parsedUrl = parse(req.url, true);
+    handle(req, res, parsedUrl);
+  }).listen(LANDING_PORT, (err) => {
+    if (err) throw err;
+    console.log(`> Landing on http://localhost:${LANDING_PORT} → https://www.stonemark.pt`);
+  });
+
+  console.log(`> Ready: kioske=${KIOSKE_PORT} staff=${STAFF_PORT} monitor=${MONITOR_PORT} student=${STUDENT_PORT} landing=${LANDING_PORT}`);
 });

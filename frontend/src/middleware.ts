@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-type Area = 'kioske' | 'monitor' | 'student' | 'staff';
+type Area = 'kioske' | 'monitor' | 'student' | 'staff' | 'landing';
 
 const AREA_ROUTES: Record<Area, { allowed: string[]; rootRedirect: string }> = {
   kioske: {
@@ -19,6 +19,10 @@ const AREA_ROUTES: Record<Area, { allowed: string[]; rootRedirect: string }> = {
   staff: {
     allowed: ['/', '/login', '/backoffice', '/admin', '/instructor'],
     rootRedirect: '/login',
+  },
+  landing: {
+    allowed: ['/', '/landing'],
+    rootRedirect: '/landing',
   },
 };
 
