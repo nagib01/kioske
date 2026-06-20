@@ -4,14 +4,15 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node --env-file=../.env dist/src/server.js",
+    "start:prod": "node --env-file=../.env.production dist/src/server.js",
     "dev": "tsx watch --env-file=../.env src/server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@fastify/cors": "^8.5.0",
+    "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^7.0.0",
     "@fastify/postgres": "^5.0.0",
     "@fastify/rate-limit": "^9.1.0",

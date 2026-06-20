@@ -18,7 +18,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   }).listen(KIOSKE_PORT, (err) => {
     if (err) throw err;
-    console.log(`> Kioske (triagem) on http://localhost:${KIOSKE_PORT}`);
+    console.log(`> Kioske (triagem) on http://localhost:${KIOSKE_PORT} → https://kioske.stonemark.pt`);
   });
 
   createServer((req, res) => {
@@ -27,7 +27,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   }).listen(STAFF_PORT, (err) => {
     if (err) throw err;
-    console.log(`> Staff (backoffice) on http://localhost:${STAFF_PORT}`);
+    console.log(`> Staff (backoffice) on http://localhost:${STAFF_PORT} → https://staff.stonemark.pt`);
   });
 
   createServer((req, res) => {
@@ -36,7 +36,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   }).listen(MONITOR_PORT, (err) => {
     if (err) throw err;
-    console.log(`> Monitor (TV) on http://localhost:${MONITOR_PORT}`);
+    console.log(`> Monitor (TV) on http://localhost:${MONITOR_PORT} → https://monitor.stonemark.pt`);
   });
 
   createServer((req, res) => {
@@ -45,7 +45,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   }).listen(STUDENT_PORT, (err) => {
     if (err) throw err;
-    console.log(`> Student (BYOD) on http://localhost:${STUDENT_PORT}`);
+    console.log(`> Student (BYOD) on http://localhost:${STUDENT_PORT} → https://aluno.stonemark.pt`);
   });
 
   console.log(`> Ready: kioske=${KIOSKE_PORT} staff=${STAFF_PORT} monitor=${MONITOR_PORT} student=${STUDENT_PORT}`);

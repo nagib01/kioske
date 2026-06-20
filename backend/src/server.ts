@@ -6,6 +6,12 @@ import { registerRoutes } from './routes/index.js';
 import rateLimit from '@fastify/rate-limit';
 import { logger } from './shared/logger.js';
 
+logger.info('─── Backend starting ───');
+logger.info(`NODE_ENV=${process.env.NODE_ENV}`);
+logger.info(`CORS_ORIGIN=${process.env.CORS_ORIGIN}`);
+logger.info(`BACKEND_PORT=${process.env.BACKEND_PORT}`);
+logger.info(`FRONTEND_URL=${process.env.FRONTEND_URL}`);
+
 if (!process.env.NODE_ENV) {
     logger.error('NODE_ENV is missing from the environment configuration');
     process.exit(1);
@@ -22,17 +28,15 @@ if (!process.env.DATABASE_URL) {
 const databaseUrl = process.env.DATABASE_URL!;
 logger.info(`Database: ${databaseUrl.replace(/\/\/.*:.*@/, '//***:***@')}`);
 
-const corsOrigins = process.env.CORS_ORIGIN === '*'
-    ? '*' as const
-    : (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(s => s.trim()).filter(Boolean);
-
-logger.info(`CORS origins: ${JSON.stringify(corsOrigins)}`);
-
 const fastify = Fastify({
     logger: true,
     connectionTimeout: 30000,
     requestTimeout: 30000,
 });
+
+const corsOrigins = process.env.CORS_ORIGIN === '*'
+    ? true
+    : (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(s => s.trim()).filter(Boolean);
 
 await fastify.register(cors, { origin: corsOrigins });
 await fastify.register(postgres, { connectionString: databaseUrl });
