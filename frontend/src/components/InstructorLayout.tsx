@@ -23,6 +23,7 @@ export default function InstructorLayout({ children, title = 'Instrutor | Kioske
     localStorage.removeItem('backoffice_escola');
     localStorage.removeItem('backoffice_avatar');
     localStorage.removeItem('backoffice_mesa');
+    localStorage.removeItem('backoffice_role');
     router.push('/login');
   };
 

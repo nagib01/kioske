@@ -53,11 +53,27 @@ This starts:
 
 ### Test Accounts (seed data)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@escola.pt | admin123 |
-| Receptionist | rececionista@escola.pt | admin123 |
-| Instructor | instrutor@escola.pt | admin123 |
+**Backoffice staff**
+
+| Role | Name | Email | Password |
+|------|------|-------|----------|
+| Admin | Administrador Principal | admin@escola.com | admin123 |
+| Receptionist | Maria Silva | maria.silva@escola.com | admin123 |
+| Receptionist | João Santos | joao.santos@escola.com | admin123 |
+| Instructor | Carlos Pereira | instrutor@escola.com | admin123 |
+| Instructor | Ana Martins | ana.martins@escola.com | admin123 |
+| Instructor | Rui Oliveira | rui.oliveira@escola.com | admin123 |
+| Instructor | Sofia Costa | sofia.costa@escola.com | admin123 |
+
+**Students** (portal at `http://localhost:3004/aluno/login`)
+
+| Name | Email | Nº Estudante | Password |
+|------|-------|-------------|----------|
+| Ana Oliveira | ana.oliveira@email.com | 2023001 | admin123 |
+| Bruno Costa | bruno.costa@email.com | 2023002 | admin123 |
+| Carla Martins | carla.martins@email.com | 2023003 | admin123 |
+| Daniel Rodrigues | daniel.rodrigues@email.com | 2023004 | admin123 |
+| Eduardo Santos | eduardo.santos@email.com | 2023005 | admin123 |
 
 ## Ports Overview
 

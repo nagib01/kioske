@@ -10,6 +10,7 @@ export interface ILesson {
     summary?: string;
     status: string;
     categoria?: string;
+    tipo_registo?: string;
     created_at: Date;
 }
 

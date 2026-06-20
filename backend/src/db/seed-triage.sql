@@ -68,13 +68,13 @@ SELECT
   servicos.id,
   'exame_hora_marcada',
   'Tem hora marcada para este exame?',
-  'multipla_escolha',
-  true,
-   1,
-  '[]'::jsonb,
-  true,
-  NOW(),
-  NOW()
+   'single_choice',
+   true,
+    1,
+   '[]'::jsonb,
+   true,
+   NOW(),
+   NOW()
 FROM escolas, servicos
 WHERE escolas.nome = 'Escola de Condução Universal'
   AND servicos.nome = 'Exame Teórico'
@@ -119,13 +119,13 @@ SELECT
   servicos.id,
   'motivo_visita',
   'Qual é o motivo da sua visita à secretaria?',
-  'multipla_escolha',
-  true,
-   1,
-  '[]'::jsonb,
-  true,
-  NOW(),
-  NOW()
+   'single_choice',
+   true,
+    1,
+   '[]'::jsonb,
+   true,
+   NOW(),
+   NOW()
 FROM escolas, servicos
 WHERE escolas.nome = 'Escola de Condução Universal'
   AND servicos.nome = 'Secretaria'
@@ -147,13 +147,13 @@ SELECT
   servicos.id,
   'tipo_cancelamento',
   'Qual o tipo de serviço que deseja cancelar?',
-  'multipla_escolha',
-  true,
-   1,
-  '[]'::jsonb,
-  true,
-  NOW(),
-  NOW()
+   'single_choice',
+   true,
+    1,
+   '[]'::jsonb,
+   true,
+   NOW(),
+   NOW()
 FROM escolas, servicos
 WHERE escolas.nome = 'Escola de Condução Universal'
   AND servicos.nome = 'Cancelamento/Reagendamento'

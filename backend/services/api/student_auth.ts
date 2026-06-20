@@ -525,6 +525,32 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     return reply.send({ sessions: res.rows });
   });
 
+  // ─── GET /api/auth/student/exams ─── (student sees their own exams)
+  fastify.get('/api/auth/student/exams', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    }
+
+    const studentId = request.user.sub;
+    const res = await fastify.pg.query(
+      `SELECT tr.*,
+              c.matricula as car_matricula,
+              u.nome as instructor_nome
+       FROM training_records tr
+       LEFT JOIN cars c ON c.id = tr.car_id
+       LEFT JOIN users u ON u.id = tr.instructor_id
+       WHERE tr.student_id = $1 AND tr.tipo_registo = 'exame'
+       ORDER BY tr.data DESC, tr.created_at DESC`,
+      [studentId]
+    );
+    return reply.send(res.rows);
+  });
+
   // ─── GET /api/auth/student/lessons ─── (student sees their own lessons)
   fastify.get('/api/auth/student/lessons', async (request: any, reply) => {
     try {
@@ -550,6 +576,28 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
       [studentId]
     );
     return reply.send(res.rows);
+  });
+
+  // ─── GET /api/auth/student/tickets ─── (student sees their own ticket history)
+  fastify.get('/api/auth/student/tickets', async (request: any, reply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'student') {
+        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+      }
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    }
+
+    const studentId = request.user.sub;
+    const client = await fastify.pg.connect();
+    try {
+      const { StudentModel } = await import('../../src/models/Student.js');
+      const tickets = await StudentModel.tickets(client, studentId);
+      return reply.send(tickets);
+    } finally {
+      client.release();
+    }
   });
 
   // ─── GET /api/auth/student/notifications ───

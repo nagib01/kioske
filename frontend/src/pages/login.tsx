@@ -38,6 +38,7 @@ export default function Login() {
         if (data.escola_id) localStorage.setItem('backoffice_escola', data.escola_id);
         if (data.nome) localStorage.setItem('backoffice_nome', data.nome);
         if (data.avatar_url) localStorage.setItem('backoffice_avatar', data.avatar_url);
+        if (data.role) localStorage.setItem('backoffice_role', data.role);
 
         if (data.role === 'instructor') {
           router.push('/instructor/dashboard');
@@ -58,6 +59,7 @@ export default function Login() {
     localStorage.removeItem('backoffice_escola');
     localStorage.removeItem('backoffice_avatar');
     localStorage.removeItem('backoffice_mesa');
+    localStorage.removeItem('backoffice_role');
     setEmail('');
     setSenha('');
   };

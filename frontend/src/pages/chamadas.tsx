@@ -26,9 +26,6 @@ interface Servico {
 }
 
 const TABLES = (process.env.NEXT_PUBLIC_MONITOR_TABLES || '01,02,03,04').split(',').map(t => t.trim());
-const TABLE_LABELS: Record<string, string> = Object.fromEntries(
-  TABLES.map(t => [t, `MESA ${t}`])
-);
 const AVG_SERVICE_TIME = parseInt(process.env.NEXT_PUBLIC_AVG_SERVICE_TIME || '12', 10);
 
 export default function ChamadasPage() {
@@ -42,6 +39,8 @@ export default function ChamadasPage() {
   const [date, setDate] = useState('');
   const wsRef = useRef<WebSocket | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playChime = () => {
     try {
@@ -148,7 +147,7 @@ export default function ChamadasPage() {
         } catch {}
       };
 
-      ws.onclose = () => setTimeout(connectWs, 3000);
+      ws.onclose = () => { reconnectRef.current = setTimeout(connectWs, 3000); };
       ws.onerror = () => ws.close();
     };
 
@@ -158,6 +157,7 @@ export default function ChamadasPage() {
     return () => {
       clearInterval(clockInterval);
       clearInterval(pollingInterval);
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
       wsRef.current?.close();
     };
   }, [carregarFila, carregarServicos]);
@@ -207,7 +207,7 @@ export default function ChamadasPage() {
               const servicoNome = servicoPorMesa[table];
               return (
                 <div key={table} className={`bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center shadow-sm border flex flex-col justify-center items-center min-h-[3.5rem] sm:min-h-[5rem] ${ticket ? 'border-gray-100' : 'border-dashed border-gray-300'}`}>
-                  <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">{TABLE_LABELS[table]}</p>
+                   <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">MESA {table}</p>
                   {ticket ? (
                     <>
                       <p className="text-lg sm:text-2xl md:text-3xl font-black text-gray-700">{ticket.token}</p>

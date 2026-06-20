@@ -9,10 +9,25 @@ interface BackofficeLayoutProps {
   title?: string;
 }
 
+function getStoredRole(): string {
+  if (typeof window === 'undefined') return 'admin';
+  const stored = localStorage.getItem('backoffice_role');
+  if (stored) return stored;
+  try {
+    const token = localStorage.getItem('backoffice_token');
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role || 'admin';
+    }
+  } catch {}
+  return 'admin';
+}
+
 export default function BackofficeLayout({ children, activeRoute, title = 'Backoffice | Kioske Digital' }: BackofficeLayoutProps) {
   const router = useRouter();
   const [userNome, setUserNome] = useState('Maria Silva');
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState('admin');
   const [mesaSelecionada, setMesaSelecionada] = useState('01');
 
   useEffect(() => {
@@ -23,6 +38,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
     if (nome) setUserNome(nome);
     if (avatar) setUserAvatar(avatar);
     if (mesa) setMesaSelecionada(mesa);
+    setUserRole(getStoredRole());
   }, []);
 
   const handleLogout = () => {
@@ -31,6 +47,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
     localStorage.removeItem('backoffice_escola');
     localStorage.removeItem('backoffice_avatar');
     localStorage.removeItem('backoffice_mesa');
+    localStorage.removeItem('backoffice_role');
     router.push('/login');
   };
 
@@ -46,7 +63,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
           <h1 className="text-lg font-bold text-[#047857]">Backoffice Terminal</h1>
           <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Driving School Admin</p>
         </div>
-        <BackofficeMenu activeRoute={activeRoute} />
+        <BackofficeMenu activeRoute={activeRoute} role={userRole} />
         <div className="p-6 border-t border-gray-100">
           <div className="flex items-center gap-3 mb-3">
             {userAvatar ? (
@@ -58,7 +75,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
             )}
             <div>
               <p className="text-sm font-bold text-gray-800">{userNome}</p>
-              <p className="text-xs text-gray-500">Admin</p>
+              <p className="text-xs text-gray-500">{userRole === 'admin' ? 'Admin' : 'Rececionista'}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="w-full text-left text-sm text-red-600 hover:text-red-800 font-medium px-4 py-2 rounded-lg hover:bg-red-50 transition-colors">
@@ -73,15 +90,13 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
         <header className="bg-white px-8 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-bold text-[#047857] border-r border-gray-300 pr-4">KIOSKE DIGITAL UNIVERSAL</h2>
-            <span className="text-gray-600 font-medium">Painel da Administração</span>
-            {activeRoute === '/backoffice' && (
+            <span className="text-gray-600 font-medium">{userRole === 'admin' ? 'Painel da Administração' : 'Painel da Rececionista'}</span>
+            {(activeRoute === '/backoffice' || activeRoute === '/admin/fila') && (
               <select 
                 value={mesaSelecionada} 
                 onChange={(e) => {
                   setMesaSelecionada(e.target.value);
                   localStorage.setItem('backoffice_mesa', e.target.value);
-                  // Reload page to reflect mesa change in backoffice
-                  window.location.reload();
                 }}
                 className="ml-4 border border-gray-200 rounded-lg p-2 text-sm text-[#047857] font-bold bg-green-50 focus:outline-none"
               >

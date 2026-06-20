@@ -135,23 +135,49 @@ export default function AlunoPage() {
     if (!servicoSelecionado) return;
     setCarregandoTriagem(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/triagem/finalizar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          servicoId: servicoSelecionado.id,
-          respostas,
-          escolaId,
-          studentId: loggedStudentId,
-          kioskToken,
-        })
-      });
+      let token = kioskToken;
+      const trySubmit = async (tk: string | null) => {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/triagem/finalizar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            servicoId: servicoSelecionado.id,
+            respostas,
+            escolaId,
+            studentId: loggedStudentId,
+            kioskToken: tk,
+          })
+        });
+        if (!res.ok && res.status === 403 && tk) {
+          const refresh = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/kiosk/token`);
+          const refreshData = await refresh.json();
+          if (refreshData.token) {
+            token = refreshData.token;
+            setKioskToken(token);
+            return await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/triagem/finalizar`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                servicoId: servicoSelecionado.id,
+                respostas,
+                escolaId,
+                studentId: loggedStudentId,
+                kioskToken: token,
+              })
+            });
+          }
+        }
+        return res;
+      };
+      const res = await trySubmit(token);
       const data = await res.json();
       if (data.ticket) {
         localStorage.setItem('kioske_token', data.ticket.aluno_token);
         setToken(data.ticket.aluno_token);
         setTicketData(data.ticket);
         setFase('senha');
+      } else if (data.error) {
+        console.error('Erro ao criar ticket', data.error);
       }
     } catch (e) {
       console.error('Erro ao criar ticket', e);

@@ -26,14 +26,6 @@ export async function authAdmin(request: any, reply: any) {
   return true;
 }
 
-export async function authOrHeader(request: any, reply: any) {
-  return authJwt(request, reply);
-}
-
-export async function authOrHeaderAdmin(request: any, reply: any) {
-  return authJwt(request, reply);
-}
-
 export async function authInstructor(request: any, reply: any) {
   if (!(await authJwt(request, reply))) return false;
   if (request.user.role !== 'instructor' && request.user.role !== 'admin') {
@@ -50,15 +42,4 @@ export async function authBackofficeOrInstructor(request: any, reply: any) {
     return false;
   }
   return true;
-}
-
-export async function requireAdmin(request: any, reply: any) {
-  try {
-    await request.jwtVerify();
-    if (request.user?.role !== 'admin') {
-      return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-    }
-  } catch {
-    return reply.status(401).send({ error: 'Acesso não autorizado', code: 'UNAUTHORIZED' });
-  }
 }

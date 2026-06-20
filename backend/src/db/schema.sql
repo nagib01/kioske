@@ -294,3 +294,6 @@ CREATE INDEX IF NOT EXISTS idx_student_notifications_student ON student_notifica
 ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone VARCHAR(20);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE;
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role, ativo);
+
+ALTER TABLE training_records ADD COLUMN IF NOT EXISTS tipo_registo VARCHAR(10) NOT NULL DEFAULT 'aula';
+ALTER TABLE training_records ADD CONSTRAINT IF NOT EXISTS chk_tipo_registo CHECK (tipo_registo IN ('aula', 'exame'));

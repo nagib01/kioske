@@ -31,8 +31,8 @@ VALUES
 INSERT INTO users (id, nome, email, senha_hash, role, avatar_url, escola_id)
 VALUES
   (1, 'Administrador Principal', 'admin@escola.com', '$2b$10$HGsBrznX4jq9dn.i/5vmrutNpUA0sDp1bJChpKg3J1r8s/1AGdyaS', 'admin', NULL, 1),
-  (2, 'Maria Silva', 'maria.silva@escola.com', '$2b$10$qJPVKyZrJdqie0qdiAD/JuWOKAGyjXZUATowM6mijQ4Ec7mW7sI3i', 'recepcionista', NULL, 1),
-  (3, 'João Santos', 'joao.santos@escola.com', '$2b$10$XvmHEgB.v16bDtyrTGKxguxKH2gDyuC286kVCQRGbcUG7KODyGxPq', 'recepcionista', NULL, 1),
+  (2, 'Maria Silva', 'maria.silva@escola.com', '$2b$10$ecgpPwhCsLfwiedp0cZtP.N1hgezIuuR.Zj7bmPz7Ibeseou8M2de', 'recepcionista', NULL, 1),
+  (3, 'João Santos', 'joao.santos@escola.com', '$2b$10$ecgpPwhCsLfwiedp0cZtP.N1hgezIuuR.Zj7bmPz7Ibeseou8M2de', 'recepcionista', NULL, 1),
    (4, 'Carlos Pereira', 'instrutor@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1),
    (5, 'Ana Martins', 'ana.martins@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1),
    (6, 'Rui Oliveira', 'rui.oliveira@escola.com', '$2b$10$WLHHRs6cNUru9HZou60sSeMv3qbAk.eDp7x3d5vzyIVklrxPj0yFO', 'instructor', NULL, 1),
@@ -63,3 +63,11 @@ SELECT setval('triage_question_options_id_seq', COALESCE((SELECT MAX(id) FROM tr
 SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 1));
 SELECT setval('students_id_seq', COALESCE((SELECT MAX(id) FROM students), 1));
 SELECT setval('cars_id_seq', COALESCE((SELECT MAX(id) FROM cars), 1));
+
+-- Inserir registos de exames para alunos
+INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, instructor_id, status, tipo_registo)
+VALUES
+  (1, 'teorica', '2024-01-15', '10:00', '11:00', 4, 'concluida', 'exame'),
+  (1, 'pratica', '2024-02-20', '14:00', '15:30', 4, 'concluida', 'exame'),
+  (3, 'pratica', '2024-03-10', '09:00', '10:00', 5, 'concluida', 'exame'),
+  (5, 'teorica', '2024-03-18', '11:00', '12:00', 4, 'concluida', 'exame');

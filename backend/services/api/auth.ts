@@ -35,15 +35,4 @@ export async function authRoutes(fastify: FastifyInstance) {
             avatar_url: user.avatar_url, escola_id: user.escola_id
         });
     });
-    
-    fastify.decorate('authBackoffice', async (request: any, reply: any) => {
-        try {
-            await request.jwtVerify();
-            if (request.user.role !== 'recepcionista' && request.user.role !== 'admin') {
-                throw new Error();
-            }
-        } catch {
-            reply.status(401).send({ error: 'Acesso não autorizado', code: 'UNAUTHORIZED' });
-        }
-    });
 }

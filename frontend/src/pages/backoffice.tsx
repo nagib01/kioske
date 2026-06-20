@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import BackofficeMenu from '../components/BackofficeMenu';
 import { useToast } from '../components/Toast';
+import DesktopModal from '../components/DesktopModal';
 
 interface ServicoOption {
   id: string;
@@ -33,6 +34,7 @@ export default function Backoffice() {
 
   const [userNome, setUserNome] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState('recepcionista');
   const [mesaSelecionada, setMesaSelecionada] = useState('');
   const [alertasSistema, setAlertasSistema] = useState<{mensagem: string, tipo: string}[]>([]);
   const [stats, setStats] = useState({ atendidosHoje: 0, tempoMedioEspera: 0 });
@@ -42,8 +44,8 @@ export default function Backoffice() {
   const [servicosComMesas, setServicosComMesas] = useState<any[]>([]);
   const [novoTicketServico, setNovoTicketServico] = useState('');
   const [novoTicketNome, setNovoTicketNome] = useState('');
-  const [showTransfer, setShowTransfer] = useState<string | null>(null);
-  const [transferMesa, setTransferMesa] = useState('01');
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [pendingTransferTicket, setPendingTransferTicket] = useState<Ticket | null>(null);
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('backoffice_token');
@@ -180,30 +182,27 @@ export default function Backoffice() {
   const chamarProximo = async () => {
     setLoading(true);
     try {
-      // Get first waiting ticket from current queue
-      const proximoTicket = tickets.find(t => t.estado === 'waiting');
-      if (!proximoTicket) {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fila/escola/${localStorage.getItem('backoffice_escola')}`, { headers: getAuthHeaders() });
+      if (!res.ok) { addToast('Erro ao carregar fila', 'error'); setLoading(false); return; }
+      const data = await res.json();
+      const fila = (data.tickets || []) as Ticket[];
+      const waiting = fila.find(t => t.estado === 'waiting');
+      if (!waiting) {
         addToast('Nenhum cliente aguardando.', 'warning');
         setLoading(false);
         return;
       }
-
-      // Call the receptionist endpoint to mark ticket as called
-      // For now, we call for a general queue (would need to extend API if service-specific)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recepcionista/chamar/${proximoTicket.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/recepcionista/chamar/${waiting.id}`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ mesa: mesaSelecionada }),
       });
-      
       if (response.ok) {
-        // Reload queue after calling
         await loadQueue();
       } else {
         addToast('Erro ao chamar cliente.', 'error');
       }
     } catch (err) {
-      console.error('Erro ao chamar próximo:', err);
       addToast('Erro ao chamar cliente.', 'error');
     } finally {
       setLoading(false);
@@ -215,10 +214,14 @@ export default function Backoffice() {
     const nome = localStorage.getItem('backoffice_nome');
     const avatar = localStorage.getItem('backoffice_avatar');
     const mesa = localStorage.getItem('backoffice_mesa');
+    const storedRole = localStorage.getItem('backoffice_role');
     
     if (nome) setUserNome(nome);
     if (avatar) setUserAvatar(avatar);
     if (mesa) setMesaSelecionada(mesa);
+    if (storedRole) { setUserRole(storedRole); } else if (token) {
+      try { const p = JSON.parse(atob(token.split('.')[1])); if (p.role) setUserRole(p.role); } catch {}
+    }
 
     if (token) {
       setupWebSocket(token);
@@ -281,23 +284,24 @@ export default function Backoffice() {
     }
   };
 
-  const handleTransferir = async (ticketId: string) => {
-    if (!transferMesa) return;
+  const confirmTransfer = async (mesa: string) => {
+    if (!pendingTransferTicket) return;
+    const ticket = pendingTransferTicket;
+    setShowTransferModal(false);
+    setPendingTransferTicket(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tickets/${ticketId}/transferir`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tickets/${ticket.id}/transferir`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ mesa: transferMesa }),
+        body: JSON.stringify({ mesa }),
       });
       if (res.ok) {
-        setShowTransfer(null);
         await loadQueue();
       } else {
         const errData = await res.json();
         addToast(errData.error || 'Erro ao transferir', 'error');
       }
     } catch (err) {
-      console.error('Erro ao transferir', err);
       addToast('Erro ao transferir senha', 'error');
     }
   };
@@ -321,7 +325,7 @@ export default function Backoffice() {
           <h1 className="text-lg font-bold text-[#047857]">Backoffice Terminal</h1>
           <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Driving School Admin</p>
         </div>
-        <BackofficeMenu activeRoute="/backoffice" />
+        <BackofficeMenu activeRoute="/backoffice" role={userRole} />
         <div className="p-6 border-t border-gray-100 flex items-center gap-3">
           {userAvatar ? (
             <img src={userAvatar} alt={userNome || ''} className="w-10 h-10 rounded-full object-cover" />
@@ -332,7 +336,7 @@ export default function Backoffice() {
           )}
           <div>
             <p className="text-sm font-bold text-gray-800">{userNome || 'Utilizador'}</p>
-            <p className="text-xs text-gray-500">Rececionista</p>
+            <p className="text-xs text-gray-500">{userRole === 'admin' ? 'Admin' : 'Rececionista'}</p>
           </div>
         </div>
       </aside>
@@ -468,11 +472,11 @@ export default function Backoffice() {
                             <p className={`text-lg font-bold ${isUrgente ? 'text-red-600' : isMedio ? 'text-orange-500' : 'text-gray-800'}`}>{tempoEspera > 0 ? tempoEspera : '< 1'} min</p>
                             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Espera</p>
                           </div>
-                          {ticket.estado === 'called' && (
+                          {(ticket.estado === 'called' || ticket.estado === 'waiting') && (
                             <button
                               onClick={() => {
-                                setShowTransfer(ticket.id);
-                                setTransferMesa(ticket.mesa_atendimento || '01');
+                                setPendingTransferTicket(ticket);
+                                setShowTransferModal(true);
                               }}
                               className="text-blue-600 hover:text-blue-800 px-2 text-sm font-bold"
                               title="Transferir para outra mesa"
@@ -486,7 +490,7 @@ export default function Backoffice() {
                   </ul>
                 )}
                 <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
-                  <a href="#" className="text-sm font-bold text-[#047857] hover:underline">Ver Lista Completa</a>
+                  <a href="/admin/fila" className="text-sm font-bold text-[#047857] hover:underline">Ver Lista Completa</a>
                 </div>
               </div>
             </div>
@@ -541,7 +545,18 @@ export default function Backoffice() {
                     </svg>
                     Nova Senha
                   </button>
-                  <button className="border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold py-2 px-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
+                  <button
+                    onClick={() => {
+                      const calledTicket = tickets.find(t => t.estado === 'called');
+                      if (calledTicket) {
+                        setPendingTransferTicket(calledTicket);
+                        setShowTransferModal(true);
+                      } else {
+                        addToast('Nenhum ticket em atendimento.', 'warning');
+                      }
+                    }}
+                    className="border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold py-2 px-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors"
+                  >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="17 1 21 5 17 9" />
                       <path d="M3 11V9a4 4 0 0 1 4-4h14" />
@@ -591,32 +606,14 @@ export default function Backoffice() {
                 </div>
               )}
 
-              {/* Modal: Transferir */}
-              {showTransfer && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                  <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6">Transferir Senha</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mesa de Destino</label>
-                        <select
-                          value={transferMesa}
-                          onChange={e => setTransferMesa(e.target.value)}
-                          className="w-full border border-gray-300 rounded-lg p-2"
-                        >
-                          <option value="01">Mesa 01</option>
-                          <option value="02">Mesa 02</option>
-                          <option value="03">Mesa 03</option>
-                          <option value="04">Mesa 04</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="mt-8 flex justify-end gap-3">
-                      <button onClick={() => setShowTransfer(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancelar</button>
-                      <button onClick={() => handleTransferir(showTransfer)} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold">Transferir</button>
-                    </div>
-                  </div>
-                </div>
+              {showTransferModal && pendingTransferTicket && (
+                <DesktopModal
+                  mesaAtendimento={pendingTransferTicket.mesa_atendimento}
+                  title="Transfer Desk"
+                  statusText={pendingTransferTicket.token}
+                  onConfirm={confirmTransfer}
+                  onCancel={() => { setShowTransferModal(false); setPendingTransferTicket(null); }}
+                />
               )}
 
             </div>

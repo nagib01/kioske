@@ -109,14 +109,21 @@ const menuItems: MenuItem[] = [
   }
 ];
 
+const roleAllowed: Record<string, string[]> = {
+  admin: menuItems.map(m => m.id),
+  recepcionista: ['/backoffice', '/admin/fila'],
+};
+
 interface BackofficeMenuProps {
   activeRoute: string;
+  role?: string;
 }
 
-export default function BackofficeMenu({ activeRoute }: BackofficeMenuProps) {
+export default function BackofficeMenu({ activeRoute, role = 'admin' }: BackofficeMenuProps) {
+  const allowed = roleAllowed[role] || roleAllowed.admin;
   return (
     <nav className="flex-1 px-4 space-y-2 mt-4">
-      {menuItems.map((item) => {
+      {menuItems.filter(item => allowed.includes(item.id)).map((item) => {
         const isActive = activeRoute === item.id || activeRoute.startsWith(item.id + '/');
 
         return (

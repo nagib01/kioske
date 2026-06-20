@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
 import { useToast } from '../../components/Toast';
+import DesktopModal from '../../components/DesktopModal';
 
 interface Ticket {
   id: string;
@@ -30,6 +31,10 @@ export default function AdminFilaPage() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [showDeskModal, setShowDeskModal] = useState(false);
   const [pendingTicket, setPendingTicket] = useState<Ticket | null>(null);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [pendingTransferTicket, setPendingTransferTicket] = useState<Ticket | null>(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const getHeaders = () => {
     const token = localStorage.getItem('backoffice_token');
@@ -50,7 +55,10 @@ export default function AdminFilaPage() {
     if (!isPolling) setLoading(true);
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fila/escola/${escolaId}`, {
+      const url = statusFilter === 'finished'
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/fila/complete?escolaId=${escolaId}&status=finished&limit=100`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/fila/escola/${escolaId}`;
+      const res = await fetch(url, {
         headers: getHeaders()
       });
       
@@ -60,24 +68,81 @@ export default function AdminFilaPage() {
       }
       
       const data = await res.json();
-      setTickets(data.tickets || []);
-      if (data.stats) setStats(data.stats);
+      if (statusFilter === 'finished') {
+        setTickets(data.tickets || []);
+      } else {
+        setTickets(data.tickets || []);
+        if (data.stats) setStats(data.stats);
+      }
       setError(null);
     } catch (err: any) {
       if (!isPolling) setError(err.message || 'Erro desconhecido');
+      else addToast(err.message || 'Erro ao carregar fila', 'error');
     } finally {
       if (!isPolling) setLoading(false);
     }
-  }, []);
+  }, [statusFilter]);
 
-  // Polling every 5 seconds
+  // Polling every 5 seconds + WebSocket
   useEffect(() => {
+    const escolaId = localStorage.getItem('backoffice_escola') || '1';
+    const token = localStorage.getItem('backoffice_token');
+
     fetchFila();
+
+    // WebSocket connection
+    const connectWs = () => {
+      if (wsRef.current) wsRef.current.close();
+      const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}/ws`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        setWsConnected(true);
+        ws.send(JSON.stringify({ action: 'register', role: 'recepcionista', escolaId, token }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (['novo_ticket', 'ticket_chamado', 'ticket_finalizado', 'queue_update'].includes(msg.evento)) {
+            fetchFila(true);
+          }
+        } catch {}
+      };
+
+      ws.onclose = () => { setWsConnected(false); setTimeout(connectWs, 3000); };
+      ws.onerror = () => { ws.close(); };
+    };
+
+    if (token) connectWs();
+
     const interval = setInterval(() => {
       fetchFila(true);
     }, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      if (wsRef.current) wsRef.current.close();
+    };
   }, [fetchFila]);
+
+  const confirmTransfer = async (mesa: string) => {
+    if (!pendingTransferTicket) return;
+    const ticket = pendingTransferTicket;
+    setShowTransferModal(false);
+    setPendingTransferTicket(null);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tickets/${ticket.id}/transferir`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ mesa }),
+      });
+      if (!res.ok) throw new Error('Falha ao transferir ticket');
+      await fetchFila(true);
+    } catch (err: any) {
+      addToast(err.message, 'error');
+    }
+  };
 
   const confirmCall = async (mesa: string) => {
     if (!pendingTicket) return;
@@ -147,11 +212,9 @@ export default function AdminFilaPage() {
             <p className="text-gray-500 mt-1">Acompanhe e gira os tickets da escola</p>
           </div>
           <div className="flex items-center gap-3">
-             <span className="flex h-3 w-3 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+             <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-2 ${wsConnected ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+               <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></span> {wsConnected ? 'LIVE' : 'POLLING'}
              </span>
-             <span className="text-sm font-semibold text-gray-600">A sincronizar...</span>
           </div>
         </div>
 
@@ -321,14 +384,8 @@ export default function AdminFilaPage() {
                             </button>
                             <button
                               onClick={() => {
-                                const mesa = prompt('Mesa de destino:', ticket.mesa_atendimento || '01');
-                                if (mesa) {
-                                  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tickets/${ticket.id}/transferir`, {
-                                    method: 'POST',
-                                    headers: getHeaders(),
-                                    body: JSON.stringify({ mesa }),
-                                  }).then(() => fetchFila(true)).catch(() => {});
-                                }
+                                setPendingTransferTicket(ticket);
+                                setShowTransferModal(true);
                               }}
                               className="px-3 py-2 font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                               title="Transferir para outra mesa"
@@ -355,57 +412,22 @@ export default function AdminFilaPage() {
 
       {showDeskModal && pendingTicket && (
         <DesktopModal
-          ticket={pendingTicket}
+          mesaAtendimento={pendingTicket.mesa_atendimento}
           onConfirm={confirmCall}
           onCancel={() => { setShowDeskModal(false); setPendingTicket(null); }}
+        />
+      )}
+      {showTransferModal && pendingTransferTicket && (
+        <DesktopModal
+          mesaAtendimento={pendingTransferTicket.mesa_atendimento}
+          title="Transfer Desk"
+          statusText={pendingTransferTicket.senha_gerada}
+          onConfirm={confirmTransfer}
+          onCancel={() => { setShowTransferModal(false); setPendingTransferTicket(null); }}
         />
       )}
     </BackofficeLayout>
   );
 }
 
-function DesktopModal({ ticket, onConfirm, onCancel }: {
-  ticket: Ticket;
-  onConfirm: (mesa: string) => void;
-  onCancel: () => void;
-}) {
-  const [mesa, setMesa] = useState(ticket.mesa_atendimento || '01');
 
-  const increment = () => setMesa(v => String(Number(v) + 1).padStart(2, '0'));
-  const decrement = () => setMesa(v => String(Math.max(1, Number(v) - 1)).padStart(2, '0'));
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onCancel}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="p-6 sm:p-8 text-center">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Service Desk</p>
-          <div className="flex items-center justify-center gap-3 my-4">
-            <button onClick={decrement} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl font-bold flex items-center justify-center transition-colors">−</button>
-            <input
-              type="text"
-              value={mesa}
-              onChange={e => setMesa(e.target.value.replace(/\D/g, '').slice(0, 2))}
-              className="w-24 text-center text-5xl sm:text-6xl font-black text-[#047857] bg-transparent border-none outline-none focus:ring-0 p-0"
-            />
-            <button onClick={increment} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl font-bold flex items-center justify-center transition-colors">+</button>
-          </div>
-          <p className="text-sm font-medium text-gray-500 mb-6">waiting + called</p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => onConfirm(mesa)}
-              className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
-            >
-              OK
-            </button>
-            <button
-              onClick={onCancel}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

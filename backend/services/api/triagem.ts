@@ -7,9 +7,6 @@ import { formatTicket } from '../../src/shared/formatTicket.js';
 import { gerarQRCode } from '../../src/shared/qrCode.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
-import { authBackoffice } from '../../src/shared/auth.js';
-import { validate, chamarTicketSchema, servicoIdSchema } from '../../src/shared/validation.js';
-import { withDb } from '../../src/shared/db.js';
 import type { PerguntaRow, OpcaoRow } from '../../src/shared/types.js';
 
 const kioskTokens = new Set<string>();
@@ -281,64 +278,4 @@ export async function triagemRoutes(fastify: FastifyInstance) {
         }
     });
 
-    const chamarPorIdHandler = async (request: any, reply: any) => {
-        if (!(await authBackoffice(request, reply))) return;
-        const { ticketId } = request.params as any;
-        let parsed: { mesa?: string };
-        try { parsed = validate<{ mesa?: string }>(chamarTicketSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-        const { mesa } = parsed;
-        return withDb(fastify, async (client) => {
-            const t = await TicketModel.chamarTicket(client, ticketId, mesa);
-            if (!t) return reply.status(404).send({ error: 'Ticket não encontrado' });
-            const chamadoPayload = formatTicket(t);
-            try { notificarAluno(t.aluno_token, { event: 'chamado', data: chamadoPayload }); } catch { fastify.log.warn('WS notify aluno failed'); }
-            try { notificarFila(t.escola_id, 'ticket_chamado', chamadoPayload); } catch { fastify.log.warn('WS notify fila failed'); }
-            await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, ticketId, { mesa });
-            return reply.send({ ticket: chamadoPayload });
-        });
-    };
-
-    fastify.post('/api/chamar/:ticketId', chamarPorIdHandler);
-
-    fastify.post('/api/chamar/proximo', async (request: any, reply) => {
-        if (!(await authBackoffice(request, reply))) return;
-        let parsed: { mesa?: string; servicoId?: string; escolaId?: string };
-        try { parsed = validate<{ mesa?: string; servicoId?: string; escolaId?: string }>(chamarTicketSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-        const { mesa } = parsed;
-        const servicoId = request.body?.servicoId as string | undefined;
-        const escolaIdBody = request.body?.escolaId as string | undefined;
-        const escolaId = escolaIdBody || request.user?.escola_id || (await getDefaultEscolaId(fastify));
-        return withDb(fastify, async (client) => {
-            const fila = servicoId
-                ? await TicketModel.buscarFilaPorServico(client, servicoId)
-                : escolaId
-                    ? await TicketModel.buscarFilaPorEscola(client, escolaId)
-                    : [];
-            const proximo = fila.find((t: any) => t.status === 'waiting');
-            if (!proximo) return reply.status(404).send({ error: 'Nenhum ticket waiting' });
-            const chamado = await TicketModel.chamarTicket(client, proximo.id, mesa);
-            if (!chamado) return reply.status(404).send({ error: 'Ticket não encontrado' });
-            const payload = formatTicket(chamado);
-            try { notificarAluno(chamado.aluno_token, { event: 'chamado', data: payload }); } catch { fastify.log.warn('WS notify aluno failed'); }
-            try { notificarFila(chamado.escola_id, 'ticket_chamado', payload); } catch { fastify.log.warn('WS notify fila failed'); }
-            await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, chamado.id, { mesa, metodo: 'proximo' });
-            return reply.send({ ticket: payload });
-        });
-    });
-
-    // Finalizar atendimento
-    const finalizarHandler = async (request: any, reply: any) => {
-        if (!(await authBackoffice(request, reply))) return;
-        const { ticketId } = request.params as any;
-        return withDb(fastify, async (client) => {
-            const ticket = await TicketModel.finalizarTicket(client, ticketId);
-            if (!ticket) return reply.status(404).send({ error: 'Ticket não encontrado' });
-            const out = formatTicket(ticket);
-            try { notificarFila(ticket.escola_id, 'ticket_finalizado', out); } catch { fastify.log.warn('WS notify failed'); }
-            await registrarAuditoria(fastify, 'finalizar_ticket', request.user?.id, request.user?.nome, ticketId, {});
-            return reply.send({ ticket: out });
-        });
-    };
-
-    fastify.post('/api/finalizar/:ticketId', finalizarHandler);
 }

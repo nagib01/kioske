@@ -26,8 +26,15 @@ export async function configureWebSocket(fastify: any) {
             try { unregisterConnection(ws); } catch (e) { logger.error('unregisterConnection failed', e); }
         };
 
+        // Heartbeat ping every 30s
+        const heartbeat = setInterval(() => {
+            try { wsSend(ws, JSON.stringify({ type: 'heartbeat' })); } catch { safeClose(); }
+        }, 30000);
+
         ws.on('message', (msg: Buffer | string) => {
             const text = typeof msg === 'string' ? msg : msg.toString();
+            // Ignore heartbeat pong responses
+            if (text === 'pong') return;
             try {
                 const obj = JSON.parse(text);
                 if (obj && obj.action === 'register') {
@@ -67,9 +74,12 @@ export async function configureWebSocket(fastify: any) {
             }
         });
 
-        ws.on('close', () => safeClose());
-        ws.on('error', () => safeClose());
+        ws.on('close', () => { clearInterval(heartbeat); safeClose(); });
+        ws.on('error', () => { clearInterval(heartbeat); safeClose(); });
     });
+
+    // Periodic cleanup of stale connections every 60s
+    setInterval(cleanClosedConnections, 60000);
 
     fastify.decorate('wsHelpers', {
         registerConnection,
@@ -183,7 +193,6 @@ export function notificarFila(escolaId: string, evento: string, dados: any) {
     if (!sent) {
         logger.warn(`notificarFila: no active WS connection for escolaId=${escolaId}, evento=${evento}`);
     }
-    cleanClosedConnections();
 }
 
 export function notificarAluno(alunoToken: string, payload: any) {
