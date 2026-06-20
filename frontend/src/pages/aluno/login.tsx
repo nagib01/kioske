@@ -4,27 +4,15 @@ import { useRouter } from 'next/router';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import { useToast } from '../../components/Toast';
 
-type LoginTab = 'email' | 'nif' | 'qr';
-
 export default function StudentLoginPage() {
   const router = useRouter();
-  const { login, loginNif, loginQr, isAuthenticated, isLoading } = useStudentAuth();
+  const { login, isAuthenticated, isLoading } = useStudentAuth();
   const { addToast } = useToast();
 
-  const [tab, setTab] = useState<LoginTab>('email');
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-
-  // Email fields
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-
-  // NIF fields
-  const [numeroEstudante, setNumeroEstudante] = useState('');
-  const [dataNascimento, setDataNascimento] = useState('');
-
-  // QR fields
-  const [qrToken, setQrToken] = useState('');
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
@@ -48,46 +36,6 @@ export default function StudentLoginPage() {
       setCarregando(false);
     }
   };
-
-  const handleLoginNif = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErro(null);
-    if (!numeroEstudante || !dataNascimento) { setErro('Preencha o número de estudante e data de nascimento'); return; }
-    setCarregando(true);
-    try {
-      await loginNif(numeroEstudante, dataNascimento);
-      router.push('/aluno/conta');
-    } catch (err: any) {
-      const msg = err.message || 'Credenciais inválidas';
-      setErro(msg);
-      addToast(msg, 'error');
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  const handleLoginQr = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErro(null);
-    if (!qrToken) { setErro('Insira o código do QR Code'); return; }
-    setCarregando(true);
-    try {
-      await loginQr(qrToken);
-      router.push('/aluno/conta');
-    } catch (err: any) {
-      const msg = err.message || 'QR Code inválido';
-      setErro(msg);
-      addToast(msg, 'error');
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  const tabs: { key: LoginTab; label: string }[] = [
-    { key: 'email', label: 'Email' },
-    { key: 'nif', label: 'Nº Estudante' },
-    { key: 'qr', label: 'QR Code' },
-  ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
@@ -114,95 +62,30 @@ export default function StudentLoginPage() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="flex border-b border-gray-200">
-              {tabs.map(t => (
-                <button
-                  key={t.key}
-                  onClick={() => { setTab(t.key); setErro(null); }}
-                  className={`flex-1 py-3 text-sm font-bold text-center transition-colors ${
-                    tab === t.key
-                      ? 'border-b-2 border-[#047857] text-[#047857] bg-green-50/30'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            {tab === 'email' && (
-              <form onSubmit={handleLoginEmail} className="p-6 space-y-5">
-                {erro && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3" role="alert">
-                    <span className="text-red-500 font-bold mt-0.5">!</span>
-                    <p className="text-red-700 text-sm">{erro}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="seu@email.com" autoComplete="email" inputMode="email"
-                    className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
+            <form onSubmit={handleLoginEmail} className="p-6 space-y-5">
+              {erro && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3" role="alert">
+                  <span className="text-red-500 font-bold mt-0.5">!</span>
+                  <p className="text-red-700 text-sm">{erro}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Senha</label>
-                  <input type="password" value={senha} onChange={e => setSenha(e.target.value)}
-                    placeholder="A sua senha" autoComplete="current-password"
-                    className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
-                </div>
-                <button type="submit" disabled={carregando}
-                  className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors disabled:opacity-50 shadow-lg flex items-center justify-center gap-2">
-                  {carregando ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> A entrar...</> : 'Entrar'}
-                </button>
-              </form>
-            )}
-
-            {tab === 'nif' && (
-              <form onSubmit={handleLoginNif} className="p-6 space-y-5">
-                {erro && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3" role="alert">
-                    <span className="text-red-500 font-bold mt-0.5">!</span>
-                    <p className="text-red-700 text-sm">{erro}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Nº de Estudante</label>
-                  <input type="text" value={numeroEstudante} onChange={e => setNumeroEstudante(e.target.value)}
-                    placeholder="Ex: 2024001" autoComplete="username"
-                    className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Data de Nascimento</label>
-                  <input type="date" value={dataNascimento} onChange={e => setDataNascimento(e.target.value)}
-                    className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
-                </div>
-                <button type="submit" disabled={carregando}
-                  className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors disabled:opacity-50 shadow-lg flex items-center justify-center gap-2">
-                  {carregando ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> A entrar...</> : 'Entrar'}
-                </button>
-              </form>
-            )}
-
-            {tab === 'qr' && (
-              <form onSubmit={handleLoginQr} className="p-6 space-y-5">
-                {erro && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3" role="alert">
-                    <span className="text-red-500 font-bold mt-0.5">!</span>
-                    <p className="text-red-700 text-sm">{erro}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Código do QR Code</label>
-                  <input type="text" value={qrToken} onChange={e => setQrToken(e.target.value)}
-                    placeholder="Cole o código do QR Code" autoComplete="off"
-                    className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
-                </div>
-                <button type="submit" disabled={carregando}
-                  className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors disabled:opacity-50 shadow-lg flex items-center justify-center gap-2">
-                  {carregando ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> A entrar...</> : 'Entrar'}
-                </button>
-              </form>
-            )}
+              )}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="seu@email.com" autoComplete="email" inputMode="email"
+                  className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Senha</label>
+                <input type="password" value={senha} onChange={e => setSenha(e.target.value)}
+                  placeholder="A sua senha" autoComplete="current-password"
+                  className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
+              </div>
+              <button type="submit" disabled={carregando}
+                className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors disabled:opacity-50 shadow-lg flex items-center justify-center gap-2">
+                {carregando ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> A entrar...</> : 'Entrar'}
+              </button>
+            </form>
           </div>
 
         </div>

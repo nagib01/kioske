@@ -1,11 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { validate, studentLoginEmailSchema, studentLoginNifSchema, studentLoginQrSchema, studentRefreshSchema, studentQuickKioskSchema, studentChangePasswordSchema } from '../../src/shared/validation.js';
+import { validate, studentLoginEmailSchema, studentRefreshSchema, studentChangePasswordSchema } from '../../src/shared/validation.js';
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 const ACCESS_TOKEN_EXPIRY = '15m';
-const QR_TOKEN_EXPIRY_MINUTES = 2;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
 
@@ -98,13 +97,6 @@ async function revokeSession(fastify: FastifyInstance, refreshToken: string) {
   );
 }
 
-async function cleanupExpiredQrTokens(fastify: FastifyInstance, studentId: string) {
-  await fastify.pg.query(
-    `DELETE FROM student_qr_tokens WHERE student_id = $1 AND (expires_at < NOW() OR used_at IS NOT NULL)`,
-    [studentId]
-  );
-}
-
 export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── POST /api/auth/student/login ───
@@ -157,110 +149,6 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
         numero_estudante: student.numero_estudante,
         telefone: student.telefone,
         escola_id: student.escola_id,
-      }
-    });
-  });
-
-  // ─── POST /api/auth/student/login/nif ───
-  fastify.post('/api/auth/student/login/nif', async (request: any, reply) => {
-    let parsed: { numero_estudante: string; data_nascimento: string };
-    try { parsed = validate(studentLoginNifSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-    const { numero_estudante, data_nascimento } = parsed;
-    const ip = request.ip || 'unknown';
-    const userAgent = request.headers['user-agent'] || 'unknown';
-
-    const res = await fastify.pg.query(
-      `SELECT id, nome, email, numero_estudante, data_nascimento, escola_id, ativo
-       FROM students WHERE numero_estudante = $1`,
-      [numero_estudante]
-    );
-    const student = res.rows[0];
-
-    if (!student) {
-      return reply.status(401).send({ error: 'Credenciais inválidas', code: 'INVALID_CREDENTIALS' });
-    }
-
-    if (!student.ativo) {
-      return reply.status(403).send({ error: 'Conta desativada', code: 'ACCOUNT_DISABLED' });
-    }
-
-    if (await checkBruteForce(fastify, student.id)) {
-      return reply.status(429).send({ error: 'Conta bloqueada temporariamente', code: 'ACCOUNT_LOCKED' });
-    }
-
-    const birthMatch = student.data_nascimento
-      ? new Date(student.data_nascimento).toISOString().split('T')[0] === data_nascimento.split('T')[0]
-      : false;
-
-    if (!birthMatch) {
-      await recordLoginAttempt(fastify, student.id, false, 'nif', ip, userAgent, 'data_nascimento_invalida');
-      return reply.status(401).send({ error: 'Dados inválidos', code: 'INVALID_CREDENTIALS' });
-    }
-
-    const tokens = await generateTokens(fastify, student);
-    await recordLoginAttempt(fastify, student.id, true, 'nif', ip, userAgent);
-
-    return reply.send({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: tokens.expiresAt.toISOString(),
-      student: {
-        id: student.id,
-        nome: student.nome,
-        email: student.email,
-        numero_estudante: student.numero_estudante,
-        escola_id: student.escola_id,
-      }
-    });
-  });
-
-  // ─── POST /api/auth/student/qr ───
-  fastify.post('/api/auth/student/qr', async (request: any, reply) => {
-    let parsed: { qrToken: string };
-    try { parsed = validate(studentLoginQrSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-    const { qrToken } = parsed;
-    const ip = request.ip || 'unknown';
-    const userAgent = request.headers['user-agent'] || 'unknown';
-
-    const res = await fastify.pg.query(
-      `SELECT sqt.*, s.id as student_id, s.nome, s.email, s.escola_id, s.ativo
-       FROM student_qr_tokens sqt
-       JOIN students s ON s.id = sqt.student_id
-       WHERE sqt.qr_token = $1 AND sqt.used_at IS NULL AND sqt.expires_at > NOW()`,
-      [qrToken]
-    );
-    const row = res.rows[0];
-
-    if (!row) {
-      return reply.status(401).send({ error: 'QR token inválido ou expirado', code: 'INVALID_QR_TOKEN' });
-    }
-
-    if (!row.ativo) {
-      return reply.status(403).send({ error: 'Conta desativada', code: 'ACCOUNT_DISABLED' });
-    }
-
-    await fastify.pg.query(
-      `UPDATE student_qr_tokens SET used_at = NOW() WHERE id = $1`,
-      [row.id]
-    );
-
-    const tokens = await generateTokens(fastify, {
-      id: row.student_id,
-      nome: row.nome,
-      email: row.email,
-      escola_id: row.escola_id,
-    });
-    await recordLoginAttempt(fastify, row.student_id, true, 'qr_code', ip, userAgent);
-
-    return reply.send({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: tokens.expiresAt.toISOString(),
-      student: {
-        id: row.student_id,
-        nome: row.nome,
-        email: row.email,
-        escola_id: row.escola_id,
       }
     });
   });
@@ -370,40 +258,6 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     return reply.send({ success: true });
   });
 
-  // ─── POST /api/auth/student/quick-kiosk ───
-  fastify.post('/api/auth/student/quick-kiosk', async (request: any, reply) => {
-    let parsed: { nome: string; escolaId?: string; telefone?: string };
-    try { parsed = validate(studentQuickKioskSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-    const { nome, escolaId, telefone } = parsed;
-
-    const escolaRes = await fastify.pg.query(
-      'SELECT id FROM escolas ORDER BY created_at ASC LIMIT 1'
-    );
-    const defaultEscolaId = escolaRes.rows[0]?.id;
-    if (!defaultEscolaId) return reply.status(400).send({ error: 'Nenhuma escola configurada' });
-
-    const res = await fastify.pg.query(
-      `INSERT INTO students (escola_id, numero_estudante, nome, telefone, categoria, estado_formacao)
-       VALUES ($1, $2, $3, $4, 'B', 'inscrito')
-       RETURNING id, nome, escola_id`,
-      [escolaId || defaultEscolaId, 'K-' + Date.now(), nome, telefone || null]
-    );
-    const student = res.rows[0];
-
-    const tokens = await generateTokens(fastify, student);
-
-    return reply.send({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: tokens.expiresAt.toISOString(),
-      student: {
-        id: student.id,
-        nome: student.nome,
-        escola_id: student.escola_id,
-      }
-    });
-  });
-
   // ─── GET /api/auth/student/me ───
   fastify.get('/api/auth/student/me', async (request: any, reply) => {
     try {
@@ -430,39 +284,6 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     if (!student) return reply.status(404).send({ error: 'Aluno não encontrado' });
 
     return reply.send({ student });
-  });
-
-  // ─── GET /api/auth/student/qr-token ─── (generate a new QR token for login)
-  fastify.get('/api/auth/student/qr-token', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
-
-    const studentId = request.user.sub;
-    const qrToken = randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + QR_TOKEN_EXPIRY_MINUTES);
-
-    await cleanupExpiredQrTokens(fastify, studentId);
-
-    await fastify.pg.query(
-      `INSERT INTO student_qr_tokens (student_id, qr_token, expires_at)
-       VALUES ($1, $2, $3)`,
-      [studentId, qrToken, expiresAt]
-    );
-
-    const qrCodeUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/aluno/login?qr=${qrToken}`;
-
-    return reply.send({
-      qrToken,
-      qrCodeUrl,
-      expiresAt: expiresAt.toISOString(),
-    });
   });
 
   // ─── GET /api/auth/student/history ───

@@ -21,9 +21,6 @@ interface StudentAuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, senha: string) => Promise<void>;
-  loginNif: (numero_estudante: string, data_nascimento: string) => Promise<void>;
-  loginQr: (qrToken: string) => Promise<void>;
-  quickKiosk: (nome: string, telefone?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
   getAccessToken: () => string | null;
@@ -152,41 +149,6 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
     addToast('Login efetuado com sucesso!', 'success');
   }, [handleLoginResponse, addToast]);
 
-  const loginNif = useCallback(async (numero_estudante: string, data_nascimento: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/login/nif`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ numero_estudante, data_nascimento }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erro ao fazer login');
-    await handleLoginResponse(data);
-    addToast('Login efetuado com sucesso!', 'success');
-  }, [handleLoginResponse, addToast]);
-
-  const loginQr = useCallback(async (qrToken: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/qr`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ qrToken }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'QR token inválido');
-    await handleLoginResponse(data);
-    addToast('Login via QR Code efetuado!', 'success');
-  }, [handleLoginResponse, addToast]);
-
-  const quickKiosk = useCallback(async (nome: string, telefone?: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/quick-kiosk`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erro ao criar sessão');
-    await handleLoginResponse(data);
-  }, [handleLoginResponse, addToast]);
-
   const logout = useCallback(async () => {
     const tokens = getStoredTokens();
     if (tokens?.refreshToken) {
@@ -270,9 +232,6 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!student,
       isLoading,
       login,
-      loginNif,
-      loginQr,
-      quickKiosk,
       logout,
       refreshSession,
       getAccessToken,

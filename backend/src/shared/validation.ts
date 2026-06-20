@@ -166,23 +166,8 @@ export const studentLoginEmailSchema = z.object({
   senha: z.string().min(1, 'Senha é obrigatória'),
 });
 
-export const studentLoginNifSchema = z.object({
-  numero_estudante: z.string().min(1, 'Nº de estudante é obrigatório'),
-  data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
-});
-
-export const studentLoginQrSchema = z.object({
-  qrToken: z.string().min(1, 'QR token é obrigatório'),
-});
-
 export const studentRefreshSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token é obrigatório'),
-});
-
-export const studentQuickKioskSchema = z.object({
-  nome: z.string().min(1, 'Nome é obrigatório'),
-  escolaId: z.string().optional(),
-  telefone: z.string().optional(),
 });
 
 export const studentChangePasswordSchema = z.object({
