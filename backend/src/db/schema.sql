@@ -205,6 +205,22 @@ CREATE TABLE IF NOT EXISTS training_records (
 );
 
 -- Migrate existing data (safe to run repeatedly)
+CREATE TABLE IF NOT EXISTS exam_registrations (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    exam_type VARCHAR(10) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'agendado',
+    passed BOOLEAN DEFAULT NULL,
+    score INT,
+    exam_date DATE NOT NULL,
+    instructor_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    car_id BIGINT REFERENCES cars(id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_exam_registrations_student ON exam_registrations (student_id, exam_date DESC);
+
 ALTER TABLE training_records ADD COLUMN IF NOT EXISTS car_id BIGINT REFERENCES cars(id) ON DELETE SET NULL;
 ALTER TABLE training_records ADD COLUMN IF NOT EXISTS instructor_id BIGINT REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE training_records ADD COLUMN IF NOT EXISTS summary TEXT;
@@ -295,5 +311,3 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone VARCHAR(20);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE;
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role, ativo);
 
-ALTER TABLE training_records ADD COLUMN IF NOT EXISTS tipo_registo VARCHAR(10) NOT NULL DEFAULT 'aula';
-ALTER TABLE training_records ADD CONSTRAINT IF NOT EXISTS chk_tipo_registo CHECK (tipo_registo IN ('aula', 'exame'));

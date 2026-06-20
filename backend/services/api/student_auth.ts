@@ -525,8 +525,8 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     return reply.send({ sessions: res.rows });
   });
 
-  // ─── GET /api/auth/student/exams ─── (student sees their own exams)
-  fastify.get('/api/auth/student/exams', async (request: any, reply) => {
+  // ─── GET /api/auth/student/exam-registrations ─── (student sees their exam registrations)
+  fastify.get('/api/auth/student/exam-registrations', async (request: any, reply) => {
     try {
       await request.jwtVerify();
       if (request.user.role !== 'student') {
@@ -537,18 +537,9 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     }
 
     const studentId = request.user.sub;
-    const res = await fastify.pg.query(
-      `SELECT tr.*,
-              c.matricula as car_matricula,
-              u.nome as instructor_nome
-       FROM training_records tr
-       LEFT JOIN cars c ON c.id = tr.car_id
-       LEFT JOIN users u ON u.id = tr.instructor_id
-       WHERE tr.student_id = $1 AND tr.tipo_registo = 'exame'
-       ORDER BY tr.data DESC, tr.created_at DESC`,
-      [studentId]
-    );
-    return reply.send(res.rows);
+    const { ExamRegistrationModel } = await import('../../src/models/ExamRegistration.js');
+    const rows = await ExamRegistrationModel.listarPorAluno(fastify.pg, studentId);
+    return reply.send(rows);
   });
 
   // ─── GET /api/auth/student/lessons ─── (student sees their own lessons)

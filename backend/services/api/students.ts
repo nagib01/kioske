@@ -8,6 +8,7 @@ import { withDb } from '../../src/shared/db.js';
 import { StudentModel } from '../../src/models/Student.js';
 import { LessonModel } from '../../src/models/Lesson.js';
 import { NotificationModel } from '../../src/models/Notification.js';
+import { ExamRegistrationModel } from '../../src/models/ExamRegistration.js';
 
 export async function studentRoutes(fastify: FastifyInstance) {
 
@@ -197,6 +198,88 @@ export async function studentRoutes(fastify: FastifyInstance) {
     return withDb(fastify, async (client) => {
       const ok = await StudentModel.associarTicket(client, parsed.ticketId, id);
       if (!ok) return reply.status(404).send({ error: 'Ticket não encontrado' });
+      return reply.send({ success: true });
+    });
+  });
+
+  // ========== EXAM REGISTRATIONS ==========
+
+  // GET /api/admin/students/:id/exam-registrations
+  fastify.get('/admin/students/:id/exam-registrations', async (request: any, reply) => {
+    if (!(await authBackoffice(request, reply))) return;
+    const { id } = request.params as any;
+    return withDb(fastify, async (client) => {
+      const rows = await ExamRegistrationModel.listarPorAluno(client, id);
+      return reply.send(rows);
+    });
+  });
+
+  // POST /api/admin/students/:id/exam-registrations
+  fastify.post('/admin/students/:id/exam-registrations', async (request: any, reply) => {
+    if (!(await authBackoffice(request, reply))) return;
+    const { id } = request.params as any;
+    const { exam_type, exam_date, instructor_id, car_id, notes } = request.body as any;
+    if (!exam_type || !['teorica', 'pratica'].includes(exam_type)) {
+      return reply.status(400).send({ error: 'Tipo de exame inválido. Use "teorica" ou "pratica"' });
+    }
+    if (!exam_date) {
+      return reply.status(400).send({ error: 'Data do exame é obrigatória' });
+    }
+    return withDb(fastify, async (client) => {
+      const registration = await ExamRegistrationModel.criar(client, {
+        student_id: id,
+        exam_type, exam_date, instructor_id, car_id, notes,
+      });
+
+      await NotificationModel.criar(client, {
+        student_id: id,
+        tipo: 'exame_agendado',
+        titulo: 'Novo exame agendado',
+        mensagem: `Exame de ${exam_type === 'teorica' ? 'Teórica' : 'Prática'} agendado para ${exam_date}`,
+      });
+
+      return reply.status(201).send(registration);
+    });
+  });
+
+  // PUT /api/admin/exam-registrations/:id
+  fastify.put('/admin/exam-registrations/:id', async (request: any, reply) => {
+    if (!(await authBackoffice(request, reply))) return;
+    const { id } = request.params as any;
+    const allowed = ['exam_type', 'status', 'passed', 'score', 'exam_date', 'instructor_id', 'car_id', 'notes'];
+    const updates: any = {};
+    for (const key of allowed) {
+      if (request.body[key] !== undefined) updates[key] = request.body[key];
+    }
+    if (Object.keys(updates).length === 0) {
+      return reply.status(400).send({ error: 'Nenhum campo para atualizar' });
+    }
+    return withDb(fastify, async (client) => {
+      const existing = await ExamRegistrationModel.buscarPorId(client, id);
+      if (!existing) return reply.status(404).send({ error: 'Registo de exame não encontrado' });
+
+      const registration = await ExamRegistrationModel.atualizar(client, id, updates);
+
+      if (updates.status === 'realizado' && updates.passed !== undefined) {
+        await NotificationModel.criar(client, {
+          student_id: existing.student_id,
+          tipo: 'exame_resultado',
+          titulo: 'Resultado do exame',
+          mensagem: `Exame de ${existing.exam_type === 'teorica' ? 'Teórica' : 'Prática'}: ${updates.passed ? 'Aprovado' : 'Reprovado'}`,
+        });
+      }
+
+      return reply.send(registration);
+    });
+  });
+
+  // DELETE /api/admin/exam-registrations/:id
+  fastify.delete('/admin/exam-registrations/:id', async (request: any, reply) => {
+    if (!(await authBackoffice(request, reply))) return;
+    const { id } = request.params as any;
+    return withDb(fastify, async (client) => {
+      const ok = await ExamRegistrationModel.excluir(client, id);
+      if (!ok) return reply.status(404).send({ error: 'Registo de exame não encontrado' });
       return reply.send({ success: true });
     });
   });

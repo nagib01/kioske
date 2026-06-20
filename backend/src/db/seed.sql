@@ -65,9 +65,10 @@ SELECT setval('students_id_seq', COALESCE((SELECT MAX(id) FROM students), 1));
 SELECT setval('cars_id_seq', COALESCE((SELECT MAX(id) FROM cars), 1));
 
 -- Inserir registos de exames para alunos
-INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, instructor_id, status, tipo_registo)
+INSERT INTO exam_registrations (student_id, exam_type, status, passed, score, exam_date, instructor_id, notes)
 VALUES
-  (1, 'teorica', '2024-01-15', '10:00', '11:00', 4, 'concluida', 'exame'),
-  (1, 'pratica', '2024-02-20', '14:00', '15:30', 4, 'concluida', 'exame'),
-  (3, 'pratica', '2024-03-10', '09:00', '10:00', 5, 'concluida', 'exame'),
-  (5, 'teorica', '2024-03-18', '11:00', '12:00', 4, 'concluida', 'exame');
+  (1, 'teorica', 'realizado', true, 92, '2024-01-15', 4, 'Boa nota'),
+  (1, 'pratica', 'realizado', true, NULL, '2024-02-20', 4, NULL),
+  (3, 'pratica', 'realizado', false, NULL, '2024-03-10', 5, 'Falhou na manobra de estacionamento'),
+  (5, 'teorica', 'agendado', NULL, NULL, '2024-06-25', 4, NULL);
+

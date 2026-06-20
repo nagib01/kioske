@@ -4,16 +4,6 @@ import { useRouter } from 'next/router';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import { useToast } from '../../components/Toast';
 
-interface Ticket {
-  id: string;
-  codigo_senha: string;
-  servico_nome: string;
-  status: string;
-  priority_level: number;
-  created_at: string;
-  mesa_atendimento?: string;
-}
-
 interface Aula {
   id: string;
   tipo: string;
@@ -37,22 +27,18 @@ interface Notification {
   created_at: string;
 }
 
-type Tab = 'senhas' | 'aulas' | 'exames' | 'notificacoes';
+type Tab = 'aulas' | 'notificacoes';
 
 export default function StudentAccountPage() {
   const router = useRouter();
   const { student, isAuthenticated, isLoading, logout, getAccessToken, changePassword, logoutAll, refreshSession } = useStudentAuth();
   const { addToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<Tab>('senhas');
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>('aulas');
   const [aulas, setAulas] = useState<Aula[]>([]);
-  const [exames, setExames] = useState<Aula[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [naoLidas, setNaoLidas] = useState(0);
-  const [carregandoTickets, setCarregandoTickets] = useState(false);
   const [carregandoAulas, setCarregandoAulas] = useState(false);
-  const [carregandoExames, setCarregandoExames] = useState(false);
   const [carregandoNotificacoes, setCarregandoNotificacoes] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
@@ -84,32 +70,6 @@ export default function StudentAccountPage() {
     }
     return res;
   }, [authHeaders, refreshSession]);
-
-  const fetchTickets = useCallback(async () => {
-    if (!student) return;
-    setCarregandoTickets(true);
-    try {
-      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/tickets`);
-      if (res && res.ok) setTickets(await res.json());
-    } catch {
-      addToast('Erro ao carregar senhas', 'error');
-    } finally {
-      setCarregandoTickets(false);
-    }
-  }, [student, fetchWithAuth, addToast]);
-
-  const fetchExames = useCallback(async () => {
-    if (!student) return;
-    setCarregandoExames(true);
-    try {
-      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/exams`);
-      if (res && res.ok) setExames(await res.json());
-    } catch {
-      addToast('Erro ao carregar exames', 'error');
-    } finally {
-      setCarregandoExames(false);
-    }
-  }, [student, fetchWithAuth, addToast]);
 
   const fetchAulas = useCallback(async () => {
     if (!student) return;
@@ -176,9 +136,7 @@ export default function StudentAccountPage() {
   };
 
   useEffect(() => {
-    if (activeTab === 'senhas') fetchTickets();
     if (activeTab === 'aulas') fetchAulas();
-    if (activeTab === 'exames') fetchExames();
     if (activeTab === 'notificacoes') fetchNotificacoes();
   }, [activeTab]);
 
@@ -193,21 +151,9 @@ export default function StudentAccountPage() {
   if (!student) return null;
 
   const tabs: { key: Tab; label: string; badge?: string | number }[] = [
-    { key: 'senhas', label: 'Senhas' },
     { key: 'aulas', label: 'Aulas' },
-    { key: 'exames', label: 'Exames' },
     { key: 'notificacoes', label: 'Notificações', badge: naoLidas > 0 ? naoLidas : undefined },
   ];
-
-  const statusLabel: Record<string, string> = {
-    waiting: 'Em Espera', called: 'Em Atendimento', finished: 'Concluído',
-  };
-
-  const statusColor: Record<string, string> = {
-    waiting: 'bg-blue-100 text-blue-800',
-    called: 'bg-yellow-100 text-yellow-800',
-    finished: 'bg-green-100 text-green-800',
-  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
@@ -291,47 +237,6 @@ export default function StudentAccountPage() {
           ))}
         </div>
 
-        {activeTab === 'senhas' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="p-3 border-b border-gray-100">
-              <h3 className="text-xs font-bold text-gray-700">Histórico de Senhas</h3>
-            </div>
-            {carregandoTickets ? (
-              <div className="p-6 text-center text-sm text-gray-500">A carregar...</div>
-            ) : tickets.length === 0 ? (
-              <div className="p-6 text-center text-gray-400">
-                <p className="text-sm">Nenhuma senha registada</p>
-                <button
-                  onClick={() => router.push('/aluno')}
-                  className="mt-3 text-xs text-[#047857] font-medium hover:underline"
-                >
-                  Retirar senha agora
-                </button>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {tickets.map(t => (
-                  <div key={t.id} className="p-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#047857]/10 flex items-center justify-center text-sm font-bold text-[#047857] shrink-0">
-                      {t.codigo_senha}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-800 truncate">{t.servico_nome}</p>
-                      <p className="text-[10px] text-gray-400">
-                        {new Date(t.created_at).toLocaleDateString('pt-PT')} 
-                        {t.mesa_atendimento && ` · Mesa ${t.mesa_atendimento}`}
-                      </p>
-                    </div>
-                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColor[t.status] || 'bg-gray-100 text-gray-600'}`}>
-                      {statusLabel[t.status] || t.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {activeTab === 'aulas' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100">
             <div className="p-3 border-b border-gray-100">
@@ -354,51 +259,6 @@ export default function StudentAccountPage() {
                   };
                   const statusLabels: Record<string, string> = {
                     agendada: 'Agendada', em_curso: 'Em Curso', concluida: 'Concluída', cancelada: 'Cancelada',
-                  };
-                  return (
-                    <div key={a.id} className="p-3">
-                      <div className="flex items-start gap-2 mb-1">
-                        <span className={`text-xs font-bold shrink-0 ${a.tipo === 'pratica' ? 'text-blue-600' : 'text-purple-600'}`}>
-                          {a.tipo === 'pratica' ? 'Prática' : 'Teórica'}
-                        </span>
-                        <span className={`ml-auto shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColors[a.status] || 'bg-gray-100'}`}>
-                          {statusLabels[a.status] || a.status}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-600 space-y-0.5">
-                        <p>{new Date(a.data).toLocaleDateString('pt-PT')} {a.hora_inicio?.substring(0, 5) || ''}{a.hora_fim ? ` - ${a.hora_fim.substring(0, 5)}` : ''}</p>
-                        <p>{a.instructor_nome && `Instrutor: ${a.instructor_nome}`}{a.car_matricula && ` · ${a.car_matricula}`}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'exames' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="p-3 border-b border-gray-100">
-              <h3 className="text-xs font-bold text-gray-700">Registo de Exames</h3>
-            </div>
-            {carregandoExames ? (
-              <div className="p-6 text-center text-sm text-gray-500">A carregar...</div>
-            ) : exames.length === 0 ? (
-              <div className="p-6 text-center text-gray-400">
-                <p className="text-sm">Nenhum exame registado</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {exames.map(a => {
-                  const statusColors: Record<string, string> = {
-                    agendada: 'bg-blue-100 text-blue-800',
-                    em_curso: 'bg-yellow-100 text-yellow-800',
-                    concluida: 'bg-green-100 text-green-800',
-                    cancelada: 'bg-red-100 text-red-800',
-                  };
-                  const statusLabels: Record<string, string> = {
-                    agendada: 'Agendado', em_curso: 'Em Curso', concluida: 'Concluído', cancelada: 'Cancelado',
                   };
                   return (
                     <div key={a.id} className="p-3">
