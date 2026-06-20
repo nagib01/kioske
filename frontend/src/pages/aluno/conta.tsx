@@ -163,7 +163,7 @@ export default function StudentAccountPage() {
       </Head>
 
       <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
+        <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600 hidden sm:block truncate max-w-[120px]">{student.nome}</span>
           <button
@@ -320,15 +320,6 @@ export default function StudentAccountPage() {
             )}
           </div>
         )}
-
-        <div className="mt-4">
-          <button
-            onClick={() => router.push('/')}
-            className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3.5 px-5 rounded-xl transition-colors shadow-sm text-sm"
-          >
-            Retirar Nova Senha
-          </button>
-        </div>
 
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

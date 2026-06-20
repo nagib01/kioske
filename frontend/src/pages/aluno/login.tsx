@@ -45,7 +45,7 @@ export default function StudentLoginPage() {
       </Head>
 
       <header className="bg-white px-6 py-4 shadow-sm flex items-center justify-between">
-        <h1 className="text-lg font-bold text-[#047857] uppercase tracking-wide">Kioske Digital Universal</h1>
+        <h1 className="text-lg font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital Universal</a></h1>
         <button onClick={() => router.push('/')} className="text-sm text-gray-500 hover:text-gray-700 font-medium">
           Início
         </button>

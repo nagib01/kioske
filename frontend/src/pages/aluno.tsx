@@ -218,7 +218,7 @@ export default function AlunoPage() {
         </Head>
 
         <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
+          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
           <Link
             href="/aluno/login"
             className="text-xs text-[#047857] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-3 py-1.5 transition-colors"
@@ -250,7 +250,7 @@ export default function AlunoPage() {
         </Head>
 
         <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
+          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
           <Link href="/aluno/login" className="text-xs text-[#047857] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-3 py-1.5 transition-colors">
             Entrar
           </Link>
@@ -292,7 +292,7 @@ export default function AlunoPage() {
         </Head>
 
         <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide">Kioske Digital</h1>
+          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
           <div className="flex items-center gap-2">
             {loggedStudentId ? (
               <Link href="/aluno/conta" className="text-xs text-[#047857] font-bold hover:underline px-2 py-1">
