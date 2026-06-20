@@ -41,7 +41,7 @@ type Tab = 'senhas' | 'aulas' | 'exames' | 'notificacoes';
 
 export default function StudentAccountPage() {
   const router = useRouter();
-  const { student, isAuthenticated, isLoading, logout, getAccessToken, changePassword, logoutAll } = useStudentAuth();
+  const { student, isAuthenticated, isLoading, logout, getAccessToken, changePassword, logoutAll, refreshSession } = useStudentAuth();
   const { addToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<Tab>('senhas');
@@ -73,63 +73,63 @@ export default function StudentAccountPage() {
     };
   }, [getAccessToken]);
 
+  const fetchWithAuth = useCallback(async (url: string): Promise<Response | null> => {
+    const res = await fetch(url, { headers: authHeaders() });
+    if (res.status === 401) {
+      const refreshed = await refreshSession();
+      if (refreshed) {
+        return fetch(url, { headers: authHeaders() });
+      }
+      return null;
+    }
+    return res;
+  }, [authHeaders, refreshSession]);
+
   const fetchTickets = useCallback(async () => {
     if (!student) return;
     setCarregandoTickets(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/tickets`,
-        { headers: authHeaders() }
-      );
-      if (res.ok) setTickets(await res.json());
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/tickets`);
+      if (res && res.ok) setTickets(await res.json());
     } catch {
       addToast('Erro ao carregar senhas', 'error');
     } finally {
       setCarregandoTickets(false);
     }
-  }, [student, authHeaders, addToast]);
+  }, [student, fetchWithAuth, addToast]);
 
   const fetchExames = useCallback(async () => {
     if (!student) return;
     setCarregandoExames(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/exams`,
-        { headers: authHeaders() }
-      );
-      if (res.ok) setExames(await res.json());
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/exams`);
+      if (res && res.ok) setExames(await res.json());
     } catch {
       addToast('Erro ao carregar exames', 'error');
     } finally {
       setCarregandoExames(false);
     }
-  }, [student, authHeaders, addToast]);
+  }, [student, fetchWithAuth, addToast]);
 
   const fetchAulas = useCallback(async () => {
     if (!student) return;
     setCarregandoAulas(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/lessons`,
-        { headers: authHeaders() }
-      );
-      if (res.ok) setAulas(await res.json());
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/lessons`);
+      if (res && res.ok) setAulas(await res.json());
     } catch {
       addToast('Erro ao carregar aulas', 'error');
     } finally {
       setCarregandoAulas(false);
     }
-  }, [student, authHeaders, addToast]);
+  }, [student, fetchWithAuth, addToast]);
 
   const fetchNotificacoes = useCallback(async () => {
     if (!student) return;
     setCarregandoNotificacoes(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/notifications`,
-        { headers: authHeaders() }
-      );
-      if (res.ok) {
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/notifications`);
+      if (res && res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
         setNaoLidas(data.naoLidas || 0);
@@ -138,7 +138,7 @@ export default function StudentAccountPage() {
     } finally {
       setCarregandoNotificacoes(false);
     }
-  }, [student, authHeaders]);
+  }, [student, fetchWithAuth]);
 
   const marcarLida = async (id: string) => {
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/student/notifications/${id}/read`, {
