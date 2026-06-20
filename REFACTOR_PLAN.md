@@ -1,0 +1,69 @@
+# Refactor Plan — Kioske
+
+Incremental, **behavior-preserving** cleanup of the codebase. Each phase is a small,
+independently verifiable unit. After each phase: run the gate, verify manually, commit.
+
+## Decisions (locked)
+- **Order:** Frontend first (P0–P3), then Backend (P4–P5), cross-cutting last (P6).
+- **Data fetching:** lightweight custom `api.ts` client + `useApi` hook (no React Query).
+- **Types:** centralize per-side now; shared FE/BE contracts package considered in P6.
+- **Tooling:** warnings-first / non-blocking, then ratchet to strict in P6.
+
+## Per-phase gate (every PR)
+- [ ] `typecheck` passes (frontend + backend)
+- [ ] `test` passes (frontend + backend)
+- [ ] Manual smoke of the 5 domains (kioske / staff / monitor / aluno / landing) + clean-URL routing
+- [ ] No behavior change
+
+---
+
+## Phase 0 — Guardrails & baseline
+- [x] Fix vitest globals so `tsc --noEmit` is clean (frontend)
+- [x] Add `.editorconfig` (root)
+- [x] Add Prettier config + ignore (root)
+- [x] Add ESLint config (frontend: next/core-web-vitals)
+- [x] Add ESLint config (backend: typescript-eslint)
+- [x] Add `typecheck` / `lint` / `format` scripts (frontend, backend, root)
+- [x] Add CI workflow (typecheck → lint → test → build; lint non-blocking)
+- [ ] (optional) husky + lint-staged pre-commit
+
+## Phase 1 — Frontend shared foundation
+- [ ] `src/lib/api.ts` — single fetch client (base URL, JSON, error normalization, auth header)
+- [ ] `useApi` hook — kills copy-pasted loading/error state
+- [ ] `src/lib/auth.ts` + `useBackofficeAuth()` — replace 8+ header helpers & 47× `'backoffice_token'`
+- [ ] `src/types/*` — central domain types (Servico, Ticket, Student, Lesson, Car, User, Stats)
+- [ ] Tailwind theme tokens (`brand`, `brand-dark`, `surface`) replacing `#047857`/`#065f46`/`#F8FAFC`
+
+## Phase 2 — Frontend UI primitives & dedup
+- [ ] `components/ui/*`: Button, Input, Modal, DataTable, Spinner, Badge, Card, EmptyState
+- [ ] `Logo` / `AppHeader` component (dedupe 12× kiosk/aluno header markup)
+- [ ] Unify `BackofficeLayout` + `InstructorLayout` into a shared `SidebarLayout`
+- [ ] Collapse the 3 ad-hoc WebSocket impls onto `useRealtimeQueue`
+
+## Phase 3 — Frontend god-file decomposition (one page per PR)
+- [ ] `pages/backoffice.tsx` (589)
+- [ ] `pages/admin/alunos/[id]/index.tsx` (448)
+- [ ] `pages/aluno.tsx` (447)
+- [ ] `pages/admin/fila.tsx` (405)
+- [ ] `pages/admin/questionarios.tsx` (359)
+- [ ] `pages/aluno/conta.tsx` (349)
+- [ ] remaining pages > 250 lines (chamadas, admin/servicos, instructor/aulas, admin/alunos/index)
+
+## Phase 4 — Backend foundation
+- [ ] `src/config.ts` — read/validate all env once (zod)
+- [ ] Standardize on a single DB access pattern (`withDb`) + typed client (drop `db: any`)
+- [ ] Centralized error handling (`setErrorHandler` + `AppError`/`ERR` convention)
+- [ ] Remove dead code (Student legacy methods, `regras_triagem`) + dup schemas (`criarOpcaoSchemaAlt`)
+
+## Phase 5 — Backend layering & auth unification
+- [ ] Extract `resolveEscolaId()` (×15), `notifyQueue()` (×3), `validate` preHandler (×30)
+- [ ] Route-level auth via Fastify `preHandler` (replace ~40 inline guard calls)
+- [ ] Unify staff + student auth on shared JWT plumbing
+- [ ] Move inline SQL into models
+- [ ] Split `student_auth.ts` (407) and `admin.ts` (311) into focused files
+
+## Phase 6 — Contracts & ratchet (ongoing)
+- [ ] Single source of truth for ports/URLs (today duplicated across `.env`, `server.js`, `next.config.js`, root scripts)
+- [ ] Backfill tests around refactored modules (frontend tests are smoke-only today)
+- [ ] Ratchet tooling to blocking; tighten tsconfig (`noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`)
+- [ ] (optional) shared FE/BE contracts package

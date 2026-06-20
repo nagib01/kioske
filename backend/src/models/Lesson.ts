@@ -236,7 +236,7 @@ export class LessonModel {
              WHERE instructor_id = $1 AND data = $2 AND status != 'cancelada'
              AND hora_inicio < $4 AND hora_fim > $3`;
         const params: unknown[] = [instructorId, data, horaInicio, horaFim];
-        let idx = 5;
+        const idx = 5;
         if (excludeId) {
             query += ` AND id != $${idx}`;
             params.push(excludeId);
@@ -251,7 +251,7 @@ export class LessonModel {
              WHERE car_id = $1 AND data = $2 AND status != 'cancelada'
              AND hora_inicio < $4 AND hora_fim > $3`;
         const params: unknown[] = [carId, data, horaInicio, horaFim];
-        let idx = 5;
+        const idx = 5;
         if (excludeId) {
             query += ` AND id != $${idx}`;
             params.push(excludeId);

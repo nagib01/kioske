@@ -10,7 +10,9 @@
     "start:public": "next start -p 3000",
     "start:staff": "next start -p 3002",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint"
   },
   "dependencies": {
     "autoprefixer": "^10.4.16",
@@ -29,6 +31,9 @@
     "@types/react-dom": "^18.2.18",
     "@types/scheduler": "^0.26.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.0.4",
+    "eslint-config-prettier": "^9.1.0",
     "jsdom": "^29.1.1",
     "typescript": "^5.3.3",
     "vitest": "^4.1.9"
