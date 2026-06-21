@@ -54,7 +54,7 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 
 ## Phase 3 — Frontend god-file decomposition (one page per PR)
 - [x] `pages/backoffice.tsx` (622 → ~265): extracted `useBackofficeQueue` hook (adopts `useWebSocket` + `apiUrl`) and `backoffice/{StatsCards,QueueList,NewTicketModal}` components
-- [ ] `pages/admin/alunos/[id]/index.tsx` (448)
+- [x] `pages/admin/alunos/[id]/index.tsx` (471 → ~90): extracted `useStudentProfile` hook (adopts `apiUrl`) + `admin/aluno/{ProfileHeader,PerfilTab,TicketsTab,AulasTab,ContactosTab}` components
 - [ ] `pages/aluno.tsx` (447)
 - [ ] `pages/admin/fila.tsx` (405)
 - [ ] `pages/admin/questionarios.tsx` (359)
