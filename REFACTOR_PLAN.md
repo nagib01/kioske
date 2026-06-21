@@ -53,7 +53,7 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - **Dev config fix:** `frontend/.env.local` now points `NEXT_PUBLIC_API_URL`/`WS_URL` at `localhost:3001` for local dev (was the production tunnel). File is gitignored, so this is a local-only change.
 
 ## Phase 3 — Frontend god-file decomposition (one page per PR)
-- [ ] `pages/backoffice.tsx` (589)
+- [x] `pages/backoffice.tsx` (622 → ~265): extracted `useBackofficeQueue` hook (adopts `useWebSocket` + `apiUrl`) and `backoffice/{StatsCards,QueueList,NewTicketModal}` components
 - [ ] `pages/admin/alunos/[id]/index.tsx` (448)
 - [ ] `pages/aluno.tsx` (447)
 - [ ] `pages/admin/fila.tsx` (405)
