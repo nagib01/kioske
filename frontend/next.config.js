@@ -4,8 +4,8 @@ module.exports = {
   reactStrictMode: true,
   swcMinify: true,
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.stonemark.pt',
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'wss://api.stonemark.pt',
     NEXT_PUBLIC_STAFF_PORT: process.env.NEXT_PUBLIC_STAFF_PORT || String(PORT_DEFAULTS.STAFF_PORT),
     NEXT_PUBLIC_KIOSKE_PORT: process.env.NEXT_PUBLIC_KIOSKE_PORT || String(PORT_DEFAULTS.KIOSKE_PORT),
     NEXT_PUBLIC_MONITOR_PORT: process.env.NEXT_PUBLIC_MONITOR_PORT || String(PORT_DEFAULTS.MONITOR_PORT),

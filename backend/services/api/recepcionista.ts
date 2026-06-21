@@ -3,7 +3,6 @@ import { TicketModel } from '../../src/models/Ticket.js';
 import { notificarAluno, notificarFila, safeNotify } from '../../websocket/index.js';
 import { formatTicket } from '../../src/shared/formatTicket.js';
 import { authBackoffice } from '../../src/shared/auth.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { validate, chamarTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 
@@ -81,7 +80,6 @@ export async function recepcionistaRoutes(fastify: FastifyInstance) {
             const payload = formatTicket(ticket);
             safeNotify('WS notify aluno failed', () => notificarAluno(ticket.aluno_token, { evento: 'chamado', dados: payload }));
             safeNotify('WS notify fila failed', () => notificarFila(ticket.escola_id, 'ticket_chamado', payload));
-            await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, ticketId, { mesa, metodo: 'recepcionista' });
             return reply.send({ ticket: payload });
         });
     };
@@ -103,7 +101,6 @@ export async function recepcionistaRoutes(fastify: FastifyInstance) {
             const payload = formatTicket(ticket);
             safeNotify('WS notify aluno failed', () => notificarAluno(ticket.aluno_token, { evento: 'chamado', dados: payload }));
             safeNotify('WS notify fila failed', () => notificarFila(ticket.escola_id, 'ticket_chamado', payload));
-            await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, ticket.id, { mesa, metodo: 'next' });
             return reply.send({ ticket: payload });
         });
     };
@@ -118,7 +115,6 @@ export async function recepcionistaRoutes(fastify: FastifyInstance) {
             if (!ticket) return reply.status(404).send({ error: 'Ticket não encontrado' });
             const payload = { ...formatTicket(ticket), posicao_fila: ticket.posicao };
             safeNotify('WS notify failed', () => notificarFila(ticket.escola_id, 'ticket_finalizado', payload));
-            await registrarAuditoria(fastify, 'finalizar_ticket', request.user?.id, request.user?.nome, ticketId, { metodo: 'recepcionista' });
             return reply.send({ ticket: payload });
         });
     };

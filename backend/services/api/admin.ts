@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { authAdmin } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { validateBody, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 
@@ -57,7 +56,6 @@ export async function adminRoutes(fastify: FastifyInstance) {
                  RETURNING *`,
                 [escolaId, nome, prioridade_base, codigo_prefixo, tempo_medio_atendimento, mesa_padrao]
             );
-            await registrarAuditoria(fastify, 'criar_servico', request.user?.id, request.user?.nome, null, { servicoId: res.rows[0].id, nome });
             return reply.send({ servico: res.rows[0] });
         });
     });
@@ -83,7 +81,6 @@ export async function adminRoutes(fastify: FastifyInstance) {
                  RETURNING *`,
                 [id, nome, prioridade_base, ativo, codigo_prefixo, tempo_medio_atendimento, mesa_padrao, mesas || null]
             );
-            await registrarAuditoria(fastify, 'editar_servico', request.user?.id, request.user?.nome, null, { servicoId: id });
             return reply.send({ servico: res.rows[0] });
         });
     });
@@ -95,7 +92,6 @@ export async function adminRoutes(fastify: FastifyInstance) {
         if (!id) return reply.status(400).send({ error: 'id é necessário' });
         return withDb(fastify, async (client) => {
             const res = await client.query(`UPDATE servicos SET ativo = false WHERE id = $1 RETURNING *`, [id]);
-            await registrarAuditoria(fastify, 'desativar_servico', request.user?.id, request.user?.nome, null, { servicoId: id });
             return reply.send({ servico: res.rows[0] });
         });
     });
@@ -319,6 +315,59 @@ export async function adminRoutes(fastify: FastifyInstance) {
                 }
             }
             return reply.send({ priority_level, alertas: Array.from(alertas) });
+        });
+    });
+
+    // ==================== AUDITORIA ====================
+
+    fastify.get('/admin/audit-logs', async (request: any, reply) => {
+        if (!(await authAdmin(request, reply))) return;
+        const escolaId = await resolveEscolaId(fastify, request, { query: true });
+        const page = Math.max(1, parseInt(request.query?.page as string) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(request.query?.limit as string) || 30));
+        const offset = (page - 1) * limit;
+        const acaoFilter = request.query?.acao as string | undefined;
+
+        return withDb(fastify, async (client) => {
+            let whereClause = '';
+            const params: any[] = [];
+            let paramIdx = 1;
+
+            if (escolaId) {
+                whereClause += ` WHERE al.escola_id = $${paramIdx}`;
+                params.push(escolaId);
+                paramIdx++;
+            }
+            if (acaoFilter) {
+                whereClause += whereClause ? ' AND' : ' WHERE';
+                whereClause += ` al.acao = $${paramIdx}`;
+                params.push(acaoFilter);
+                paramIdx++;
+            }
+
+            const countRes = await client.query(
+                `SELECT COUNT(*) FROM audit_log al${whereClause}`,
+                params
+            );
+            const total = parseInt(countRes.rows[0].count, 10);
+
+            const res = await client.query(
+                `SELECT al.id, al.acao, al.utilizador_id, al.utilizador_nome, al.escola_id, al.ticket_id, al.detalhes, al.created_at
+                 FROM audit_log al${whereClause}
+                 ORDER BY al.created_at DESC
+                 LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+                [...params, limit, offset]
+            );
+
+            return reply.send({
+                logs: res.rows,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            });
         });
     });
 }

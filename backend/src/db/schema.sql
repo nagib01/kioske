@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     acao VARCHAR(50) NOT NULL,
     utilizador_id BIGINT,
     utilizador_nome VARCHAR(200),
+    escola_id BIGINT REFERENCES escolas(id) ON DELETE SET NULL,
     ticket_id BIGINT,
     detalhes JSONB,
     created_at TIMESTAMP DEFAULT NOW()

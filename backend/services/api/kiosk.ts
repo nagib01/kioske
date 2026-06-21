@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { TicketModel } from '../../src/models/Ticket.js';
 import { formatTicket } from '../../src/shared/formatTicket.js';
 import { gerarQRCode } from '../../src/shared/qrCode.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { authBackoffice } from '../../src/shared/auth.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
 import { notificarFila, notificarAluno, safeNotify } from '../../websocket/index.js';
@@ -60,10 +59,6 @@ export async function kioskRoutes(fastify: FastifyInstance) {
       safeNotify('WS notify failed', () => notificarFila(escolaId, 'novo_ticket', out));
       safeNotify('WS notify failed', () => notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }));
 
-      await registrarAuditoria(fastify, 'criar_ticket', request.user?.id, request.user?.nome, ticket.id, {
-        servicoId, alunoNome, metodo: 'manual'
-      });
-
       return reply.status(201).send({ ticket: out });
     });
   });
@@ -89,11 +84,6 @@ export async function kioskRoutes(fastify: FastifyInstance) {
       const formatted = formatTicket(updated);
 
       safeNotify('WS notify failed', () => notificarFila(updated.escola_id, 'ticket_chamado', formatted));
-
-      await registrarAuditoria(fastify, 'transferir_ticket', request.user?.id, request.user?.nome, id, {
-        mesa_origem: ticket.mesa_atendimento,
-        mesa_destino: mesa
-      });
 
       return reply.send({ ticket: formatted });
     });

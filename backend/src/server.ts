@@ -7,6 +7,7 @@ import rateLimit from '@fastify/rate-limit';
 import { logger } from './shared/logger.js';
 import { config, corsOrigins, validateConfig } from './config.js';
 import { AppError } from './shared/errors.js';
+import { registerAuditHook } from './shared/autoAuditoria.js';
 
 logger.info('─── Backend starting ───');
 logger.info(`NODE_ENV=${config.nodeEnv}`);
@@ -60,6 +61,7 @@ fastify.get('/health', async (_request, reply) => {
 });
 
 await registerRoutes(fastify);
+await registerAuditHook(fastify);
 
 const start = async () => {
     try {

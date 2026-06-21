@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { loginSchema, validate } from '../../src/shared/validation.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
@@ -27,8 +26,6 @@ export async function authRoutes(fastify: FastifyInstance) {
             id: user.id, email: user.email, role: user.role,
             nome: user.nome, avatar_url: user.avatar_url, escola_id: user.escola_id
         }, { expiresIn: '8h' });
-
-        await registrarAuditoria(fastify, 'login', user.id, user.nome, null, { email });
 
         return reply.send({
             token, role: user.role, nome: user.nome,

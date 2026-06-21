@@ -5,7 +5,6 @@ import { TicketModel } from '../../src/models/Ticket.js';
 import { notificarFila, notificarAluno, safeNotify } from '../../websocket/index.js';
 import { formatTicket } from '../../src/shared/formatTicket.js';
 import { gerarQRCode } from '../../src/shared/qrCode.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
 import type { PerguntaRow, OpcaoRow } from '../../src/shared/types.js';
 
@@ -196,10 +195,6 @@ export async function triagemRoutes(fastify: FastifyInstance) {
 
             safeNotify('WS notify fila failed', () => notificarFila(escolaId, 'novo_ticket', out));
             safeNotify('WS notify aluno failed', () => notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }));
-
-            await registrarAuditoria(fastify, 'criar_ticket', null, null, ticket.id, {
-                servicoId, metodo: 'triagem'
-            });
 
             return reply.send({ ticket: out, alertas: resultado.alertas });
         } finally {

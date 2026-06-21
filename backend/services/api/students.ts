@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { authAdmin, authBackoffice } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { validateBody, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { StudentModel } from '../../src/models/Student.js';
@@ -65,7 +64,6 @@ export async function studentRoutes(fastify: FastifyInstance) {
       const senha = request.body?.senha as string | undefined;
       const senha_hash = senha ? await bcrypt.hash(senha, 10) : undefined;
       const student = await StudentModel.criar(client, escolaId, { ...parsed, senha_hash });
-      await registrarAuditoria(fastify, 'criar_aluno', request.user?.id, request.user?.nome, null, { studentId: student.id, nome: student.nome });
       return reply.status(201).send(student);
     });
   });
@@ -79,7 +77,6 @@ export async function studentRoutes(fastify: FastifyInstance) {
     return withDb(fastify, async (client) => {
       const student = await StudentModel.atualizar(client, id, parsed);
       if (!student) return reply.status(404).send({ error: 'Aluno não encontrado' });
-      await registrarAuditoria(fastify, 'atualizar_aluno', request.user?.id, request.user?.nome, null, { studentId: id });
       return reply.send(student);
     });
   });
@@ -91,7 +88,6 @@ export async function studentRoutes(fastify: FastifyInstance) {
     return withDb(fastify, async (client) => {
       const ok = await StudentModel.excluir(client, id);
       if (!ok) return reply.status(404).send({ error: 'Aluno não encontrado' });
-      await registrarAuditoria(fastify, 'excluir_aluno', request.user?.id, request.user?.nome, null, { studentId: id });
       return reply.send({ success: true });
     });
   });
