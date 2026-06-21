@@ -1,4 +1,5 @@
 import AuthGuard from "../components/AuthGuard";
+import StatusIndicator from "../components/StatusIndicator";
 import { ToastProvider } from "../components/Toast";
 import { StudentAuthProvider } from "../contexts/StudentAuthContext";
 import type { AppProps } from 'next/app';
@@ -26,8 +27,12 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="theme-color" content="#3b82f6" />
         <link rel="manifest" href="/manifest.json" />
       </Head>
+
       <ToastProvider>
         <StudentAuthProvider>
+          <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999 }}>
+            <StatusIndicator />
+          </div>
           <AuthGuard>
             <Component {...pageProps} />
           </AuthGuard>
