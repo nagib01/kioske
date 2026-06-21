@@ -1,8 +1,10 @@
 import AuthGuard from "../components/AuthGuard";
+import StatusIndicator from "../components/StatusIndicator";
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useEffect } from 'react';
 import "../styles/global.css";
+
 
 export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -24,6 +26,11 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="theme-color" content="#3b82f6" />
         <link rel="manifest" href="/manifest.json" />
       </Head>
+
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999 }}>
+        <StatusIndicator />
+      </div>
+
       <AuthGuard>
         <Component {...pageProps} />
       </AuthGuard>
