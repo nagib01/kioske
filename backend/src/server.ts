@@ -72,7 +72,27 @@ const ensureDatabaseSchema = async () => {
 await ensureDatabaseSchema();
 await runMigrations(fastify);
 
+// Regista as rotas apenas uma vez
 await registerRoutes(fastify);
+
+// verificar bd
+fastify.get('/status', async (request, reply) => {
+  try {
+    await fastify.pg.query('SELECT 1'); 
+    
+    return reply.status(200).send({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      database: 'Connected'
+    });
+  } catch (error) {
+    return reply.status(500).send({
+      status: 'Error',
+      database: 'Disconnected',
+      message: 'A base de dados não está a responder.'
+    });
+  }
+});
 
 const PORT = parseInt(process.env.BACKEND_PORT || '3001', 10);
 const HOST = process.env.HOST || '0.0.0.0';
