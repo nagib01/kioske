@@ -1,4 +1,5 @@
-import { QueryResult } from 'pg';
+import type { Db } from '../shared/db.js';
+
 
 export interface ITicket {
     id: string;
@@ -38,7 +39,7 @@ export class TicketModel {
      * Gera `aluno_token` automaticamente se não fornecido.
      * Retry automático em caso de deadlock (código 40P01 / 55P03).
      */
-    static async criar(db: any, escolaId: string, servicoId: string, data: {
+    static async criar(db: Db, escolaId: string, servicoId: string, data: {
         priority?: boolean;
         priority_level?: number | 'high' | 'medium' | 'normal';
         alertas?: string[];
@@ -61,7 +62,7 @@ export class TicketModel {
         throw new Error('Max retries exceeded');
     }
 
-    private static async _criar(db: any, escolaId: string, servicoId: string, data: {
+    private static async _criar(db: Db, escolaId: string, servicoId: string, data: {
         priority?: boolean;
         priority_level?: number | 'high' | 'medium' | 'normal';
         alertas?: string[];
@@ -78,7 +79,7 @@ export class TicketModel {
 
         await db.query('BEGIN');
         try {
-            const servicoRes: QueryResult = await db.query(
+            const servicoRes = await db.query(
                 `SELECT codigo_prefixo, proximo_numero, mesa_padrao FROM servicos WHERE id = $1 FOR UPDATE`,
                 [servicoId]
             );
@@ -92,7 +93,7 @@ export class TicketModel {
             const codigoSenha = this.formatarSenha(prefixo, proximoNumero);
             const mesaAtendimento = servicoRes.rows[0].mesa_padrao || '01';
 
-            const result: QueryResult = await db.query(
+            const result = await db.query(
             `INSERT INTO tickets (
                 escola_id,
                 servico_id,
@@ -145,7 +146,7 @@ export class TicketModel {
         }
     }
 
-    static async guardarRespostasTriagem(db: any, ticketId: string, respostas: Array<{
+    static async guardarRespostasTriagem(db: Db, ticketId: string, respostas: Array<{
         perguntaId?: string;
         perguntaTexto?: string;
         respostaValor?: string;
@@ -168,7 +169,7 @@ export class TicketModel {
         }
     }
 
-    static async atualizarPosicoesFila(db: any, servicoId: string) {
+    static async atualizarPosicoesFila(db: Db, servicoId: string) {
         await db.query(
             `WITH ranked AS (
                 SELECT id, ROW_NUMBER() OVER (ORDER BY ${this.prioridadeSqlOrder()} DESC, created_at ASC) as nova_pos
@@ -183,7 +184,7 @@ export class TicketModel {
         );
     }
 
-    static async buscarFilaPorServico(db: any, servicoId: string) {
+    static async buscarFilaPorServico(db: Db, servicoId: string) {
         const res = await db.query(
             `SELECT t.*, s.nome as servico_nome
              FROM tickets t
@@ -195,7 +196,7 @@ export class TicketModel {
         return res.rows as ITicket[];
     }
 
-    static async buscarFilaPorEscola(db: any, escolaId: string) {
+    static async buscarFilaPorEscola(db: Db, escolaId: string) {
         const res = await db.query(
             `SELECT t.*, s.nome as servico_nome
              FROM tickets t
@@ -207,7 +208,7 @@ export class TicketModel {
         return res.rows as ITicket[];
     }
 
-    static async chamarTicket(db: any, ticketId: string, mesa?: string) {
+    static async chamarTicket(db: Db, ticketId: string, mesa?: string) {
         const res = await db.query(
             `UPDATE tickets SET status = 'called', updated_at = NOW(), mesa_atendimento = COALESCE(NULLIF($2, ''), mesa_atendimento) WHERE id = $1 RETURNING *`,
             [ticketId, mesa || null]
@@ -223,7 +224,7 @@ export class TicketModel {
         return null;
     }
 
-    static async finalizarTicket(db: any, ticketId: string) {
+    static async finalizarTicket(db: Db, ticketId: string) {
         const res = await db.query(
             `UPDATE tickets SET status = 'finished', updated_at = NOW() WHERE id = $1 RETURNING *`,
             [ticketId]
@@ -238,12 +239,12 @@ export class TicketModel {
         return null;
     }
 
-    static async buscarPorId(db: any, ticketId: string) {
+    static async buscarPorId(db: Db, ticketId: string) {
         const res = await db.query(`SELECT * FROM tickets WHERE id = $1`, [ticketId]);
         return res.rows[0] || null;
     }
 
-    static async transferirTicket(db: any, ticketId: string, mesa: string) {
+    static async transferirTicket(db: Db, ticketId: string, mesa: string) {
         const res = await db.query(
             `UPDATE tickets SET mesa_atendimento = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
             [mesa, ticketId]
@@ -258,7 +259,7 @@ export class TicketModel {
         return null;
     }
 
-    static async buscarPorAlunoToken(db: any, alunoToken: string) {
+    static async buscarPorAlunoToken(db: Db, alunoToken: string) {
         const res = await db.query(
             `SELECT t.*, s.nome as servico_nome, s.tempo_medio_atendimento
              FROM tickets t

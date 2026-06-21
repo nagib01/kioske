@@ -5,28 +5,22 @@ import cors from '@fastify/cors';
 import { registerRoutes } from './routes/index.js';
 import rateLimit from '@fastify/rate-limit';
 import { logger } from './shared/logger.js';
+import { config, corsOrigins, validateConfig } from './config.js';
+import { AppError } from './shared/errors.js';
 
 logger.info('─── Backend starting ───');
-logger.info(`NODE_ENV=${process.env.NODE_ENV}`);
-logger.info(`CORS_ORIGIN=${process.env.CORS_ORIGIN}`);
-logger.info(`BACKEND_PORT=${process.env.BACKEND_PORT}`);
-logger.info(`FRONTEND_URL=${process.env.FRONTEND_URL}`);
+logger.info(`NODE_ENV=${config.nodeEnv}`);
+logger.info(`CORS_ORIGIN=${config.corsOrigin}`);
+logger.info(`BACKEND_PORT=${config.backendPort}`);
+logger.info(`FRONTEND_URL=${config.frontendUrl}`);
 
-if (!process.env.NODE_ENV) {
-    logger.error('NODE_ENV is missing from the environment configuration');
-    process.exit(1);
-}
-if (!process.env.JWT_SECRET) {
-    logger.error('JWT_SECRET is missing from the environment configuration');
-    process.exit(1);
-}
-if (!process.env.DATABASE_URL) {
-    logger.error('DATABASE_URL is missing from the environment configuration');
+const missing = validateConfig();
+if (missing.length > 0) {
+    logger.error(`Missing required environment variables: ${missing.join(', ')}`);
     process.exit(1);
 }
 
-const databaseUrl = process.env.DATABASE_URL!;
-logger.info(`Database: ${databaseUrl.replace(/\/\/.*:.*@/, '//***:***@')}`);
+logger.info(`Database: ${config.databaseUrl.replace(/\/\/.*:.*@/, '//***:***@')}`);
 
 const fastify = Fastify({
     logger: true,
@@ -34,14 +28,27 @@ const fastify = Fastify({
     requestTimeout: 30000,
 });
 
-const corsOrigins = process.env.CORS_ORIGIN === '*'
-    ? true
-    : (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(s => s.trim()).filter(Boolean);
-
-await fastify.register(cors, { origin: corsOrigins });
-await fastify.register(postgres, { connectionString: databaseUrl });
-await fastify.register(jwt, { secret: process.env.JWT_SECRET! });
+await fastify.register(cors, { origin: corsOrigins() });
+await fastify.register(postgres, { connectionString: config.databaseUrl });
+await fastify.register(jwt, { secret: config.jwtSecret });
 await fastify.register(rateLimit, { max: 200, timeWindow: '1 minute' });
+
+// Centralized error handling: AppError -> its status/code; validation -> 400;
+// anything else -> preserve a client status or fall back to a generic 500.
+fastify.setErrorHandler((error, request, reply) => {
+    if (error instanceof AppError) {
+        return reply.status(error.statusCode).send({ error: error.message, code: error.code, details: error.details });
+    }
+    if ((error as any).validation) {
+        return reply.status(400).send({ error: error.message, code: 'VALIDATION_ERROR' });
+    }
+    const status = (error as any).statusCode && (error as any).statusCode >= 400 ? (error as any).statusCode : 500;
+    if (status >= 500) request.log.error(error);
+    return reply.status(status).send({
+        error: status >= 500 ? 'Erro interno do servidor' : error.message,
+        code: status >= 500 ? 'INTERNAL_ERROR' : undefined,
+    });
+});
 
 fastify.get('/health', async (_request, reply) => {
     try {
@@ -54,13 +61,10 @@ fastify.get('/health', async (_request, reply) => {
 
 await registerRoutes(fastify);
 
-const PORT = parseInt(process.env.BACKEND_PORT || '3001', 10);
-const HOST = process.env.HOST || '0.0.0.0';
-
 const start = async () => {
     try {
-        await fastify.listen({ port: PORT, host: HOST });
-        logger.info(`Backend rodando em ${HOST}:${PORT}`);
+        await fastify.listen({ port: config.backendPort, host: config.host });
+        logger.info(`Backend rodando em ${config.host}:${config.backendPort}`);
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);

@@ -1,3 +1,5 @@
+import type { Db } from '../shared/db.js';
+
 export interface ILesson {
     id: string;
     student_id: string;
@@ -22,7 +24,7 @@ export interface ILessonWithJoins extends ILesson {
 }
 
 export class LessonModel {
-    static async buscarPorId(db: any, id: string): Promise<ILessonWithJoins | null> {
+    static async buscarPorId(db: Db, id: string): Promise<ILessonWithJoins | null> {
         const res = await db.query(
             `SELECT tr.*,
                 s.nome as student_nome,
@@ -40,7 +42,7 @@ export class LessonModel {
         return res.rows[0] || null;
     }
 
-    static async listarPorAluno(db: any, studentId: string): Promise<ILessonWithJoins[]> {
+    static async listarPorAluno(db: Db, studentId: string): Promise<ILessonWithJoins[]> {
         const res = await db.query(
             `SELECT tr.*,
                 s.nome as student_nome,
@@ -59,7 +61,7 @@ export class LessonModel {
         return res.rows;
     }
 
-    static async listarPorInstrutor(db: any, instructorId: string, filters: {
+    static async listarPorInstrutor(db: Db, instructorId: string, filters: {
         data_inicio?: string;
         data_fim?: string;
         status?: string;
@@ -96,7 +98,7 @@ export class LessonModel {
         return res.rows;
     }
 
-    static async listarTodos(db: any, escolaId: string, filters: {
+    static async listarTodos(db: Db, escolaId: string, filters: {
         search?: string;
         instructor_id?: string;
         student_id?: string;
@@ -171,7 +173,7 @@ export class LessonModel {
         return { lessons: res.rows, total };
     }
 
-    static async criar(db: any, data: {
+    static async criar(db: Db, data: {
         student_id: string;
         tipo: string;
         data: string;
@@ -193,7 +195,7 @@ export class LessonModel {
         return res.rows[0];
     }
 
-    static async atualizar(db: any, id: string, data: Partial<{
+    static async atualizar(db: Db, id: string, data: Partial<{
         student_id: string;
         tipo: string;
         data: string;
@@ -226,12 +228,12 @@ export class LessonModel {
         return res.rows[0] || null;
     }
 
-    static async excluir(db: any, id: string): Promise<boolean> {
+    static async excluir(db: Db, id: string): Promise<boolean> {
         const res = await db.query('DELETE FROM training_records WHERE id = $1 RETURNING id', [id]);
         return res.rowCount > 0;
     }
 
-    static async verificarConflitoInstrutor(db: any, instructorId: string, data: string, horaInicio: string, horaFim: string, excludeId?: string): Promise<boolean> {
+    static async verificarConflitoInstrutor(db: Db, instructorId: string, data: string, horaInicio: string, horaFim: string, excludeId?: string): Promise<boolean> {
         let query = `SELECT id FROM training_records
              WHERE instructor_id = $1 AND data = $2 AND status != 'cancelada'
              AND hora_inicio < $4 AND hora_fim > $3`;
@@ -246,7 +248,7 @@ export class LessonModel {
         return res.rowCount > 0;
     }
 
-    static async verificarConflitoCarro(db: any, carId: string, data: string, horaInicio: string, horaFim: string, excludeId?: string): Promise<boolean> {
+    static async verificarConflitoCarro(db: Db, carId: string, data: string, horaInicio: string, horaFim: string, excludeId?: string): Promise<boolean> {
         let query = `SELECT id FROM training_records
              WHERE car_id = $1 AND data = $2 AND status != 'cancelada'
              AND hora_inicio < $4 AND hora_fim > $3`;
@@ -261,7 +263,7 @@ export class LessonModel {
         return res.rowCount > 0;
     }
 
-    static async dashboardInstrutor(db: any, instructorId: string): Promise<{
+    static async dashboardInstrutor(db: Db, instructorId: string): Promise<{
         aulas_hoje: number;
         horas_hoje: string;
         proximas_aulas: ILessonWithJoins[];

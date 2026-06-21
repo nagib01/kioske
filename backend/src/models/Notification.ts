@@ -1,3 +1,5 @@
+import type { Db } from '../shared/db.js';
+
 export interface INotification {
     id: string;
     student_id: string;
@@ -10,7 +12,7 @@ export interface INotification {
 }
 
 export class NotificationModel {
-    static async listar(db: any, studentId: string): Promise<INotification[]> {
+    static async listar(db: Db, studentId: string): Promise<INotification[]> {
         const res = await db.query(
             `SELECT * FROM student_notifications
              WHERE student_id = $1
@@ -21,7 +23,7 @@ export class NotificationModel {
         return res.rows;
     }
 
-    static async criar(db: any, data: {
+    static async criar(db: Db, data: {
         student_id: string;
         tipo: string;
         titulo: string;
@@ -40,7 +42,7 @@ export class NotificationModel {
         return notification;
     }
 
-    static async enviarEmail(db: any, studentId: string, titulo: string, mensagem?: string, lessonId?: string): Promise<void> {
+    static async enviarEmail(db: Db, studentId: string, titulo: string, mensagem?: string, lessonId?: string): Promise<void> {
         try {
             const { sendEmail, isEmailConfigured } = await import('../services/EmailService.js');
             if (!isEmailConfigured()) {
@@ -125,7 +127,7 @@ export class NotificationModel {
         }
     }
 
-    static async marcarLida(db: any, id: string, studentId: string): Promise<boolean> {
+    static async marcarLida(db: Db, id: string, studentId: string): Promise<boolean> {
         const res = await db.query(
             'UPDATE student_notifications SET lida = true WHERE id = $1 AND student_id = $2 RETURNING id',
             [id, studentId]
@@ -133,7 +135,7 @@ export class NotificationModel {
         return res.rowCount > 0;
     }
 
-    static async marcarTodasLidas(db: any, studentId: string): Promise<boolean> {
+    static async marcarTodasLidas(db: Db, studentId: string): Promise<boolean> {
         await db.query(
             'UPDATE student_notifications SET lida = true WHERE student_id = $1 AND lida = false',
             [studentId]
@@ -141,7 +143,7 @@ export class NotificationModel {
         return true;
     }
 
-    static async contarNaoLidas(db: any, studentId: string): Promise<number> {
+    static async contarNaoLidas(db: Db, studentId: string): Promise<number> {
         const res = await db.query(
             'SELECT COUNT(*) FROM student_notifications WHERE student_id = $1 AND lida = false',
             [studentId]

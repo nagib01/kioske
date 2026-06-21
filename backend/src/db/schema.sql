@@ -39,15 +39,6 @@ CREATE TABLE IF NOT EXISTS tickets (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Tabela de regras de triagem (opcional para futuro)
-CREATE TABLE IF NOT EXISTS regras_triagem (
-    id BIGSERIAL PRIMARY KEY,
-    pergunta TEXT NOT NULL,
-    opcoes JSONB,
-    condicao JSONB,
-    acao JSONB
-);
-
 -- Perguntas dinâmicas de triagem (globais da escola ou associadas a um serviço)
 CREATE TABLE IF NOT EXISTS triage_questions (
     id BIGSERIAL PRIMARY KEY,
@@ -156,7 +147,6 @@ CREATE TABLE IF NOT EXISTS cars (
 
 -- Clean up legacy tables and columns
 ALTER TABLE tickets DROP COLUMN IF EXISTS documentos_ok;
-DROP TABLE IF EXISTS regras_triagem;
 
 -- Create students table
 CREATE TABLE IF NOT EXISTS students (

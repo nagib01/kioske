@@ -62,10 +62,16 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - [x] remaining pages > 250 lines: [x] chamadas (→ `useMonitorQueue` + `monitor/{MesaGrid,CurrentCalled,WaitingList}`, completes 3-socket consolidation); [x] admin/servicos (→ `useServicos` + `admin/servicos/{ServicosTable,ServicoModal}`); [x] instructor/aulas (→ `useInstructorLessons` + `instructor/{LessonsTable,LessonFormModal}`); [x] admin/alunos/index (→ `useAlunosList` + `admin/alunos/{AlunosDashboard,AlunosFilters,AlunosTable}`)
 
 ## Phase 4 — Backend foundation
-- [ ] `src/config.ts` — read/validate all env once (zod)
-- [ ] Standardize on a single DB access pattern (`withDb`) + typed client (drop `db: any`)
-- [ ] Centralized error handling (`setErrorHandler` + `AppError`/`ERR` convention)
-- [ ] Remove dead code (Student legacy methods, `regras_triagem`) + dup schemas (`criarOpcaoSchemaAlt`)
+- [x] `src/config.ts` — read/validate all env once (zod)
+- [x] Standardize on a single DB access pattern (`withDb`) + typed client (drop `db: any`)
+- [x] Centralized error handling (`setErrorHandler` + `AppError`/`ERR` convention)
+- [x] Remove dead code (Student legacy methods, `regras_triagem`) + dup schemas (`criarOpcaoSchemaAlt`)
+
+**Phase 4 notes**
+- `src/config.ts`: centralized, typed env config (with `corsOrigins()` + `validateConfig()`); reads env once with fallbacks and **does not throw at import** (keeps tests/tooling safe), hard checks run at server startup. Migrated `server.ts`, `logger.ts`, `qrCode.ts`, `EmailService.ts` off scattered `process.env`. (Used plain validation, not zod, to avoid an import-time throw.)
+- Added typed `Db`/`QueryResult` in `shared/db.ts`; replaced `db: any` across all 7 model files. Full migration of the remaining manual/direct DB handlers onto `withDb` is left for Phase 5 (route-layer work).
+- Added `AppError` + a global `setErrorHandler` in `server.ts` (additive safety net; existing explicit `reply.send` paths unchanged).
+- Removed dead `StudentModel.{listarAulas,adicionarAula,removerAula}`, the created-then-dropped `regras_triagem` DDL, and the duplicate `criarOpcaoSchemaAlt` (now uses shared `criarOpcaoSchema`).
 
 ## Phase 5 — Backend layering & auth unification
 - [ ] Extract `resolveEscolaId()` (×15), `notifyQueue()` (×3), `validate` preHandler (×30)

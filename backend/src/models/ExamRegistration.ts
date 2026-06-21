@@ -1,3 +1,5 @@
+import type { Db } from '../shared/db.js';
+
 export interface IExamRegistration {
     id: string;
     student_id: string;
@@ -20,7 +22,7 @@ export interface IExamRegistrationWithJoins extends IExamRegistration {
 }
 
 export class ExamRegistrationModel {
-    static async listarPorAluno(db: any, studentId: string): Promise<IExamRegistrationWithJoins[]> {
+    static async listarPorAluno(db: Db, studentId: string): Promise<IExamRegistrationWithJoins[]> {
         const res = await db.query(
             `SELECT er.*, u.nome as instructor_nome, c.matricula as car_matricula
              FROM exam_registrations er
@@ -33,7 +35,7 @@ export class ExamRegistrationModel {
         return res.rows;
     }
 
-    static async criar(db: any, data: {
+    static async criar(db: Db, data: {
         student_id: string;
         exam_type: string;
         exam_date: string;
@@ -50,7 +52,7 @@ export class ExamRegistrationModel {
         return res.rows[0];
     }
 
-    static async buscarPorId(db: any, id: string): Promise<IExamRegistrationWithJoins | null> {
+    static async buscarPorId(db: Db, id: string): Promise<IExamRegistrationWithJoins | null> {
         const res = await db.query(
             `SELECT er.*, u.nome as instructor_nome, c.matricula as car_matricula
              FROM exam_registrations er
@@ -62,7 +64,7 @@ export class ExamRegistrationModel {
         return res.rows[0] || null;
     }
 
-    static async atualizar(db: any, id: string, data: Partial<{
+    static async atualizar(db: Db, id: string, data: Partial<{
         exam_type: string;
         status: string;
         passed: boolean;
@@ -93,7 +95,7 @@ export class ExamRegistrationModel {
         return res.rows[0] || null;
     }
 
-    static async excluir(db: any, id: string): Promise<boolean> {
+    static async excluir(db: Db, id: string): Promise<boolean> {
         const res = await db.query('DELETE FROM exam_registrations WHERE id = $1 RETURNING id', [id]);
         return res.rowCount > 0;
     }

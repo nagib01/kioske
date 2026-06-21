@@ -1,3 +1,5 @@
+import type { Db } from '../shared/db.js';
+
 export interface IUser {
     id: string;
     nome: string;
@@ -11,7 +13,7 @@ export interface IUser {
 }
 
 export class UserModel {
-    static async listar(db: any, escolaId: string, role?: string): Promise<IUser[]> {
+    static async listar(db: Db, escolaId: string, role?: string): Promise<IUser[]> {
         let query = 'SELECT id, nome, email, role, telefone, avatar_url, escola_id, ativo, created_at FROM users WHERE escola_id = $1';
         const params: unknown[] = [escolaId];
         if (role) {
@@ -23,7 +25,7 @@ export class UserModel {
         return res.rows;
     }
 
-    static async buscarPorId(db: any, id: string): Promise<IUser | null> {
+    static async buscarPorId(db: Db, id: string): Promise<IUser | null> {
         const res = await db.query(
             'SELECT id, nome, email, role, telefone, avatar_url, escola_id, ativo, created_at FROM users WHERE id = $1',
             [id]
@@ -31,7 +33,7 @@ export class UserModel {
         return res.rows[0] || null;
     }
 
-    static async buscarPorEmail(db: any, email: string): Promise<IUser | null> {
+    static async buscarPorEmail(db: Db, email: string): Promise<IUser | null> {
         const res = await db.query(
             'SELECT id, nome, email, role, telefone, avatar_url, escola_id, ativo, created_at FROM users WHERE email = $1',
             [email]
@@ -39,7 +41,7 @@ export class UserModel {
         return res.rows[0] || null;
     }
 
-    static async criar(db: any, escolaId: string, data: {
+    static async criar(db: Db, escolaId: string, data: {
         nome: string;
         email?: string;
         senha_hash: string;
@@ -54,7 +56,7 @@ export class UserModel {
         return res.rows[0];
     }
 
-    static async atualizar(db: any, id: string, data: {
+    static async atualizar(db: Db, id: string, data: {
         nome?: string;
         email?: string;
         senha_hash?: string;
@@ -83,7 +85,7 @@ export class UserModel {
         return res.rows[0] || null;
     }
 
-    static async excluir(db: any, id: string): Promise<boolean> {
+    static async excluir(db: Db, id: string): Promise<boolean> {
         const res = await db.query(
             'UPDATE users SET ativo = false WHERE id = $1 RETURNING id',
             [id]

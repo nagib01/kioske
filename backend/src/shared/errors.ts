@@ -19,3 +19,21 @@ export const ERR = {
   DB_ERROR: apiError(500, 'Erro interno do servidor', 'DB_ERROR'),
   INVALID_ID: (field: string) => apiError(400, `${field} inválido`, 'INVALID_ID'),
 };
+
+/**
+ * Throwable application error. Caught by the global Fastify error handler
+ * (see server.ts) and serialized to a consistent JSON body.
+ */
+export class AppError extends Error {
+  statusCode: number;
+  code?: string;
+  details?: unknown;
+
+  constructor(statusCode: number, message: string, code?: string, details?: unknown) {
+    super(message);
+    this.name = 'AppError';
+    this.statusCode = statusCode;
+    this.code = code;
+    this.details = details;
+  }
+}

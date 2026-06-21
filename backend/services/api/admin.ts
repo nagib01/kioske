@@ -16,14 +16,6 @@ const atualizarServicoSchema = z.object({
   mesas: z.array(z.string()).optional(),
 });
 
-const criarOpcaoSchemaAlt = z.object({
-  question_id: z.string().min(1, 'question_id é obrigatório'),
-  label: z.string().min(1, 'label é obrigatório'),
-  value: z.string().min(1, 'value é obrigatório'),
-  ordem: z.number().optional(),
-  regra: z.any().optional(),
-});
-
 const atualizarOpcaoSchema = z.object({
   label: z.string().min(1).optional(),
   value: z.string().min(1).optional(),
@@ -252,7 +244,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     fastify.post('/admin/opcoes', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
         let parsed: any;
-        try { parsed = validate(criarOpcaoSchemaAlt, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        try { parsed = validate(criarOpcaoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
         const { question_id, label, value, ordem, regra } = parsed;
         return withDb(fastify, async (client) => {
             const result = await client.query(

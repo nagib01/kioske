@@ -1,3 +1,5 @@
+import type { Db } from '../shared/db.js';
+
 export interface IStudent {
     id: string;
     escola_id: string;
@@ -40,7 +42,7 @@ export interface ITrainingRecord {
 }
 
 export class StudentModel {
-    static async criar(db: any, escolaId: string, data: {
+    static async criar(db: Db, escolaId: string, data: {
         numero_estudante: string;
         nome: string;
         email?: string;
@@ -66,7 +68,7 @@ export class StudentModel {
         return res.rows[0];
     }
 
-    static async atualizar(db: any, id: string, data: Partial<{
+    static async atualizar(db: Db, id: string, data: Partial<{
         numero_estudante: string;
         nome: string;
         email: string;
@@ -106,7 +108,7 @@ export class StudentModel {
         return res.rows[0] || null;
     }
 
-    static async buscarPorId(db: any, id: string): Promise<IStudent | null> {
+    static async buscarPorId(db: Db, id: string): Promise<IStudent | null> {
         const res = await db.query(
             `SELECT s.*, 
                 (SELECT COUNT(*) FROM tickets t WHERE t.student_id = s.id) as total_tickets,
@@ -119,7 +121,7 @@ export class StudentModel {
         return res.rows[0] || null;
     }
 
-    static async listar(db: any, escolaId: string, filters: {
+    static async listar(db: Db, escolaId: string, filters: {
         search?: string;
         categoria?: string;
         estado_formacao?: string;
@@ -174,12 +176,12 @@ export class StudentModel {
         return { students: res.rows, total };
     }
 
-    static async excluir(db: any, id: string): Promise<boolean> {
+    static async excluir(db: Db, id: string): Promise<boolean> {
         const res = await db.query('UPDATE students SET ativo = false, updated_at = NOW() WHERE id = $1 RETURNING id', [id]);
         return res.rowCount > 0;
     }
 
-    static async dashboard(db: any, escolaId: string): Promise<{
+    static async dashboard(db: Db, escolaId: string): Promise<{
         total: number;
         ativos: number;
         por_estado: Record<string, number>;
@@ -219,7 +221,7 @@ export class StudentModel {
     }
 
     // Contacts
-    static async listarContactos(db: any, studentId: string): Promise<IStudentContact[]> {
+    static async listarContactos(db: Db, studentId: string): Promise<IStudentContact[]> {
         const res = await db.query(
             'SELECT * FROM student_contacts WHERE student_id = $1 ORDER BY created_at ASC',
             [studentId]
@@ -227,7 +229,7 @@ export class StudentModel {
         return res.rows;
     }
 
-    static async adicionarContacto(db: any, studentId: string, data: {
+    static async adicionarContacto(db: Db, studentId: string, data: {
         nome: string;
         parentesco?: string;
         telefone?: string;
@@ -241,46 +243,13 @@ export class StudentModel {
         return res.rows[0];
     }
 
-    static async removerContacto(db: any, contactId: string): Promise<boolean> {
+    static async removerContacto(db: Db, contactId: string): Promise<boolean> {
         const res = await db.query('DELETE FROM student_contacts WHERE id = $1 RETURNING id', [contactId]);
         return res.rowCount > 0;
     }
 
-    // Training Records (legacy - kept for backward compat, new code should use LessonModel)
-    static async listarAulas(db: any, studentId: string): Promise<ITrainingRecord[]> {
-        const res = await db.query(
-            'SELECT * FROM training_records WHERE student_id = $1 ORDER BY data DESC, created_at DESC',
-            [studentId]
-        );
-        return res.rows;
-    }
-
-    static async adicionarAula(db: any, studentId: string, data: {
-        tipo: string;
-        data: string;
-        hora_inicio?: string;
-        hora_fim?: string;
-        car_id?: string;
-        instructor_id?: string;
-        summary?: string;
-        status?: string;
-    }): Promise<ITrainingRecord> {
-        const res = await db.query(
-            `INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, car_id, instructor_id, summary, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-            [studentId, data.tipo, data.data, data.hora_inicio || null, data.hora_fim || null,
-             data.car_id || null, data.instructor_id || null, data.summary || null, data.status || 'agendada']
-        );
-        return res.rows[0];
-    }
-
-    static async removerAula(db: any, recordId: string): Promise<boolean> {
-        const res = await db.query('DELETE FROM training_records WHERE id = $1 RETURNING id', [recordId]);
-        return res.rowCount > 0;
-    }
-
     // Tickets association
-    static async tickets(db: any, studentId: string): Promise<any[]> {
+    static async tickets(db: Db, studentId: string): Promise<any[]> {
         const res = await db.query(
             `SELECT t.*, s.nome as servico_nome
              FROM tickets t
@@ -292,7 +261,7 @@ export class StudentModel {
         return res.rows;
     }
 
-    static async associarTicket(db: any, ticketId: string, studentId: string): Promise<boolean> {
+    static async associarTicket(db: Db, ticketId: string, studentId: string): Promise<boolean> {
         const res = await db.query(
             'UPDATE tickets SET student_id = $1 WHERE id = $2 RETURNING id',
             [studentId, ticketId]

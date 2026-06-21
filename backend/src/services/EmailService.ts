@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { config } from '../config.js';
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -11,10 +12,10 @@ function stripQuotes(v: string | undefined): string | undefined {
 function getTransporter(): nodemailer.Transporter | null {
   if (transporter) return transporter;
 
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  const user = stripQuotes(process.env.SMTP_USER);
-  const pass = stripQuotes(process.env.SMTP_PASS);
+  const host = config.smtp.host;
+  const port = config.smtp.port;
+  const user = stripQuotes(config.smtp.user);
+  const pass = stripQuotes(config.smtp.pass);
 
   if (!host || !user || !pass) {
     return null;
@@ -39,7 +40,7 @@ export async function sendEmail(params: {
   const t = getTransporter();
   if (!t) return false;
 
-  const from = stripQuotes(process.env.SMTP_FROM) || stripQuotes(process.env.SMTP_USER) || 'noreply@escola.com';
+  const from = stripQuotes(config.smtp.from) || stripQuotes(config.smtp.user) || 'noreply@escola.com';
 
   try {
     await t.sendMail({ from, to: params.to, subject: params.subject, text: params.text, html: params.html || params.text });
