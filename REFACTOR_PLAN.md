@@ -59,7 +59,7 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - [x] `pages/admin/fila.tsx` (423 → ~135): extracted `useFilaLive` hook (adopts `useWebSocket` + `apiUrl`) + `admin/fila/{FilaMetrics,FilaTable}` components
 - [x] `pages/admin/questionarios.tsx` (387 → ~65): extracted `useQuestionarios` hook (adopts `apiUrl`) + `admin/questionarios/{QuestionariosTable,PerguntaModal}` components
 - [x] `pages/aluno/conta.tsx` (375 → ~145): extracted `useStudentAccount` hook (adopts `apiUrl`, keeps 401-refresh fetch) + `aluno/conta/{ProfileCard,ContaAulasTab,ContaNotificacoesTab,ChangePasswordModal}` components
-- [ ] remaining pages > 250 lines: [x] chamadas (→ `useMonitorQueue` + `monitor/{MesaGrid,CurrentCalled,WaitingList}`, completes 3-socket consolidation); [x] admin/servicos (→ `useServicos` + `admin/servicos/{ServicosTable,ServicoModal}`); [ ] instructor/aulas, [ ] admin/alunos/index
+- [ ] remaining pages > 250 lines: [x] chamadas (→ `useMonitorQueue` + `monitor/{MesaGrid,CurrentCalled,WaitingList}`, completes 3-socket consolidation); [x] admin/servicos (→ `useServicos` + `admin/servicos/{ServicosTable,ServicoModal}`); [x] instructor/aulas (→ `useInstructorLessons` + `instructor/{LessonsTable,LessonFormModal}`); [ ] admin/alunos/index
 
 ## Phase 4 — Backend foundation
 - [ ] `src/config.ts` — read/validate all env once (zod)
