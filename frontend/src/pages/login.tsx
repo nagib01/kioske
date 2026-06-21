@@ -1,27 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useToast } from '../components/Toast';
-import { clearBackofficeSession, getBackofficeToken } from '../lib/auth';
-
-function getCurrentSession(): { nome: string; role: string } | null {
-  if (typeof window === 'undefined') return null;
-  const token = getBackofficeToken();
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return { nome: payload.nome || 'Utilizador', role: payload.role };
-  } catch {
-    return null;
-  }
-}
+import { getBackofficeToken } from '../lib/auth';
 
 export default function Login() {
   const { addToast } = useToast();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const router = useRouter();
-  const [session] = useState(getCurrentSession);
+
+  // Already logged in? Skip the login screen and go to the right home.
+  useEffect(() => {
+    const token = getBackofficeToken();
+    if (!token) return;
+    let role: string | undefined;
+    try {
+      role = JSON.parse(atob(token.split('.')[1])).role;
+    } catch {}
+    router.replace(role === 'instructor' ? '/instrutor/dashboard' : '/');
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,12 +52,6 @@ export default function Login() {
     }
   };
 
-  const handleLogout = () => {
-    clearBackofficeSession();
-    setEmail('');
-    setSenha('');
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface">
       <Head>
@@ -68,16 +60,6 @@ export default function Login() {
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
         <h2 className="text-2xl font-bold mb-2 text-brand text-center">Acesso ao Sistema</h2>
         <p className="text-gray-500 text-center mb-8 text-sm">Insira os seus dados de acesso</p>
-
-        {session && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-            <p className="text-sm text-blue-800 font-medium">Sessão atual: <strong>{session.nome}</strong></p>
-            <p className="text-xs text-blue-600 mb-2">Role: {session.role}</p>
-            <button onClick={handleLogout} className="text-xs text-red-600 hover:text-red-800 font-bold underline">
-              Terminar sessão e trocar de conta
-            </button>
-          </div>
-        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <input
