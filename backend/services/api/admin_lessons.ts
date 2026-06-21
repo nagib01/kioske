@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { authAdmin } from '../../src/shared/auth.js';
-import { getDefaultEscolaId } from '../../src/shared/escola.js';
+import { resolveEscolaId } from '../../src/shared/escola.js';
 import { withDb } from '../../src/shared/db.js';
 import { LessonModel } from '../../src/models/Lesson.js';
 
@@ -9,7 +9,7 @@ export async function adminLessonRoutes(fastify: FastifyInstance) {
   // GET /admin/lessons - List all lessons with filters
   fastify.get('/admin/lessons', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request);
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
 
     const { search, instructor_id, student_id, car_id, data_inicio, data_fim, status, page, limit, sort, order } = request.query as any;
@@ -28,7 +28,7 @@ export async function adminLessonRoutes(fastify: FastifyInstance) {
   // GET /admin/lessons/export - Export lessons as CSV
   fastify.get('/admin/lessons/export', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request);
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
 
     const { search, instructor_id, student_id, car_id, data_inicio, data_fim, status } = request.query as any;

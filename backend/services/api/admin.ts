@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { authAdmin } from '../../src/shared/auth.js';
-import { getDefaultEscolaId as getEscolaId } from '../../src/shared/escola.js';
+import { resolveEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { validate, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
@@ -35,7 +35,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     // Listar serviços da escola do admin
     fastify.get('/admin/servicos', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        const escolaId = request.user.escola_id || request.query.escolaId || (await getEscolaId(fastify));
+        const escolaId = await resolveEscolaId(fastify, request, { query: true });
         if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
         return withDb(fastify, async (client) => {
             const res = await client.query('SELECT * FROM servicos WHERE escola_id = $1 ORDER BY created_at', [escolaId]);
@@ -49,7 +49,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         let parsed: any;
         try { parsed = validate(criarServicoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
         const { nome, prioridade_base, codigo_prefixo, tempo_medio_atendimento, mesa_padrao } = parsed;
-        const escolaId = request.user.escola_id || request.body.escolaId || (await getEscolaId(fastify));
+        const escolaId = await resolveEscolaId(fastify, request, { body: true });
         if (!escolaId) return reply.status(400).send({ error: 'escolaId é obrigatório' });
         return withDb(fastify, async (client) => {
             const res = await client.query(
@@ -104,7 +104,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     fastify.get('/admin/perguntas-triagem', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        const escolaId = request.user.escola_id || request.query.escolaId || (await getEscolaId(fastify));
+        const escolaId = await resolveEscolaId(fastify, request, { query: true });
         if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
         const servicoId = request.query?.servicoId as string | undefined;
         return withDb(fastify, async (client) => {
@@ -146,7 +146,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     fastify.post('/admin/perguntas-triagem', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        const escolaId = request.user.escola_id || request.body.escolaId || (await getEscolaId(fastify));
+        const escolaId = await resolveEscolaId(fastify, request, { body: true });
         if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
         let parsed: any;
         try { parsed = validate(criarPerguntaSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }

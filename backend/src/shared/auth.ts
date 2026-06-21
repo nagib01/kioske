@@ -43,3 +43,17 @@ export async function authBackofficeOrInstructor(request: any, reply: any) {
   }
   return true;
 }
+
+export async function authStudent(request: any, reply: any) {
+  try {
+    await request.jwtVerify();
+  } catch {
+    reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
+    return false;
+  }
+  if (request.user.role !== 'student') {
+    reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
+    return false;
+  }
+  return true;
+}

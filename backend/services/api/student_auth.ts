@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { validate, studentLoginEmailSchema, studentRefreshSchema, studentChangePasswordSchema } from '../../src/shared/validation.js';
+import { authStudent } from '../../src/shared/auth.js';
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 const ACCESS_TOKEN_EXPIRY = '15m';
@@ -229,14 +230,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── PUT /api/auth/student/password ───
   fastify.put('/api/auth/student/password', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     let parsed: { senha_atual: string; nova_senha: string };
     try { parsed = validate(studentChangePasswordSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
@@ -260,14 +254,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/me ───
   fastify.get('/api/auth/student/me', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const res = await fastify.pg.query(
@@ -288,14 +275,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/history ───
   fastify.get('/api/auth/student/history', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const page = Math.max(1, parseInt(request.query?.page as string) || 1);
@@ -325,14 +305,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/sessions ───
   fastify.get('/api/auth/student/sessions', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const res = await fastify.pg.query(
@@ -348,14 +321,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/exam-registrations ─── (student sees their exam registrations)
   fastify.get('/api/auth/student/exam-registrations', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const { ExamRegistrationModel } = await import('../../src/models/ExamRegistration.js');
@@ -365,14 +331,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/lessons ─── (student sees their own lessons)
   fastify.get('/api/auth/student/lessons', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const { LessonModel } = await import('../../src/models/Lesson.js');
@@ -392,14 +351,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/tickets ─── (student sees their own ticket history)
   fastify.get('/api/auth/student/tickets', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const client = await fastify.pg.connect();
@@ -414,14 +366,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── GET /api/auth/student/notifications ───
   fastify.get('/api/auth/student/notifications', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const { NotificationModel } = await import('../../src/models/Notification.js');
@@ -432,14 +377,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── PUT /api/auth/student/notifications/:id/read ───
   fastify.put('/api/auth/student/notifications/:id/read', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const { id } = request.params as any;
@@ -451,14 +389,7 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
 
   // ─── PUT /api/auth/student/notifications/read-all ───
   fastify.put('/api/auth/student/notifications/read-all', async (request: any, reply) => {
-    try {
-      await request.jwtVerify();
-      if (request.user.role !== 'student') {
-        return reply.status(403).send({ error: 'Acesso negado', code: 'FORBIDDEN' });
-      }
-    } catch {
-      return reply.status(401).send({ error: 'Token inválido', code: 'UNAUTHORIZED' });
-    }
+    if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
     const { NotificationModel } = await import('../../src/models/Notification.js');

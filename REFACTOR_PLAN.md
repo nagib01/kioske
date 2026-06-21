@@ -74,11 +74,14 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - Removed dead `StudentModel.{listarAulas,adicionarAula,removerAula}`, the created-then-dropped `regras_triagem` DDL, and the duplicate `criarOpcaoSchemaAlt` (now uses shared `criarOpcaoSchema`).
 
 ## Phase 5 — Backend layering & auth unification
-- [ ] Extract `resolveEscolaId()` (×15), `notifyQueue()` (×3), `validate` preHandler (×30)
+- [~] Extract helpers: [x] `resolveEscolaId()` (adopted in cars/admin_lessons/admin/students); [ ] `notifyQueue()` (×3); [ ] `validate` preHandler (×30)
 - [ ] Route-level auth via Fastify `preHandler` (replace ~40 inline guard calls)
-- [ ] Unify staff + student auth on shared JWT plumbing
+- [x] Unify staff + student auth on shared JWT plumbing (added `authStudent`, adopted across `student_auth.ts`)
 - [ ] Move inline SQL into models
 - [ ] Split `student_auth.ts` (407) and `admin.ts` (311) into focused files
+
+**Phase 5 notes**
+- Step 1 (done): `authStudent` guard added to `shared/auth.ts` and adopted in all 10 student-auth handlers (replacing the inline `jwtVerify`+role blocks); `resolveEscolaId()` added to `shared/escola.ts` and adopted at 12 sites. Kiosk/triagem escolaId kept inline (different precedence order).
 
 ## Phase 6 — Contracts & ratchet (ongoing)
 - [ ] Single source of truth for ports/URLs (today duplicated across `.env`, `server.js`, `next.config.js`, root scripts)

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { authAdmin, authBackoffice } from '../../src/shared/auth.js';
-import { getDefaultEscolaId } from '../../src/shared/escola.js';
+import { resolveEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { validate, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
@@ -15,7 +15,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   // GET /api/admin/students/dashboard - Stats dashboard
   fastify.get('/admin/students/dashboard', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || request.headers['x-escola-id'] || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request, { header: true });
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
     return withDb(fastify, async (client) => {
       const data = await StudentModel.dashboard(client, escolaId);
@@ -26,7 +26,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   // GET /api/admin/students - List with search/filters
   fastify.get('/admin/students', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || request.headers['x-escola-id'] || request.query.escolaId || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request, { header: true, query: true });
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
 
     const { search, categoria, estado_formacao, ativo, page, limit, sort, order } = request.query as any;
@@ -59,7 +59,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
     if (!(await authAdmin(request, reply))) return;
     let parsed: any;
     try { parsed = validate(criarAlunoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-    const escolaId = request.user.escola_id || request.body.escolaId || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request, { body: true });
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é obrigatório' });
 
     return withDb(fastify, async (client) => {

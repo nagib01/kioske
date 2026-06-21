@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { authAdmin, authInstructor } from '../../src/shared/auth.js';
-import { getDefaultEscolaId } from '../../src/shared/escola.js';
+import { resolveEscolaId } from '../../src/shared/escola.js';
 import { validate, carSchema, carUpdateSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { CarModel } from '../../src/models/Car.js';
@@ -10,7 +10,7 @@ export async function carRoutes(fastify: FastifyInstance) {
   // GET /admin/cars - List all cars (admin)
   fastify.get('/admin/cars', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request);
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
     const { ativo } = request.query as any;
     return withDb(fastify, async (client) => {
@@ -24,7 +24,7 @@ export async function carRoutes(fastify: FastifyInstance) {
   // POST /admin/cars - Create car
   fastify.post('/admin/cars', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    const escolaId = request.user.escola_id || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request);
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
     let parsed: any;
     try { parsed = validate(carSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
@@ -66,7 +66,7 @@ export async function carRoutes(fastify: FastifyInstance) {
   // GET /api/instructor/cars - List available cars (instructor)
   fastify.get('/api/instructor/cars', async (request: any, reply) => {
     if (!(await authInstructor(request, reply))) return;
-    const escolaId = request.user.escola_id || (await getDefaultEscolaId(fastify));
+    const escolaId = await resolveEscolaId(fastify, request);
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
     return withDb(fastify, async (client) => {
       const cars = await CarModel.listar(client, escolaId, { ativo: true });
