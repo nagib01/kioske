@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
 import { useToast } from '../../components/Toast';
+import { backofficeHeaders } from '../../lib/auth';
 
 interface Opcao {
   id?: string;
@@ -49,18 +50,7 @@ export default function AdminQuestionariosPage() {
     fetchDados();
   }, []);
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const escolaId = localStorage.getItem('backoffice_escola');
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (escolaId) headers['x-escola-id'] = escolaId;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders({ escola: true });
 
   const fetchDados = async () => {
     setLoading(true);
@@ -185,7 +175,7 @@ export default function AdminQuestionariosPage() {
           <h2 className="text-3xl font-extrabold text-gray-800">Gerir Questionários</h2>
           <button
             onClick={openNewModal}
-            className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded-lg transition-colors"
           >
             + Nova Pergunta
           </button>
@@ -273,7 +263,7 @@ export default function AdminQuestionariosPage() {
                   type="text" 
                   value={texto} 
                   onChange={e => setTexto(e.target.value)} 
-                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#047857] outline-none" 
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand outline-none" 
                   placeholder="Ex: Tem uma atividade agendada?"
                 />
               </div>
@@ -284,7 +274,7 @@ export default function AdminQuestionariosPage() {
                   <select 
                     value={servicoId || ''} 
                     onChange={e => setServicoId(e.target.value === '' ? null : e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#047857] outline-none"
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand outline-none"
                   >
                     <option value="">Global (Todos os Serviços)</option>
                     {servicos.map(s => (
@@ -297,7 +287,7 @@ export default function AdminQuestionariosPage() {
                   <select 
                     value={tipo} 
                     onChange={e => setTipo(e.target.value as any)}
-                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#047857] outline-none"
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand outline-none"
                   >
                     <option value="single_choice">Múltipla Escolha (Opções Dinâmicas)</option>
                     <option value="yes_no">Sim / Não</option>
@@ -308,17 +298,17 @@ export default function AdminQuestionariosPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ordem de Exibição (menor aparece antes)</label>
-                  <input type="number" value={ordem} onChange={e => setOrdem(Number(e.target.value))} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#047857] outline-none" />
+                  <input type="number" value={ordem} onChange={e => setOrdem(Number(e.target.value))} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand outline-none" />
                 </div>
                 <div className="flex items-center gap-2 mt-7">
-                  <input type="checkbox" id="obrigatoria" checked={obrigatoria} onChange={e => setObrigatoria(e.target.checked)} className="w-4 h-4 text-[#047857] rounded border-gray-300 focus:ring-[#047857]" />
+                  <input type="checkbox" id="obrigatoria" checked={obrigatoria} onChange={e => setObrigatoria(e.target.checked)} className="w-4 h-4 text-brand rounded border-gray-300 focus:ring-brand" />
                   <label htmlFor="obrigatoria" className="text-sm font-medium text-gray-700">Resposta Obrigatória</label>
                 </div>
               </div>
 
               {editingId && (
                 <div className="flex items-center gap-2 mt-2">
-                  <input type="checkbox" id="ativoCheckbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} className="w-4 h-4 text-[#047857] rounded border-gray-300 focus:ring-[#047857]" />
+                  <input type="checkbox" id="ativoCheckbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} className="w-4 h-4 text-brand rounded border-gray-300 focus:ring-brand" />
                   <label htmlFor="ativoCheckbox" className="text-sm font-medium text-gray-700">Pergunta Ativa</label>
                 </div>
               )}
@@ -348,7 +338,7 @@ export default function AdminQuestionariosPage() {
                               placeholder="Texto visível (Ex: Mais de 30 min)"
                               value={opcao.label}
                               onChange={e => updateOpcao(idx, 'label', e.target.value)}
-                              className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-[#047857] outline-none"
+                              className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-brand outline-none"
                             />
                           </div>
                           <div className="flex-1">
@@ -357,7 +347,7 @@ export default function AdminQuestionariosPage() {
                               placeholder="Valor interno (Ex: >30)"
                               value={opcao.value}
                               onChange={e => updateOpcao(idx, 'value', e.target.value)}
-                              className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-[#047857] outline-none"
+                              className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-brand outline-none"
                             />
                           </div>
                           <div className="w-20">
@@ -366,7 +356,7 @@ export default function AdminQuestionariosPage() {
                               placeholder="Ordem"
                               value={opcao.ordem}
                               onChange={e => updateOpcao(idx, 'ordem', Number(e.target.value))}
-                              className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-[#047857] outline-none"
+                              className="w-full text-sm border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-brand outline-none"
                             />
                           </div>
                           <button 
@@ -387,7 +377,7 @@ export default function AdminQuestionariosPage() {
 
             <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancelar</button>
-              <button onClick={savePergunta} className="px-6 py-2 bg-[#047857] hover:bg-[#065f46] text-white rounded-lg font-bold shadow-sm">Guardar Pergunta</button>
+              <button onClick={savePergunta} className="px-6 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg font-bold shadow-sm">Guardar Pergunta</button>
             </div>
           </div>
         </div>

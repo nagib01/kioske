@@ -32,14 +32,14 @@ export default function ServicosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="min-h-screen bg-surface flex flex-col font-sans">
       <Head>
         <title>Selecione o Serviço | Kioske Digital</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
 
       <header className="bg-white px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-sm sm:text-lg font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+        <h1 className="text-sm sm:text-lg font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
         <button onClick={() => router.push('/')} className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 font-medium px-3 py-2 -mr-2">
           Início
         </button>
@@ -77,7 +77,7 @@ export default function ServicosPage() {
             ))
           ) : loading ? (
             <div className="col-span-full text-center py-8 text-gray-500">
-              <div className="w-8 h-8 border-4 border-[#047857]/30 border-t-[#047857] rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-4 border-brand/30 border-t-brand rounded-full animate-spin mx-auto mb-3" />
               <p className="text-sm font-medium">A carregar serviços...</p>
             </div>
           ) : (

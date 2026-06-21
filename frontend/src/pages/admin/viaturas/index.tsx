@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
 import { useToast } from '../../../components/Toast';
+import { apiUrl as api } from '../../../lib/api';
 
 type Car = {
   id: string;
@@ -31,8 +32,6 @@ export default function AdminViaturas() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyCar);
-
-  const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
 
   const fetchCars = async () => {
     const token = localStorage.getItem('backoffice_token');
@@ -90,7 +89,7 @@ export default function AdminViaturas() {
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Gestão de Viaturas</h1>
-          <button onClick={openCreate} className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+          <button onClick={openCreate} className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
             + Nova Viatura
           </button>
         </div>
@@ -119,14 +118,14 @@ export default function AdminViaturas() {
                   <td className="p-3 text-sm text-gray-600">{c.marca}</td>
                   <td className="p-3 text-sm text-gray-600">{c.modelo}</td>
                   <td className="p-3 text-sm text-gray-600">{c.ano || '-'}</td>
-                  <td className="p-3 text-sm"><span className="font-bold text-[#047857]">{c.categoria}</span></td>
+                  <td className="p-3 text-sm"><span className="font-bold text-brand">{c.categoria}</span></td>
                   <td className="p-3">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${c.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {c.ativo ? 'Ativo' : 'Inativo'}
                     </span>
                   </td>
                   <td className="p-3 text-right">
-                    <button onClick={() => openEdit(c)} className="text-[#047857] hover:text-[#065f46] text-xs font-medium mr-3">Editar</button>
+                    <button onClick={() => openEdit(c)} className="text-brand hover:text-brand-dark text-xs font-medium mr-3">Editar</button>
                     <button onClick={() => handleToggleActive(c)} className="text-red-600 hover:text-red-800 text-xs font-medium">
                       {c.ativo ? 'Desativar' : 'Ativar'}
                     </button>
@@ -175,7 +174,7 @@ export default function AdminViaturas() {
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 hover:bg-gray-300 font-bold py-2.5 rounded-lg text-sm">Cancelar</button>
-              <button onClick={handleSave} className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
+              <button onClick={handleSave} className="flex-1 bg-brand hover:bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
             </div>
           </div>
         </div>

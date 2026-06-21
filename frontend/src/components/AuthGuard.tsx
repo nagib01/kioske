@@ -29,7 +29,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [router.pathname]);
 
   if (isAuthenticated === null) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">A carregar...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-surface">A carregar...</div>;
   }
 
   return <>{children}</>;

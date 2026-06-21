@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
 import { useToast } from '../../../components/Toast';
+import { apiUrl as api } from '../../../lib/api';
 
 type Instrutor = {
   id: string;
@@ -30,7 +31,6 @@ export default function AdminInstrutores() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const token = typeof window !== 'undefined' ? localStorage.getItem('backoffice_token') : null;
 
   const fetchUsers = async () => {
@@ -93,7 +93,7 @@ export default function AdminInstrutores() {
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Gestão de Instrutores</h1>
-          <button onClick={openCreate} className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+          <button onClick={openCreate} className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
             + Novo Instrutor
           </button>
         </div>
@@ -125,7 +125,7 @@ export default function AdminInstrutores() {
                     </span>
                   </td>
                   <td className="p-3 text-right">
-                    <button onClick={() => openEdit(u)} className="text-[#047857] hover:text-[#065f46] text-xs font-medium mr-3">Editar</button>
+                    <button onClick={() => openEdit(u)} className="text-brand hover:text-brand-dark text-xs font-medium mr-3">Editar</button>
                     <button onClick={() => handleToggleActive(u)} className="text-red-600 hover:text-red-800 text-xs font-medium">
                       {u.ativo ? 'Desativar' : 'Ativar'}
                     </button>
@@ -171,7 +171,7 @@ export default function AdminInstrutores() {
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 hover:bg-gray-300 font-bold py-2.5 rounded-lg text-sm">Cancelar</button>
-              <button onClick={handleSave} className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
+              <button onClick={handleSave} className="flex-1 bg-brand hover:bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
             </div>
           </div>
         </div>

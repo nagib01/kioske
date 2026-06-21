@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BackofficeMenu from './BackofficeMenu';
+import { clearBackofficeSession } from '../lib/auth';
 
 interface BackofficeLayoutProps {
   children: React.ReactNode;
@@ -42,17 +43,12 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('backoffice_token');
-    localStorage.removeItem('backoffice_nome');
-    localStorage.removeItem('backoffice_escola');
-    localStorage.removeItem('backoffice_avatar');
-    localStorage.removeItem('backoffice_mesa');
-    localStorage.removeItem('backoffice_role');
+    clearBackofficeSession();
     router.push('/login');
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F8FAFC] font-sans">
+    <div className="min-h-screen flex bg-surface font-sans">
       <Head>
         <title>{title}</title>
       </Head>
@@ -60,7 +56,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0 shrink-0">
         <div className="p-6">
-          <h1 className="text-lg font-bold text-[#047857]">Backoffice Terminal</h1>
+          <h1 className="text-lg font-bold text-brand">Backoffice Terminal</h1>
           <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Driving School Admin</p>
         </div>
         <BackofficeMenu activeRoute={activeRoute} role={userRole} />
@@ -69,7 +65,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
             {userAvatar ? (
               <img src={userAvatar} alt={userNome} className="w-10 h-10 rounded-full object-cover" />
             ) : (
-              <div className="w-10 h-10 bg-[#047857] rounded-full flex items-center justify-center text-white font-bold uppercase">
+              <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center text-white font-bold uppercase">
                 {userNome.split(' ').map(n => n[0]).slice(0, 2).join('')}
               </div>
             )}
@@ -89,7 +85,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
         {/* Topbar */}
         <header className="bg-white px-8 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-bold text-[#047857] border-r border-gray-300 pr-4">KIOSKE DIGITAL UNIVERSAL</h2>
+            <h2 className="text-lg font-bold text-brand border-r border-gray-300 pr-4">KIOSKE DIGITAL UNIVERSAL</h2>
             <span className="text-gray-600 font-medium">{userRole === 'admin' ? 'Painel da Administração' : 'Painel da Rececionista'}</span>
             {(activeRoute === '/' || activeRoute === '/fila') && (
               <select 
@@ -98,7 +94,7 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
                   setMesaSelecionada(e.target.value);
                   localStorage.setItem('backoffice_mesa', e.target.value);
                 }}
-                className="ml-4 border border-gray-200 rounded-lg p-2 text-sm text-[#047857] font-bold bg-green-50 focus:outline-none"
+                className="ml-4 border border-gray-200 rounded-lg p-2 text-sm text-brand font-bold bg-green-50 focus:outline-none"
               >
                 <option value="01">Mesa 01</option>
                 <option value="02">Mesa 02</option>

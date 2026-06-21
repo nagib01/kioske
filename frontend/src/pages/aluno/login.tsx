@@ -38,14 +38,14 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="min-h-screen bg-surface flex flex-col font-sans">
       <Head>
         <title>Login Aluno | Kioske Digital</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
 
       <header className="bg-white px-6 py-4 shadow-sm flex items-center justify-between">
-        <h1 className="text-lg font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital Universal</a></h1>
+        <h1 className="text-lg font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital Universal</a></h1>
         <button onClick={() => router.push('/')} className="text-sm text-gray-500 hover:text-gray-700 font-medium">
           Início
         </button>
@@ -54,7 +54,7 @@ export default function StudentLoginPage() {
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-[#047857] flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-brand flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
               A
             </div>
             <h2 className="text-2xl font-extrabold text-gray-800">Área do Aluno</h2>
@@ -73,16 +73,16 @@ export default function StudentLoginPage() {
                 <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="seu@email.com" autoComplete="email" inputMode="email"
-                  className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
+                  className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-colors" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1.5">Senha</label>
                 <input type="password" value={senha} onChange={e => setSenha(e.target.value)}
                   placeholder="A sua senha" autoComplete="current-password"
-                  className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20 transition-colors" />
+                  className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-colors" />
               </div>
               <button type="submit" disabled={carregando}
-                className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors disabled:opacity-50 shadow-lg flex items-center justify-center gap-2">
+                className="w-full bg-brand hover:bg-brand-dark text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors disabled:opacity-50 shadow-lg flex items-center justify-center gap-2">
                 {carregando ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> A entrar...</> : 'Entrar'}
               </button>
             </form>

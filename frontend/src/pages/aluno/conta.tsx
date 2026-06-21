@@ -142,8 +142,8 @@ export default function StudentAccountPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#047857]/30 border-t-[#047857] rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-brand/30 border-t-brand rounded-full animate-spin" />
       </div>
     );
   }
@@ -156,14 +156,14 @@ export default function StudentAccountPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="min-h-screen bg-surface flex flex-col font-sans">
       <Head>
         <title>Minha Conta | Kioske Digital</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
 
       <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+        <h1 className="text-sm font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600 hidden sm:block truncate max-w-[120px]">{student.nome}</span>
           <button
@@ -178,7 +178,7 @@ export default function StudentAccountPage() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-full bg-[#047857] flex items-center justify-center text-white text-lg font-bold shrink-0">
+            <div className="w-12 h-12 rounded-full bg-brand flex items-center justify-center text-white text-lg font-bold shrink-0">
               {student.nome.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -223,13 +223,13 @@ export default function StudentAccountPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                 activeTab === tab.key
-                  ? 'border-[#047857] text-[#047857]'
+                  ? 'border-brand text-brand'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
               {tab.label}
               {tab.badge && (
-                <span className="ml-1.5 bg-[#047857] text-white text-[10px] rounded-full px-1.5 py-0.5">
+                <span className="ml-1.5 bg-brand text-white text-[10px] rounded-full px-1.5 py-0.5">
                   {tab.badge}
                 </span>
               )}
@@ -287,7 +287,7 @@ export default function StudentAccountPage() {
             <div className="p-3 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-xs font-bold text-gray-700">Notificações</h3>
               {naoLidas > 0 && (
-                <button onClick={marcarTodasLidas} className="text-[10px] text-[#047857] font-medium hover:underline">
+                <button onClick={marcarTodasLidas} className="text-[10px] text-brand font-medium hover:underline">
                   Marcar todas lidas
                 </button>
               )}
@@ -310,7 +310,7 @@ export default function StudentAccountPage() {
                       </p>
                     </div>
                     {!n.lida && (
-                      <button onClick={() => marcarLida(n.id)} className="text-[10px] text-[#047857] font-medium hover:underline shrink-0 mt-0.5">
+                      <button onClick={() => marcarLida(n.id)} className="text-[10px] text-brand font-medium hover:underline shrink-0 mt-0.5">
                         OK
                       </button>
                     )}
@@ -332,7 +332,7 @@ export default function StudentAccountPage() {
                     type="password"
                     value={senhaAtual}
                     onChange={e => setSenhaAtual(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#047857]"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                     required
                   />
                 </div>
@@ -342,7 +342,7 @@ export default function StudentAccountPage() {
                     type="password"
                     value={novaSenha}
                     onChange={e => setNovaSenha(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#047857]"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                     required
                     minLength={6}
                   />
@@ -359,7 +359,7 @@ export default function StudentAccountPage() {
                   <button
                     type="submit"
                     disabled={alterandoSenha}
-                    className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
+                    className="flex-1 bg-brand hover:bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
                   >
                     {alterandoSenha ? '...' : 'Alterar'}
                   </button>

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BackofficeLayout from '../../../components/BackofficeLayout';
 import { useToast } from '../../../components/Toast';
+import { backofficeHeaders } from '../../../lib/auth';
 
 const CATEGORIAS = ['A', 'B', 'C', 'D', 'BE', 'CE', 'DE'];
 const ESTADOS_FORMACAO = [
@@ -34,12 +35,7 @@ export default function NovoAlunoPage() {
     observacoes: '',
   });
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -82,74 +78,74 @@ export default function NovoAlunoPage() {
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Nº de Estudante *</label>
               <input type="text" name="numero_estudante" value={form.numero_estudante} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" required />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" required />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Nome *</label>
               <input type="text" name="nome" value={form.nome} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" required />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" required />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
                 <input type="email" name="email" value={form.email} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Senha (para login do aluno)</label>
                 <input type="password" name="senha" value={form.senha} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" placeholder="Deixe vazio para não definir senha" />
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="Deixe vazio para não definir senha" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Telefone</label>
               <input type="text" name="telefone" value={form.telefone} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Data de Nascimento</label>
               <input type="date" name="data_nascimento" value={form.data_nascimento} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Documento de Identificação</label>
               <input type="text" name="documento_identificacao" value={form.documento_identificacao} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Categoria *</label>
               <select name="categoria" value={form.categoria} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50">
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50">
                 {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Estado de Formação</label>
               <select name="estado_formacao" value={form.estado_formacao} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50">
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50">
                 {ESTADOS_FORMACAO.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Data de Matrícula</label>
               <input type="date" name="data_matricula" value={form.data_matricula} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Endereço</label>
             <input type="text" name="endereco" value={form.endereco} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Observações</label>
             <textarea name="observacoes" value={form.observacoes} onChange={handleChange} rows={3}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
           </div>
 
           <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
             <button type="submit" disabled={saving}
-              className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50">
+              className="bg-brand hover:bg-brand-dark text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50">
               {saving ? 'A Salvar...' : 'Salvar Aluno'}
             </button>
             <button type="button" onClick={() => router.push('/alunos')}

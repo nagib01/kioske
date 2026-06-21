@@ -211,17 +211,17 @@ export default function AlunoPage() {
 
   if (fase === 'servico') {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+      <div className="min-h-screen bg-surface flex flex-col font-sans">
         <Head>
           <title>Selecione o Serviço | Kioske Digital</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
 
         <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+          <h1 className="text-sm font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
           <Link
             href="/aluno/login"
-            className="text-xs text-[#047857] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-3 py-1.5 transition-colors"
+            className="text-xs text-brand font-bold border-2 border-brand/30 hover:border-brand rounded-xl px-3 py-1.5 transition-colors"
           >
             Entrar
           </Link>
@@ -243,15 +243,15 @@ export default function AlunoPage() {
 
   if (fase === 'triagem' && servicoSelecionado) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+      <div className="min-h-screen bg-surface flex flex-col font-sans">
         <Head>
           <title>Triagem | Kioske Digital</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
 
         <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
-          <Link href="/aluno/login" className="text-xs text-[#047857] font-bold border-2 border-[#047857]/30 hover:border-[#047857] rounded-xl px-3 py-1.5 transition-colors">
+          <h1 className="text-sm font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+          <Link href="/aluno/login" className="text-xs text-brand font-bold border-2 border-brand/30 hover:border-brand rounded-xl px-3 py-1.5 transition-colors">
             Entrar
           </Link>
         </header>
@@ -285,21 +285,21 @@ export default function AlunoPage() {
 
   if (fase === 'senha' && ticketData) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+      <div className="min-h-screen bg-surface flex flex-col font-sans">
         <Head>
           <title>Sua Senha | Kioske Digital</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
 
         <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-sm font-bold text-[#047857] uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+          <h1 className="text-sm font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
           <div className="flex items-center gap-2">
             {loggedStudentId ? (
-              <Link href="/aluno/conta" className="text-xs text-[#047857] font-bold hover:underline px-2 py-1">
+              <Link href="/aluno/conta" className="text-xs text-brand font-bold hover:underline px-2 py-1">
                 Minha Conta
               </Link>
             ) : (
-              <Link href="/aluno/login" className="text-xs text-[#047857] font-bold border border-[#047857] rounded-lg px-3 py-1.5 hover:bg-[#047857] hover:text-white transition-colors">
+              <Link href="/aluno/login" className="text-xs text-brand font-bold border border-brand rounded-lg px-3 py-1.5 hover:bg-brand hover:text-white transition-colors">
                 Entrar
               </Link>
             )}
@@ -312,7 +312,7 @@ export default function AlunoPage() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm w-full max-w-sm mx-auto overflow-hidden border border-gray-100">
-            <div className={`py-2 px-4 flex justify-between items-center text-white text-xs font-bold tracking-wider ${ticketData.estado === 'called' ? 'bg-red-600' : 'bg-[#047857]'}`}>
+            <div className={`py-2 px-4 flex justify-between items-center text-white text-xs font-bold tracking-wider ${ticketData.estado === 'called' ? 'bg-red-600' : 'bg-brand'}`}>
               <span>ESTADO: {ticketData.estado === 'called' ? 'CHAMADA' : 'EM ESPERA'}</span>
               <span className="flex items-center gap-1.5">
                 {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>}
@@ -323,7 +323,7 @@ export default function AlunoPage() {
             <div className="p-5 flex flex-col items-center">
               <div className="w-full border-2 border-dashed border-green-200 rounded-xl p-5 mb-5 text-center bg-green-50/30">
                 <span className="text-[10px] font-bold text-green-700 uppercase tracking-widest block mb-1">Senha Atual</span>
-                <span className={`text-4xl font-black ${ticketData.estado === 'called' ? 'text-red-600' : 'text-[#047857]'}`}>
+                <span className={`text-4xl font-black ${ticketData.estado === 'called' ? 'text-red-600' : 'text-brand'}`}>
                   {ticketData.token || ticketData.codigo_senha}
                 </span>
               </div>
@@ -368,7 +368,7 @@ export default function AlunoPage() {
             <div className="bg-gray-50 p-3 flex gap-3 border-t border-gray-100">
               <button
                 onClick={handleReimprimir}
-                className="flex-1 py-3 font-bold text-[#047857] hover:bg-green-50 rounded-lg text-sm transition-colors"
+                className="flex-1 py-3 font-bold text-brand hover:bg-green-50 rounded-lg text-sm transition-colors"
               >
                 Reimprimir
               </button>

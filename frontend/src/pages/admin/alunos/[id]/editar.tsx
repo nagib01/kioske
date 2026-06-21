@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BackofficeLayout from '../../../../components/BackofficeLayout';
 import { useToast } from '../../../../components/Toast';
+import { backofficeHeaders } from '../../../../lib/auth';
 
 const CATEGORIAS = ['A', 'B', 'C', 'D', 'BE', 'CE', 'DE'];
 const ESTADOS_FORMACAO = [
@@ -36,12 +37,7 @@ export default function EditarAlunoPage() {
     ativo: true,
   });
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders();
 
   useEffect(() => {
     if (!id) return;
@@ -125,56 +121,56 @@ export default function EditarAlunoPage() {
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Nº de Estudante *</label>
               <input type="text" name="numero_estudante" value={form.numero_estudante} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" required />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" required />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Nome *</label>
               <input type="text" name="nome" value={form.nome} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" required />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" required />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
               <input type="email" name="email" value={form.email} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Telefone</label>
               <input type="text" name="telefone" value={form.telefone} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Data de Nascimento</label>
               <input type="date" name="data_nascimento" value={form.data_nascimento} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Documento de Identificação</label>
               <input type="text" name="documento_identificacao" value={form.documento_identificacao} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Categoria *</label>
               <select name="categoria" value={form.categoria} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50">
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50">
                 {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Estado de Formação</label>
               <select name="estado_formacao" value={form.estado_formacao} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50">
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50">
                 {ESTADOS_FORMACAO.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Data de Matrícula</label>
               <input type="date" name="data_matricula" value={form.data_matricula} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
             </div>
             <div className="flex items-center">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" name="ativo" checked={form.ativo} onChange={handleChange}
-                  className="w-5 h-5 text-[#047857] border-gray-300 rounded focus:ring-[#047857]" />
+                  className="w-5 h-5 text-brand border-gray-300 rounded focus:ring-brand" />
                 <span className="text-sm font-bold text-gray-700">Aluno Ativo</span>
               </label>
             </div>
@@ -183,18 +179,18 @@ export default function EditarAlunoPage() {
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Endereço</label>
             <input type="text" name="endereco" value={form.endereco} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Observações</label>
             <textarea name="observacoes" value={form.observacoes} onChange={handleChange} rows={3}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50" />
           </div>
 
           <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
             <button type="submit" disabled={saving}
-              className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50">
+              className="bg-brand hover:bg-brand-dark text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50">
               {saving ? 'A Salvar...' : 'Guardar Alterações'}
             </button>
             <button type="button" onClick={() => router.push(`/alunos/${id}`)}

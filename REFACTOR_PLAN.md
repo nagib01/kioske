@@ -28,11 +28,16 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - [ ] (optional) husky + lint-staged pre-commit
 
 ## Phase 1 — Frontend shared foundation
-- [ ] `src/lib/api.ts` — single fetch client (base URL, JSON, error normalization, auth header)
-- [ ] `useApi` hook — kills copy-pasted loading/error state
-- [ ] `src/lib/auth.ts` + `useBackofficeAuth()` — replace 8+ header helpers & 47× `'backoffice_token'`
-- [ ] `src/types/*` — central domain types (Servico, Ticket, Student, Lesson, Car, User, Stats)
-- [ ] Tailwind theme tokens (`brand`, `brand-dark`, `surface`) replacing `#047857`/`#065f46`/`#F8FAFC`
+- [x] `src/lib/api.ts` — single fetch client (base URL, JSON, error normalization, auth header)
+- [x] `useApi` hook — kills copy-pasted loading/error state
+- [x] `src/lib/auth.ts` + `useBackofficeAuth()` — replace 8+ header helpers & 47× `'backoffice_token'`
+- [x] `src/types/*` — central domain types (Servico, Ticket, Student, Lesson, Car, User, Stats)
+- [x] Tailwind theme tokens (`brand`, `brand-dark`, `surface`) replacing `#047857`/`#065f46`/`#F8FAFC`
+
+**Phase 1 notes**
+- Implemented `lib/auth.ts` as helper functions (`getBackofficeToken`, `backofficeHeaders`, `clearBackofficeSession`); migrated all 8 `getHeaders`/`getAuthHeaders` variants, the 6 duplicated `api()` helpers, and the 3 logout blocks.
+- `apiFetch`/`useApi` are created and ready; broad **adoption** into pages (replacing the remaining raw `${NEXT_PUBLIC_API_URL}` fetches and inline loading/error state) happens file-by-file during **Phase 3** so each file is touched once.
+- Inline duplicate `interface`/`type` declarations are migrated to `src/types` as each page is decomposed in **Phase 3**.
 
 ## Phase 2 — Frontend UI primitives & dedup
 - [ ] `components/ui/*`: Button, Input, Modal, DataTable, Spinner, Badge, Card, EmptyState

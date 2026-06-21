@@ -2,10 +2,11 @@ import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useToast } from '../components/Toast';
+import { clearBackofficeSession, getBackofficeToken } from '../lib/auth';
 
 function getCurrentSession(): { nome: string; role: string } | null {
   if (typeof window === 'undefined') return null;
-  const token = localStorage.getItem('backoffice_token');
+  const token = getBackofficeToken();
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -54,23 +55,18 @@ export default function Login() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('backoffice_token');
-    localStorage.removeItem('backoffice_nome');
-    localStorage.removeItem('backoffice_escola');
-    localStorage.removeItem('backoffice_avatar');
-    localStorage.removeItem('backoffice_mesa');
-    localStorage.removeItem('backoffice_role');
+    clearBackofficeSession();
     setEmail('');
     setSenha('');
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+    <div className="min-h-screen flex items-center justify-center bg-surface">
       <Head>
         <title>Login | Kioske Digital</title>
       </Head>
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
-        <h2 className="text-2xl font-bold mb-2 text-[#047857] text-center">Acesso ao Sistema</h2>
+        <h2 className="text-2xl font-bold mb-2 text-brand text-center">Acesso ao Sistema</h2>
         <p className="text-gray-500 text-center mb-8 text-sm">Insira os seus dados de acesso</p>
 
         {session && (
@@ -89,7 +85,7 @@ export default function Login() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#047857]/50 transition-shadow"
+            className="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand/50 transition-shadow"
             required
           />
           <input
@@ -97,10 +93,10 @@ export default function Login() {
             placeholder="Senha"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#047857]/50 transition-shadow"
+            className="w-full border border-gray-200 rounded-lg p-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand/50 transition-shadow"
             required
           />
-          <button type="submit" className="w-full bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 rounded-lg shadow-md transition-colors mt-2">
+          <button type="submit" className="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors mt-2">
             Entrar
           </button>
         </form>

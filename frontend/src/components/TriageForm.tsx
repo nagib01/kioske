@@ -74,7 +74,7 @@ export default function TriageForm({ perguntas, onSubmit, loading }: Props) {
       </div>
 
       <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-        <div className="bg-[#047857] h-2 rounded-full transition-all duration-300" style={{ width: `${((passoAtual + 1) / perguntas.length) * 100}%` }} />
+        <div className="bg-brand h-2 rounded-full transition-all duration-300" style={{ width: `${((passoAtual + 1) / perguntas.length) * 100}%` }} />
       </div>
 
       <div className="bg-gray-50 border border-gray-100 p-5 rounded-xl">
@@ -85,14 +85,14 @@ export default function TriageForm({ perguntas, onSubmit, loading }: Props) {
             <button
               type="button"
               onClick={() => setRespostaAtual(true, 'Sim')}
-              className={`rounded-lg px-4 py-3 font-bold border transition-colors ${respostaSelecionada?.resposta === true ? 'bg-[#047857] text-white border-[#047857]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#047857]'}`}
+              className={`rounded-lg px-4 py-3 font-bold border transition-colors ${respostaSelecionada?.resposta === true ? 'bg-brand text-white border-brand' : 'bg-white text-gray-700 border-gray-200 hover:border-brand'}`}
             >
               Sim
             </button>
             <button
               type="button"
               onClick={() => setRespostaAtual(false, 'Nao')}
-              className={`rounded-lg px-4 py-3 font-bold border transition-colors ${respostaSelecionada?.resposta === false ? 'bg-[#047857] text-white border-[#047857]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#047857]'}`}
+              className={`rounded-lg px-4 py-3 font-bold border transition-colors ${respostaSelecionada?.resposta === false ? 'bg-brand text-white border-brand' : 'bg-white text-gray-700 border-gray-200 hover:border-brand'}`}
             >
               Nao
             </button>
@@ -106,7 +106,7 @@ export default function TriageForm({ perguntas, onSubmit, loading }: Props) {
                 key={opcao.id}
                 type="button"
                 onClick={() => setRespostaAtual(opcao.value, opcao.label)}
-                className={`w-full text-left rounded-lg px-4 py-3 font-medium border transition-colors ${respostaSelecionada?.resposta === opcao.value ? 'bg-[#047857] text-white border-[#047857]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#047857]'}`}
+                className={`w-full text-left rounded-lg px-4 py-3 font-medium border transition-colors ${respostaSelecionada?.resposta === opcao.value ? 'bg-brand text-white border-brand' : 'bg-white text-gray-700 border-gray-200 hover:border-brand'}`}
               >
                 {opcao.label}
               </button>
@@ -128,7 +128,7 @@ export default function TriageForm({ perguntas, onSubmit, loading }: Props) {
           type="button"
           onClick={avancar}
           disabled={!podeAvancar || loading}
-          className="flex-1 py-3 rounded-lg bg-[#047857] text-white font-bold disabled:opacity-50 transition-colors hover:bg-[#065f46]"
+          className="flex-1 py-3 rounded-lg bg-brand text-white font-bold disabled:opacity-50 transition-colors hover:bg-brand-dark"
         >
           {loading ? 'A processar...' : passoAtual === perguntas.length - 1 ? 'Entrar na fila' : 'Proxima'}
         </button>

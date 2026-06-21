@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
 import { useToast } from '../../components/Toast';
+import { backofficeHeaders } from '../../lib/auth';
 
 interface Servico {
   id: string;
@@ -45,18 +46,7 @@ export default function AdminServicosPage() {
     fetchServicos();
   }, []);
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const escolaId = localStorage.getItem('backoffice_escola');
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (escolaId) headers['x-escola-id'] = escolaId;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders({ escola: true });
 
   const fetchServicos = async () => {
     setLoading(true);
@@ -157,7 +147,7 @@ export default function AdminServicosPage() {
           <h2 className="text-3xl font-extrabold text-gray-800">Gerir Serviços</h2>
           <button
             onClick={openNewModal}
-            className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded-lg transition-colors"
           >
             + Novo Serviço
           </button>
@@ -271,10 +261,10 @@ export default function AdminServicosPage() {
                         onClick={() => toggleMesa(mesa)}
                         className={`py-2 px-1 rounded-lg text-sm font-bold border-2 transition-all ${
                           selected
-                            ? 'bg-[#047857] text-white border-[#047857]'
+                            ? 'bg-brand text-white border-brand'
                             : atLimit
                             ? 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed'
-                            : 'bg-white text-gray-600 border-gray-300 hover:border-[#047857] hover:text-[#047857]'
+                            : 'bg-white text-gray-600 border-gray-300 hover:border-brand hover:text-brand'
                         }`}
                       >
                         M{mesa}
@@ -295,7 +285,7 @@ export default function AdminServicosPage() {
 
             <div className="mt-8 flex justify-end gap-3">
               <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancelar</button>
-              <button onClick={saveServico} className="px-4 py-2 bg-[#047857] hover:bg-[#065f46] text-white rounded-lg font-bold">Salvar</button>
+              <button onClick={saveServico} className="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg font-bold">Salvar</button>
             </div>
           </div>
         </div>

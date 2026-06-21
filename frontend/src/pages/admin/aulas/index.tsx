@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import BackofficeLayout from '../../../components/BackofficeLayout';
 import { useToast } from '../../../components/Toast';
+import { apiUrl as api } from '../../../lib/api';
 
 type Lesson = {
   id: string;
@@ -18,7 +19,6 @@ type Lesson = {
 
 export default function AdminAulas() {
   const { addToast } = useToast();
-  const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
@@ -107,7 +107,7 @@ export default function AdminAulas() {
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Registo de Aulas</h1>
-          <button onClick={exportCsv} className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center gap-2">
+          <button onClick={exportCsv} className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center gap-2">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Exportar CSV
           </button>
@@ -132,7 +132,7 @@ export default function AdminAulas() {
               className="border border-gray-300 rounded-lg p-2.5 text-sm" />
           </div>
           <div className="mt-3 flex gap-2">
-            <button type="submit" className="bg-[#047857] text-white font-bold py-2 px-6 rounded-lg text-sm">Filtrar</button>
+            <button type="submit" className="bg-brand text-white font-bold py-2 px-6 rounded-lg text-sm">Filtrar</button>
             <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setDataInicio(''); setDataFim(''); setPage(1); }}
               className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-sm">Limpar</button>
           </div>
@@ -174,7 +174,7 @@ export default function AdminAulas() {
                   </td>
                   <td className="p-3">{statusBadge(l.status)}</td>
                   <td className="p-3 text-right">
-                    <button onClick={() => setSelectedLesson(l)} className="text-[#047857] hover:text-[#065f46] text-xs font-medium">
+                    <button onClick={() => setSelectedLesson(l)} className="text-brand hover:text-brand-dark text-xs font-medium">
                       Detalhes
                     </button>
                   </td>

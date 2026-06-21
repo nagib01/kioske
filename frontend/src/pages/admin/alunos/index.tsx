@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import BackofficeLayout from '../../../components/BackofficeLayout';
 import { useToast } from '../../../components/Toast';
+import { backofficeHeaders } from '../../../lib/auth';
 
 interface Student {
   id: string;
@@ -62,14 +63,7 @@ export default function AdminAlunosPage() {
   const [total, setTotal] = useState(0);
   const limit = 20;
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const escolaId = localStorage.getItem('backoffice_escola');
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (escolaId) headers['x-escola-id'] = escolaId;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders({ escola: true });
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -128,7 +122,7 @@ export default function AdminAlunosPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
               <p className="text-sm text-gray-500 font-medium">Total Alunos</p>
-              <p className="text-3xl font-bold text-[#047857] mt-1">{dashboard.total}</p>
+              <p className="text-3xl font-bold text-brand mt-1">{dashboard.total}</p>
             </div>
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
               <p className="text-sm text-gray-500 font-medium">Ativos</p>
@@ -150,7 +144,7 @@ export default function AdminAlunosPage() {
           <h2 className="text-2xl font-bold text-gray-800">Gestão de Alunos</h2>
           <Link
             href="/alunos/novo"
-            className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 px-6 rounded-lg transition-colors"
+            className="bg-brand hover:bg-brand-dark text-white font-bold py-2.5 px-6 rounded-lg transition-colors"
           >
             + Novo Aluno
           </Link>
@@ -164,15 +158,15 @@ export default function AdminAlunosPage() {
               placeholder="Buscar por nome, email, nº estudante..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50"
             />
             <select value={categoria} onChange={(e) => { setCategoria(e.target.value); setPage(1); }}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50">
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50">
               <option value="">Todas Categorias</option>
               {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <select value={estado} onChange={(e) => { setEstado(e.target.value); setPage(1); }}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#047857]/50">
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand/50">
               <option value="">Todos Estados</option>
               {Object.entries(ESTADOS_FORMACAO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
@@ -210,7 +204,7 @@ export default function AdminAlunosPage() {
                   <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="p-4 text-sm font-mono text-gray-600">{s.numero_estudante}</td>
                     <td className="p-4">
-                      <Link href={`/admin/alunos/${s.id}`} className="font-medium text-[#047857] hover:underline">
+                      <Link href={`/admin/alunos/${s.id}`} className="font-medium text-brand hover:underline">
                         {s.nome}
                       </Link>
                     </td>
@@ -230,7 +224,7 @@ export default function AdminAlunosPage() {
                           Perfil
                         </Link>
                         <Link href={`/admin/alunos/${s.id}/editar`}
-                          className="text-[#047857] hover:text-[#065f46] text-sm font-medium">
+                          className="text-brand hover:text-brand-dark text-sm font-medium">
                           Editar
                         </Link>
                         <button onClick={() => handleDelete(s.id, s.nome)}

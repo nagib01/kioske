@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import InstructorLayout from '../../components/InstructorLayout';
 import { useToast } from '../../components/Toast';
+import { apiUrl as api } from '../../lib/api';
 
 type Student = { id: string; nome: string; numero_estudante: string; categoria: string };
 type Car = { id: string; matricula: string; marca: string; modelo: string; categoria: string };
 
 export default function InstructorAulas() {
   const { addToast } = useToast();
-  const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const [lessons, setLessons] = useState<any[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
@@ -150,7 +150,7 @@ export default function InstructorAulas() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Minhas Aulas</h1>
           <button onClick={() => { resetForm(); setShowForm(true); }}
-            className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+            className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
             + Nova Aula
           </button>
         </div>
@@ -205,7 +205,7 @@ export default function InstructorAulas() {
                       {l.status === 'agendada' && (
                         <>
                           <button onClick={() => updateStatus(l.id, 'em_curso')} className="text-yellow-600 hover:text-yellow-800 text-xs font-medium px-1">Iniciar</button>
-                          <button onClick={() => openEdit(l)} className="text-[#047857] hover:text-[#065f46] text-xs font-medium px-1">Editar</button>
+                          <button onClick={() => openEdit(l)} className="text-brand hover:text-brand-dark text-xs font-medium px-1">Editar</button>
                         </>
                       )}
                       {l.status === 'em_curso' && (
@@ -240,7 +240,7 @@ export default function InstructorAulas() {
                       ) : filteredStudents.map(s => (
                         <button key={s.id} type="button"
                           onClick={() => { setForm({...form, student_id: s.id, categoria: s.categoria || ''}); setStudentSearch(''); setShowStudentDropdown(false); }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-green-50 transition-colors ${form.student_id === s.id ? 'bg-green-50 font-bold text-[#047857]' : 'text-gray-700'}`}>
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-green-50 transition-colors ${form.student_id === s.id ? 'bg-green-50 font-bold text-brand' : 'text-gray-700'}`}>
                           {s.nome} <span className="text-gray-400">({s.numero_estudante})</span>
                         </button>
                       ))}
@@ -282,7 +282,7 @@ export default function InstructorAulas() {
               </div>
               <div className="flex gap-2 mt-6">
                 <button onClick={() => setShowForm(false)} className="flex-1 bg-gray-200 hover:bg-gray-300 font-bold py-2.5 rounded-lg text-sm">Cancelar</button>
-                <button onClick={handleSave} className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
+                <button onClick={handleSave} className="flex-1 bg-brand hover:bg-brand-dark text-white font-bold py-2.5 rounded-lg text-sm">Salvar</button>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import BackofficeLayout from '../../../../components/BackofficeLayout';
+import { backofficeHeaders } from '../../../../lib/auth';
 import { useToast } from '../../../../components/Toast';
 
 const ESTADOS_FORMACAO: Record<string, string> = {
@@ -32,14 +33,7 @@ export default function AlunoProfilePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('perfil');
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const escolaId = localStorage.getItem('backoffice_escola');
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (escolaId) headers['x-escola-id'] = escolaId;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders({ escola: true });
 
   const fetchStudent = useCallback(async () => {
     if (!id) return;
@@ -175,7 +169,7 @@ export default function AlunoProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-[#047857] flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-16 h-16 rounded-full bg-brand flex items-center justify-center text-white text-2xl font-bold">
                 {student.nome.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -197,7 +191,7 @@ export default function AlunoProfilePage() {
               </div>
             </div>
             <Link href={`/alunos/${id}/editar`}
-              className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2 px-6 rounded-lg transition-colors text-sm">
+              className="bg-brand hover:bg-brand-dark text-white font-bold py-2 px-6 rounded-lg transition-colors text-sm">
               Editar
             </Link>
           </div>
@@ -233,7 +227,7 @@ export default function AlunoProfilePage() {
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? 'border-[#047857] text-[#047857]'
+                  ? 'border-brand text-brand'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}>
               {tab.label}
@@ -270,9 +264,9 @@ export default function AlunoProfilePage() {
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
               <input type="text" placeholder="ID do ticket para associar..." value={associateTicketId}
                 onChange={e => setAssociateTicketId(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#047857]/50" />
+                className="flex-1 border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50" />
               <button onClick={associateTicket}
-                className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
+                className="bg-brand hover:bg-brand-dark text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
                 Associar
               </button>
             </div>
@@ -351,7 +345,7 @@ export default function AlunoProfilePage() {
                   <option value="cancelada">Cancelada</option>
                 </select>
                 <button onClick={addLesson}
-                  className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
+                  className="bg-brand hover:bg-brand-dark text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
                   Adicionar
                 </button>
               </div>
@@ -434,7 +428,7 @@ export default function AlunoProfilePage() {
                   onChange={e => setNewContact({...newContact, email: e.target.value})}
                   className="border border-gray-300 rounded-lg p-2.5 text-sm" />
                 <button onClick={addContact}
-                  className="bg-[#047857] hover:bg-[#065f46] text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
+                  className="bg-brand hover:bg-brand-dark text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors">
                   Adicionar
                 </button>
               </div>

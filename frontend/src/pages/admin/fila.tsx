@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import BackofficeLayout from '../../components/BackofficeLayout';
 import { useToast } from '../../components/Toast';
+import { backofficeHeaders } from '../../lib/auth';
 import DesktopModal from '../../components/DesktopModal';
 
 interface Ticket {
@@ -36,18 +37,7 @@ export default function AdminFilaPage() {
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('backoffice_token');
-    const escolaId = localStorage.getItem('backoffice_escola');
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (escolaId) headers['x-escola-id'] = escolaId;
-    return headers;
-  };
+  const getHeaders = () => backofficeHeaders({ escola: true });
 
   const fetchFila = useCallback(async (isPolling = false) => {
     const escolaId = localStorage.getItem('backoffice_escola') || '1';
@@ -224,7 +214,7 @@ export default function AdminFilaPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#047857]"
+            className="border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <option value="">Todos (waiting + called)</option>
             <option value="waiting">Em Espera</option>
@@ -274,7 +264,7 @@ export default function AdminFilaPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
             <div className="text-center py-16">
-              <div className="w-8 h-8 border-4 border-[#047857] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-gray-500 font-medium">A carregar fila...</p>
             </div>
           ) : (
@@ -310,7 +300,7 @@ export default function AdminFilaPage() {
                       className={`transition-colors ${ticket.estado === 'called' ? 'bg-green-50/50' : 'hover:bg-gray-50'}`}
                     >
                       <td className="py-4 px-6">
-                        <span className="font-black text-xl text-[#047857]">{ticket.senha_gerada}</span>
+                        <span className="font-black text-xl text-brand">{ticket.senha_gerada}</span>
                       </td>
                       <td className="py-4 px-6 font-semibold text-gray-700">{ticket.servico_nome}</td>
                       <td className="py-4 px-6">
@@ -377,7 +367,7 @@ export default function AdminFilaPage() {
                               className={`px-3 py-2 font-bold rounded-lg transition-all mr-1 ${
                                 actionLoading === ticket.id
                                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                  : 'bg-[#047857] hover:bg-[#065f46] text-white shadow-sm hover:shadow-md'
+                                  : 'bg-brand hover:bg-brand-dark text-white shadow-sm hover:shadow-md'
                               }`}
                             >
                               {actionLoading === ticket.id ? '...' : 'Finalizar'}
@@ -404,7 +394,7 @@ export default function AdminFilaPage() {
           )}
         </div>
         <div className="mt-4 text-center">
-          <a href="#" onClick={(e) => { e.preventDefault(); setStatusFilter(''); setError(null); fetchFila(); }} className="text-sm text-[#047857] hover:underline font-medium">
+          <a href="#" onClick={(e) => { e.preventDefault(); setStatusFilter(''); setError(null); fetchFila(); }} className="text-sm text-brand hover:underline font-medium">
             Ver Fila Completa (todos os estados) →
           </a>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import InstructorLayout from '../../components/InstructorLayout';
+import { apiUrl as api } from '../../lib/api';
 import Link from 'next/link';
 
 type DashboardData = {
@@ -11,7 +12,6 @@ type DashboardData = {
 };
 
 export default function InstructorDashboard() {
-  const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +40,7 @@ export default function InstructorDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <p className="text-sm text-gray-500 mb-1">Aulas Hoje</p>
-            <p className="text-3xl font-bold text-[#047857]">{data?.aulas_hoje ?? 0}</p>
+            <p className="text-3xl font-bold text-brand">{data?.aulas_hoje ?? 0}</p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <p className="text-sm text-gray-500 mb-1">Horas Hoje</p>
@@ -65,7 +65,7 @@ export default function InstructorDashboard() {
             {Object.entries(data?.contagem_status ?? {}).map(([status, count]) => (
               <div key={status} className="flex items-center gap-2 bg-gray-50 rounded-lg px-4 py-2">
                 <span className="text-sm font-bold text-gray-700">{status}:</span>
-                <span className="text-lg font-bold text-[#047857]">{count}</span>
+                <span className="text-lg font-bold text-brand">{count}</span>
               </div>
             ))}
             {(!data?.contagem_status || Object.keys(data.contagem_status).length === 0) && (
@@ -78,7 +78,7 @@ export default function InstructorDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-gray-700">Próximas Aulas</h3>
-            <Link href="/instrutor/aulas" className="text-[#047857] text-sm font-medium hover:underline">
+            <Link href="/instrutor/aulas" className="text-brand text-sm font-medium hover:underline">
               Ver Todas
             </Link>
           </div>

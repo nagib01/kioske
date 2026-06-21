@@ -11,7 +11,7 @@
     @apply bg-gray-50 text-gray-900;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-[#047857];
+    @apply outline-2 outline-offset-2 outline-brand;
   }
 }
 

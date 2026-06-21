@@ -132,7 +132,7 @@ export default function BackofficeMenu({ activeRoute, role = 'admin' }: Backoffi
             href={item.href}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               isActive
-                ? 'bg-green-50 text-[#047857] font-bold border-r-4 border-[#047857]'
+                ? 'bg-green-50 text-brand font-bold border-r-4 border-brand'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >

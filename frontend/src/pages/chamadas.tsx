@@ -176,7 +176,7 @@ export default function ChamadasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="min-h-screen bg-surface flex flex-col font-sans">
       <Head>
         <title>Senhas Chamadas | Kioske Digital</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -185,7 +185,7 @@ export default function ChamadasPage() {
       {/* Mobile header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-sm sm:text-base font-black text-[#047857] uppercase tracking-wider truncate">Kioske Digital</h1>
+          <h1 className="text-sm sm:text-base font-black text-brand uppercase tracking-wider truncate">Kioske Digital</h1>
           <span className="text-gray-300 hidden sm:inline">|</span>
           <h2 className="text-sm font-bold text-gray-800 hidden sm:inline">Senhas Chamadas</h2>
         </div>
@@ -224,11 +224,11 @@ export default function ChamadasPage() {
           {/* Current called ticket */}
           <div className="flex-1 flex flex-col items-center justify-center">
             <div className="w-full bg-white rounded-2xl sm:rounded-3xl shadow-md sm:shadow-xl overflow-hidden border border-gray-100 max-w-lg mx-auto">
-              <div className="bg-[#047857] text-white text-center py-2 sm:py-3 tracking-wider font-bold text-[10px] sm:text-sm uppercase px-4">
+              <div className="bg-brand text-white text-center py-2 sm:py-3 tracking-wider font-bold text-[10px] sm:text-sm uppercase px-4">
                 {currentCalled?.mesa_atendimento ? `MESA ${currentCalled.mesa_atendimento}` : 'AGUARDANDO CHAMADA'}
               </div>
               <div className="p-6 sm:p-10 md:p-14 flex flex-col items-center justify-center">
-                <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-none font-black text-[#047857] mb-4 sm:mb-6 tracking-tighter break-all text-center">
+                <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-none font-black text-brand mb-4 sm:mb-6 tracking-tighter break-all text-center">
                   {currentCalled?.token || '---'}
                 </h1>
                 {currentCalled?.aluno_nome && (
@@ -255,7 +255,7 @@ export default function ChamadasPage() {
           <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-3">
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="w-6 h-6 border-3 border-[#047857]/30 border-t-[#047857] rounded-full animate-spin" />
+                <div className="w-6 h-6 border-3 border-brand/30 border-t-brand rounded-full animate-spin" />
               </div>
             ) : error ? (
               <div className="text-center py-6">
@@ -279,7 +279,7 @@ export default function ChamadasPage() {
                     }`}
                   >
                     <div className="min-w-0">
-                      <h3 className={`text-base sm:text-lg font-black ${isUrgent ? 'text-red-600' : 'text-[#047857]'}`}>
+                      <h3 className={`text-base sm:text-lg font-black ${isUrgent ? 'text-red-600' : 'text-brand'}`}>
                         {ticket.token}
                       </h3>
                       <p className={`text-[10px] sm:text-xs ${isUrgent ? 'text-red-500 font-bold' : isMedium ? 'text-yellow-600 font-bold' : 'text-gray-500'}`}>

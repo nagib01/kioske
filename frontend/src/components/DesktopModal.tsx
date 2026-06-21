@@ -25,7 +25,7 @@ export default function DesktopModal({ mesaAtendimento, onConfirm, onCancel, tit
               type="text"
               value={mesa}
               onChange={e => setMesa(e.target.value.replace(/\D/g, '').slice(0, 2))}
-              className="w-24 text-center text-5xl sm:text-6xl font-black text-[#047857] bg-transparent border-none outline-none focus:ring-0 p-0"
+              className="w-24 text-center text-5xl sm:text-6xl font-black text-brand bg-transparent border-none outline-none focus:ring-0 p-0"
             />
             <button onClick={increment} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 text-xl font-bold flex items-center justify-center transition-colors">+</button>
           </div>
@@ -33,7 +33,7 @@ export default function DesktopModal({ mesaAtendimento, onConfirm, onCancel, tit
           <div className="flex gap-3">
             <button
               onClick={() => onConfirm(mesa)}
-              className="flex-1 bg-[#047857] hover:bg-[#065f46] text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
+              className="flex-1 bg-brand hover:bg-brand-dark text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
             >
               OK
             </button>
