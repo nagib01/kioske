@@ -97,6 +97,7 @@ export function useStudentAccount() {
     await fetch(apiUrl(`/api/auth/student/notifications/${id}/read`), {
       method: 'PUT',
       headers: authHeaders(),
+      body: '{}',
     });
     fetchNotificacoes();
   };
@@ -105,6 +106,7 @@ export function useStudentAccount() {
     await fetch(apiUrl('/api/auth/student/notifications/read-all'), {
       method: 'PUT',
       headers: authHeaders(),
+      body: '{}',
     });
     fetchNotificacoes();
   };
