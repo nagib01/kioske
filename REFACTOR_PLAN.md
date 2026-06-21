@@ -58,7 +58,7 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - [x] `pages/aluno.tsx` (495 → ~130): extracted `useKioskTriage` hook (adopts `apiUrl` + `useRealtimeQueue`) + `aluno/{ServicosGrid,KioskHeader,TicketCard}` components
 - [x] `pages/admin/fila.tsx` (423 → ~135): extracted `useFilaLive` hook (adopts `useWebSocket` + `apiUrl`) + `admin/fila/{FilaMetrics,FilaTable}` components
 - [x] `pages/admin/questionarios.tsx` (387 → ~65): extracted `useQuestionarios` hook (adopts `apiUrl`) + `admin/questionarios/{QuestionariosTable,PerguntaModal}` components
-- [ ] `pages/aluno/conta.tsx` (349)
+- [x] `pages/aluno/conta.tsx` (375 → ~145): extracted `useStudentAccount` hook (adopts `apiUrl`, keeps 401-refresh fetch) + `aluno/conta/{ProfileCard,ContaAulasTab,ContaNotificacoesTab,ChangePasswordModal}` components
 - [ ] remaining pages > 250 lines (chamadas, admin/servicos, instructor/aulas, admin/alunos/index)
 
 ## Phase 4 — Backend foundation
