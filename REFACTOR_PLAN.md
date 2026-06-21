@@ -40,10 +40,17 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - Inline duplicate `interface`/`type` declarations are migrated to `src/types` as each page is decomposed in **Phase 3**.
 
 ## Phase 2 — Frontend UI primitives & dedup
-- [ ] `components/ui/*`: Button, Input, Modal, DataTable, Spinner, Badge, Card, EmptyState
-- [ ] `Logo` / `AppHeader` component (dedupe 12× kiosk/aluno header markup)
-- [ ] Unify `BackofficeLayout` + `InstructorLayout` into a shared `SidebarLayout`
-- [ ] Collapse the 3 ad-hoc WebSocket impls onto `useRealtimeQueue`
+- [x] `components/ui/*`: Button, Input, Modal, DataTable, Spinner, Badge, Card, EmptyState
+- [x] `Logo` / `AppHeader` component (dedupe 12× kiosk/aluno header markup)
+- [x] Unify `BackofficeLayout` + `InstructorLayout` into a shared `SidebarLayout`
+- [x] Collapse the 3 ad-hoc WebSocket impls onto `useRealtimeQueue`
+
+**Phase 2 notes**
+- `components/ui/*` created (additive); broad adoption happens during Phase 3 page cleanup.
+- `Logo` created and adopted in the kiosk/aluno headers (conta, aluno/login, servicos, aluno ×3). The monitor header (`chamadas`) keeps its distinct style.
+- `SidebarLayout` now backs both `BackofficeLayout` and `InstructorLayout` (identical shell extracted; inner markup unchanged).
+- Created shared `hooks/useWebSocket.ts` (reconnecting socket) and migrated `useRealtimeQueue` onto it. The 3 page-level sockets (`backoffice`, `chamadas`, `fila`) are migrated to `useWebSocket` as those files are decomposed in **Phase 3** (avoids editing the god files twice).
+- **Dev config fix:** `frontend/.env.local` now points `NEXT_PUBLIC_API_URL`/`WS_URL` at `localhost:3001` for local dev (was the production tunnel). File is gitignored, so this is a local-only change.
 
 ## Phase 3 — Frontend god-file decomposition (one page per PR)
 - [ ] `pages/backoffice.tsx` (589)

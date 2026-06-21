@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import Logo from '../components/Logo';
 
 interface Servico {
   id: string;
@@ -39,7 +40,7 @@ export default function ServicosPage() {
       </Head>
 
       <header className="bg-white px-4 sm:px-6 py-3 sm:py-4 shadow-sm flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-sm sm:text-lg font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+        <Logo className="text-sm sm:text-lg" />
         <button onClick={() => router.push('/')} className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 font-medium px-3 py-2 -mr-2">
           Início
         </button>

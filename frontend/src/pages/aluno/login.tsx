@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import { useToast } from '../../components/Toast';
+import Logo from '../../components/Logo';
 
 export default function StudentLoginPage() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function StudentLoginPage() {
       </Head>
 
       <header className="bg-white px-6 py-4 shadow-sm flex items-center justify-between">
-        <h1 className="text-lg font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital Universal</a></h1>
+        <Logo className="text-lg" text="Kioske Digital Universal" />
         <button onClick={() => router.push('/')} className="text-sm text-gray-500 hover:text-gray-700 font-medium">
           Início
         </button>

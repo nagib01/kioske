@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useStudentAuth } from '../../contexts/StudentAuthContext';
 import { useToast } from '../../components/Toast';
+import Logo from '../../components/Logo';
 
 interface Aula {
   id: string;
@@ -163,7 +164,7 @@ export default function StudentAccountPage() {
       </Head>
 
       <header className="bg-white px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-sm font-bold text-brand uppercase tracking-wide"><a href="https://www.stonemark.pt">Kioske Digital</a></h1>
+        <Logo className="text-sm" />
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600 hidden sm:block truncate max-w-[120px]">{student.nome}</span>
           <button
