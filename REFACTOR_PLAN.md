@@ -56,7 +56,7 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - [x] `pages/backoffice.tsx` (622 → ~265): extracted `useBackofficeQueue` hook (adopts `useWebSocket` + `apiUrl`) and `backoffice/{StatsCards,QueueList,NewTicketModal}` components
 - [x] `pages/admin/alunos/[id]/index.tsx` (471 → ~90): extracted `useStudentProfile` hook (adopts `apiUrl`) + `admin/aluno/{ProfileHeader,PerfilTab,TicketsTab,AulasTab,ContactosTab}` components
 - [x] `pages/aluno.tsx` (495 → ~130): extracted `useKioskTriage` hook (adopts `apiUrl` + `useRealtimeQueue`) + `aluno/{ServicosGrid,KioskHeader,TicketCard}` components
-- [ ] `pages/admin/fila.tsx` (405)
+- [x] `pages/admin/fila.tsx` (423 → ~135): extracted `useFilaLive` hook (adopts `useWebSocket` + `apiUrl`) + `admin/fila/{FilaMetrics,FilaTable}` components
 - [ ] `pages/admin/questionarios.tsx` (359)
 - [ ] `pages/aluno/conta.tsx` (349)
 - [ ] remaining pages > 250 lines (chamadas, admin/servicos, instructor/aulas, admin/alunos/index)
