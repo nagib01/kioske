@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import BackofficeMenu from './BackofficeMenu';
 import SidebarLayout from './SidebarLayout';
-import CurrentUser from './CurrentUser';
 import { clearBackofficeSession } from '../lib/auth';
 
 interface BackofficeLayoutProps {
@@ -55,13 +54,24 @@ export default function BackofficeLayout({ children, activeRoute, title = 'Backo
         <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Driving School Admin</p>
       </div>
       <BackofficeMenu activeRoute={activeRoute} role={userRole} />
-      <CurrentUser
-        className="p-6 border-t border-gray-100"
-        nome={userNome}
-        subtitle={userRole === 'admin' ? 'Admin' : 'Rececionista'}
-        avatar={userAvatar}
-        onLogout={handleLogout}
-      />
+      <div className="p-6 border-t border-gray-100">
+        <div className="flex items-center gap-3 mb-3">
+          {userAvatar ? (
+            <img src={userAvatar} alt={userNome} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center text-white font-bold uppercase">
+              {userNome.split(' ').map(n => n[0]).slice(0, 2).join('')}
+            </div>
+          )}
+          <div>
+            <p className="text-sm font-bold text-gray-800">{userNome}</p>
+            <p className="text-xs text-gray-500">{userRole === 'admin' ? 'Admin' : 'Rececionista'}</p>
+          </div>
+        </div>
+        <button onClick={handleLogout} className="w-full text-left text-sm text-red-600 hover:text-red-800 font-medium px-4 py-2 rounded-lg hover:bg-red-50 transition-colors">
+          Terminar Sessão
+        </button>
+      </div>
     </>
   );
 

@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import BackofficeMenu from '../components/BackofficeMenu';
 import DesktopModal from '../components/DesktopModal';
 import { useToast } from '../components/Toast';
 import StatsCards from '../components/backoffice/StatsCards';
 import QueueList from '../components/backoffice/QueueList';
 import NewTicketModal from '../components/backoffice/NewTicketModal';
-import CurrentUser from '../components/CurrentUser';
-import { clearBackofficeSession } from '../lib/auth';
 import { useBackofficeQueue, type BackofficeTicket } from '../hooks/useBackofficeQueue';
 
 export default function Backoffice() {
   const { addToast } = useToast();
-  const router = useRouter();
   const {
     tickets,
     loading,
@@ -58,11 +54,6 @@ export default function Backoffice() {
       } catch {}
     }
   }, []);
-
-  const handleLogout = () => {
-    clearBackofficeSession();
-    router.push('/login');
-  };
 
   const handleCriarTicket = async () => {
     if (!novoTicketServico) {
@@ -113,13 +104,19 @@ export default function Backoffice() {
           <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Driving School Admin</p>
         </div>
         <BackofficeMenu activeRoute="/" role={userRole} />
-        <CurrentUser
-          className="p-6 border-t border-gray-100"
-          nome={userNome || 'Utilizador'}
-          subtitle={userRole === 'admin' ? 'Admin' : 'Rececionista'}
-          avatar={userAvatar}
-          onLogout={handleLogout}
-        />
+        <div className="p-6 border-t border-gray-100 flex items-center gap-3">
+          {userAvatar ? (
+            <img src={userAvatar} alt={userNome || ''} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center text-white font-bold uppercase">
+              {(userNome || '??').split(' ').map((n) => n[0]).slice(0, 2).join('')}
+            </div>
+          )}
+          <div>
+            <p className="text-sm font-bold text-gray-800">{userNome || 'Utilizador'}</p>
+            <p className="text-xs text-gray-500">{userRole === 'admin' ? 'Admin' : 'Rececionista'}</p>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
