@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { authAdmin } from '../../src/shared/auth.js';
-import { validate, validateBody, createUserSchema, updateUserSchema } from '../../src/shared/validation.js';
+import { validateBody, createUserSchema, updateUserSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { UserModel } from '../../src/models/User.js';
 
@@ -98,7 +98,7 @@ export async function adminUserRoutes(fastify: FastifyInstance) {
       if (existing.id === request.user.id.toString()) {
         return reply.status(400).send({ error: 'Não pode desativar a si próprio' });
       }
-      const ok = await UserModel.excluir(client, id);
+      await UserModel.excluir(client, id);
       return reply.send({ success: true });
     });
   });

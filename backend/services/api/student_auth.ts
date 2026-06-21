@@ -334,7 +334,6 @@ export async function studentAuthRoutes(fastify: FastifyInstance) {
     if (!(await authStudent(request, reply))) return;
 
     const studentId = request.user.sub;
-    const { LessonModel } = await import('../../src/models/Lesson.js');
     const res = await fastify.pg.query(
       `SELECT tr.*,
               c.matricula as car_matricula,

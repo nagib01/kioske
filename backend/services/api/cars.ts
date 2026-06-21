@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authAdmin, authInstructor } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
-import { validate, validateBody, carSchema, carUpdateSchema } from '../../src/shared/validation.js';
+import { validateBody, carSchema, carUpdateSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { CarModel } from '../../src/models/Car.js';
 

@@ -43,7 +43,6 @@ export default function AdminFuncionarios() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL}${path}`;
   const token = typeof window !== 'undefined' ? localStorage.getItem('backoffice_token') : null;
 
   const fetchEmployees = async () => {

@@ -4,7 +4,7 @@
  * Demonstra como criar regras JSON e como o motor as processa
  */
 
-import { TriagemEngine, RespostaTriagem, RegraTriagem, PerguntaTriagem, ResultadoTriagem } from './TriagemEngine.js';
+import { TriagemEngine, RespostaTriagem, RegraTriagem, PerguntaTriagem } from './TriagemEngine.js';
 
 // ============================================================================
 // EXEMPLO 1: Triagem de Urgência por Minutos

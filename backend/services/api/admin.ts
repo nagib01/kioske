@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authAdmin } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
-import { validate, validateBody, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
+import { validateBody, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 
 const atualizarServicoSchema = z.object({

@@ -1,16 +1,17 @@
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
+const { port } = require('./config/ports');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const KIOSKE_PORT = parseInt(process.env.KIOSKE_PORT || '3000', 10);
-const STAFF_PORT = parseInt(process.env.STAFF_PORT || '3002', 10);
-const MONITOR_PORT = parseInt(process.env.MONITOR_PORT || '3003', 10);
-const STUDENT_PORT = parseInt(process.env.STUDENT_PORT || '3004', 10);
-const LANDING_PORT = parseInt(process.env.LANDING_PORT || '3005', 10);
+const KIOSKE_PORT = port('KIOSKE_PORT');
+const STAFF_PORT = port('STAFF_PORT');
+const MONITOR_PORT = port('MONITOR_PORT');
+const STUDENT_PORT = port('STUDENT_PORT');
+const LANDING_PORT = port('LANDING_PORT');
 
 app.prepare().then(() => {
   createServer((req, res) => {

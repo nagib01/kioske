@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { authAdmin, authBackoffice } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
-import { validate, validateBody, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
+import { validateBody, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { StudentModel } from '../../src/models/Student.js';
 import { LessonModel } from '../../src/models/Lesson.js';

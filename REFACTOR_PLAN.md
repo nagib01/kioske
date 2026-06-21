@@ -86,7 +86,13 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - **Remaining (recommended as a focused follow-up):** convert inline auth guards to route `preHandler` (cosmetic), move the remaining inline SQL into model methods, and split the two large controllers. These touch endpoints with no automated coverage, so they should be done carefully (ideally after backfilling route tests in Phase 6).
 
 ## Phase 6 — Contracts & ratchet (ongoing)
-- [ ] Single source of truth for ports/URLs (today duplicated across `.env`, `server.js`, `next.config.js`, root scripts)
-- [ ] Backfill tests around refactored modules (frontend tests are smoke-only today)
-- [ ] Ratchet tooling to blocking; tighten tsconfig (`noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`)
+- [x] Single source of truth for ports/URLs (today duplicated across `.env`, `server.js`, `next.config.js`, root scripts)
+- [x] Backfill tests around refactored modules (frontend tests are smoke-only today)
+- [x] Ratchet tooling to blocking; tighten tsconfig (`noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`)
 - [ ] (optional) shared FE/BE contracts package
+
+**Phase 6 notes**
+- Ports: added `frontend/config/ports.js` (single source); `server.js` and `next.config.js` consume it; root `package.json` scripts simplified to drop the now-redundant inline `*_PORT` env (server.js defaults them).
+- Tests backfilled: frontend `lib/api` + `lib/auth` unit tests (6 → 15 tests); backend `validateBody` test (33 → 35).
+- Ratchet: enabled `noUnusedLocals` + `noImplicitReturns` on both tsconfigs (fixed 13 resulting unused-symbol violations, incl. a leftover shadowed `api` in funcionarios); CI `lint` step is now **blocking** (0 errors both sides). `noUnusedParameters` left off (too noisy with Fastify `(request, reply)` handler signatures).
+- Shared FE/BE contracts package left as optional/future (would require npm workspaces).

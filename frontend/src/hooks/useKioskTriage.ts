@@ -38,7 +38,7 @@ export function useKioskTriage() {
   const [fase, setFase] = useState<Fase>('servico');
   const [servicoSelecionado, setServicoSelecionado] = useState<Servico | null>(null);
   const [perguntas, setPerguntas] = useState<PerguntaTriagem[]>([]);
-  const [carregandoPerguntas, setCarregandoPerguntas] = useState(false);
+  const [, setCarregandoPerguntas] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [carregandoTriagem, setCarregandoTriagem] = useState(false);

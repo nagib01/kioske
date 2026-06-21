@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { authInstructor } from '../../src/shared/auth.js';
-import { validate, validateBody, lessonSchema, lessonUpdateSchema } from '../../src/shared/validation.js';
+import { validateBody, lessonSchema, lessonUpdateSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { LessonModel } from '../../src/models/Lesson.js';
 import { NotificationModel } from '../../src/models/Notification.js';
@@ -161,7 +161,7 @@ export async function instructorLessonRoutes(fastify: FastifyInstance) {
       if (existing.instructor_id !== request.user.id && request.user.role !== 'admin') {
         return reply.status(403).send({ error: 'Só pode remover as suas próprias aulas' });
       }
-      const ok = await LessonModel.excluir(client, id);
+      await LessonModel.excluir(client, id);
       return reply.send({ success: true });
     });
   });
