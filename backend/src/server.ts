@@ -60,8 +60,25 @@ fastify.get('/health', async (_request, reply) => {
     }
 });
 
+// Regista as rotas apenas uma vez
 await registerRoutes(fastify);
 await registerAuditHook(fastify);
+fastify.get('/status', async (_request, reply) => {
+    try {
+        await fastify.pg.query('SELECT 1');
+        return reply.status(200).send({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            database: 'Connected',
+        });
+    } catch {
+        return reply.status(500).send({
+            status: 'Error',
+            database: 'Disconnected',
+            message: 'A base de dados não está a responder.',
+        });
+    }
+});
 
 const start = async () => {
     try {

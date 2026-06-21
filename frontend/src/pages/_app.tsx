@@ -1,10 +1,12 @@
 import AuthGuard from "../components/AuthGuard";
+import StatusIndicator from "../components/StatusIndicator";
 import { ToastProvider } from "../components/Toast";
 import { StudentAuthProvider } from "../contexts/StudentAuthContext";
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useEffect } from 'react';
 import "../styles/global.css";
+
 
 export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -28,6 +30,9 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <ToastProvider>
         <StudentAuthProvider>
+          <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999 }}>
+            <StatusIndicator />
+          </div>
           <AuthGuard>
             <Component {...pageProps} />
           </AuthGuard>
