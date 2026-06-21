@@ -10,6 +10,20 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
   return result.data;
 }
 
+/**
+ * Validates `data` against `schema`. On success returns the parsed value; on
+ * failure sends a 400 reply and returns `undefined`. Call sites should guard
+ * with `if (reply.sent) return;`.
+ */
+export function validateBody<T>(schema: z.ZodSchema<T>, data: unknown, reply: any): T | undefined {
+  try {
+    return validate(schema, data);
+  } catch (err: any) {
+    reply.status(err.statusCode || 400).send(err.body);
+    return undefined;
+  }
+}
+
 export function addValidationHook<T>(fastify: FastifyInstance, schema: z.ZodSchema) {
   return async (request: any, reply: any) => {
     try {
@@ -37,6 +51,7 @@ export const criarTicketManualSchema = z.object({
   servicoId: z.string().min(1, 'servicoId é obrigatório'),
   alunoNome: z.string().optional(),
   escolaId: z.string().optional(),
+  studentId: z.string().optional(),
 });
 
 export const chamarTicketSchema = z.object({
@@ -55,6 +70,7 @@ export const criarServicoSchema = z.object({
   codigo_prefixo: z.string().optional(),
   tempo_medio_atendimento: z.number().optional(),
   mesa_padrao: z.string().optional(),
+  mesas: z.array(z.string()).optional(),
 });
 
 export const criarPerguntaSchema = z.object({
@@ -83,6 +99,7 @@ export const criarAlunoSchema = z.object({
   numero_estudante: z.string().min(1, 'Número de estudante é obrigatório'),
   nome: z.string().min(1, 'Nome é obrigatório'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
+  senha: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
   telefone: z.string().optional(),
   endereco: z.string().optional(),
   data_nascimento: z.string().optional(),
@@ -116,4 +133,76 @@ export const aulaAlunoSchema = z.object({
 
 export const associarTicketSchema = z.object({
   ticketId: z.string().min(1, 'ticketId é obrigatório'),
+});
+
+// ─── Lesson Schemas ───
+export const lessonSchema = z.object({
+    student_id: z.string().min(1, 'Aluno é obrigatório'),
+    tipo: z.enum(['teorica', 'pratica']),
+    data: z.string().min(1, 'Data é obrigatória'),
+    hora_inicio: z.string().min(1, 'Hora de início é obrigatória'),
+    hora_fim: z.string().min(1, 'Hora de fim é obrigatória'),
+    car_id: z.string().optional(),
+    summary: z.string().optional(),
+    status: z.enum(['agendada', 'em_curso', 'concluida', 'cancelada']).optional(),
+    categoria: z.string().optional(),
+});
+
+export const lessonUpdateSchema = z.object({
+    student_id: z.string().min(1, 'Aluno é obrigatório').optional(),
+    tipo: z.enum(['teorica', 'pratica']).optional(),
+    data: z.string().optional(),
+    hora_inicio: z.string().optional(),
+    hora_fim: z.string().optional(),
+    car_id: z.string().optional(),
+    summary: z.string().optional(),
+    status: z.enum(['agendada', 'em_curso', 'concluida', 'cancelada']).optional(),
+    categoria: z.string().optional(),
+});
+
+// ─── Car Schemas ───
+export const carSchema = z.object({
+    matricula: z.string().min(1, 'Matrícula é obrigatória'),
+    marca: z.string().min(1, 'Marca é obrigatória'),
+    modelo: z.string().min(1, 'Modelo é obrigatório'),
+    ano: z.number().int().optional(),
+    categoria: z.string().min(1, 'Categoria é obrigatória'),
+    observacoes: z.string().optional(),
+});
+
+export const carUpdateSchema = carSchema.partial().extend({
+  ativo: z.boolean().optional(),
+});
+
+// ─── Student Auth Schemas ───
+export const studentLoginEmailSchema = z.object({
+  email: z.string().email('Email inválido'),
+  senha: z.string().min(1, 'Senha é obrigatória'),
+});
+
+export const studentRefreshSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token é obrigatório'),
+});
+
+export const studentChangePasswordSchema = z.object({
+  senha_atual: z.string().min(1, 'Senha atual é obrigatória'),
+  nova_senha: z.string().min(6, 'Nova senha deve ter pelo menos 6 caracteres'),
+});
+
+// ─── User / Instructor Schemas ───
+export const createUserSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  senha: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  role: z.enum(['admin', 'recepcionista', 'instructor']),
+  telefone: z.string().optional().or(z.literal('')),
+});
+
+export const updateUserSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório').optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  senha: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').optional(),
+  role: z.enum(['admin', 'recepcionista', 'instructor']).optional(),
+  telefone: z.string().optional().or(z.literal('')),
+  ativo: z.boolean().optional(),
 });

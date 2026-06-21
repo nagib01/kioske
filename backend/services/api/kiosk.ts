@@ -2,12 +2,11 @@ import { FastifyInstance } from 'fastify';
 import { TicketModel } from '../../src/models/Ticket.js';
 import { formatTicket } from '../../src/shared/formatTicket.js';
 import { gerarQRCode } from '../../src/shared/qrCode.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { authBackoffice } from '../../src/shared/auth.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
-import { notificarFila, notificarAluno } from '../../websocket/index.js';
+import { notificarFila, notificarAluno, safeNotify } from '../../websocket/index.js';
 import { ERR } from '../../src/shared/errors.js';
-import { validate, criarTicketManualSchema, transferirTicketSchema } from '../../src/shared/validation.js';
+import { validate, validateBody, criarTicketManualSchema, transferirTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 
 export async function kioskRoutes(fastify: FastifyInstance) {
@@ -36,11 +35,12 @@ export async function kioskRoutes(fastify: FastifyInstance) {
   // POST /api/admin/tickets - Criar senha manualmente pelo backoffice
   fastify.post('/api/admin/tickets', async (request: any, reply: any) => {
     if (!(await authBackoffice(request, reply))) return;
-    let parsed: any;
-    try { parsed = validate(criarTicketManualSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(criarTicketManualSchema, request.body, reply); if (parsed === undefined) return;
     const { servicoId, alunoNome } = parsed;
     const escolaId = request.body?.escolaId || request.user?.escola_id || (await getDefaultEscolaId(fastify));
     if (!escolaId) return reply.status(400).send(ERR.MISSING_FIELD('escolaId'));
+
+    const studentId = request.body?.studentId as string | undefined;
 
     return withDb(fastify, async (client) => {
       const ticket = await TicketModel.criar(client, escolaId, servicoId, {
@@ -49,18 +49,15 @@ export async function kioskRoutes(fastify: FastifyInstance) {
         priority_level: 0,
         alertas: [],
         aluno_nome: alunoNome || undefined,
+        student_id: studentId || undefined,
       });
 
       const formatted = formatTicket(ticket);
       const qrCode = await gerarQRCode(ticket.aluno_token);
 
       const out = { ...formatted, qrCode };
-      try { notificarFila(escolaId, 'novo_ticket', out); } catch { fastify.log.debug('WS notify failed'); }
-      try { notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }); } catch { fastify.log.debug('WS notify failed'); }
-
-      await registrarAuditoria(fastify, 'criar_ticket', request.user?.id, request.user?.nome, ticket.id, {
-        servicoId, alunoNome, metodo: 'manual'
-      });
+      safeNotify('WS notify failed', () => notificarFila(escolaId, 'novo_ticket', out));
+      safeNotify('WS notify failed', () => notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }));
 
       return reply.status(201).send({ ticket: out });
     });
@@ -86,12 +83,7 @@ export async function kioskRoutes(fastify: FastifyInstance) {
       if (!updated) return reply.status(404).send(ERR.NOT_FOUND('Ticket'));
       const formatted = formatTicket(updated);
 
-      try { notificarFila(updated.escola_id, 'ticket_chamado', formatted); } catch { fastify.log.debug('WS notify failed'); }
-
-      await registrarAuditoria(fastify, 'transferir_ticket', request.user?.id, request.user?.nome, id, {
-        mesa_origem: ticket.mesa_atendimento,
-        mesa_destino: mesa
-      });
+      safeNotify('WS notify failed', () => notificarFila(updated.escola_id, 'ticket_chamado', formatted));
 
       return reply.send({ ticket: formatted });
     });

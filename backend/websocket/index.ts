@@ -5,6 +5,7 @@ type WsLike = { send: (msg: string) => void; on?: any; once?: any };
 const alunoTokenMap: Map<string, WsLike> = new Map();
 const recepcionistasPorEscola: Map<string, Set<WsLike>> = new Map();
 const recepcionistasGlobais: Set<WsLike> = new Set();
+const monitoresPorEscola: Map<string, Set<WsLike>> = new Map();
 
 function verifyToken(fastify: any, token: string): { role: string; escola_id?: string } | null {
     try {
@@ -25,12 +26,26 @@ export async function configureWebSocket(fastify: any) {
             try { unregisterConnection(ws); } catch (e) { logger.error('unregisterConnection failed', e); }
         };
 
+        // Heartbeat ping every 30s
+        const heartbeat = setInterval(() => {
+            try { wsSend(ws, JSON.stringify({ type: 'heartbeat' })); } catch { safeClose(); }
+        }, 30000);
+
         ws.on('message', (msg: Buffer | string) => {
             const text = typeof msg === 'string' ? msg : msg.toString();
+            // Ignore heartbeat pong responses
+            if (text === 'pong') return;
             try {
                 const obj = JSON.parse(text);
                 if (obj && obj.action === 'register') {
-                    const { role, alunoToken } = obj;
+                    const { role, alunoToken, escolaId } = obj;
+
+                    // Monitor/public display connections (no JWT needed)
+                    if (role === 'monitor') {
+                        registerConnection({ role, escolaId: escolaId || '1' }, ws);
+                        try { ws.send(JSON.stringify({ ok: true, registered: { role, escolaId } })); } catch {}
+                        return;
+                    }
 
                     // Backoffice connections require JWT verification
                     if (role === 'recepcionista' || role === 'admin') {
@@ -52,15 +67,19 @@ export async function configureWebSocket(fastify: any) {
                     // Aluno connections use alunoToken as identifier (no JWT needed)
                     registerConnection({ role, alunoToken }, ws);
                     try { ws.send(JSON.stringify({ ok: true, registered: { role, alunoToken } })); } catch {}
+                    return;
                 }
             } catch (e) {
                 // ignorar payloads inválidos
             }
         });
 
-        ws.on('close', () => safeClose());
-        ws.on('error', () => safeClose());
+        ws.on('close', () => { clearInterval(heartbeat); safeClose(); });
+        ws.on('error', () => { clearInterval(heartbeat); safeClose(); });
     });
+
+    // Periodic cleanup of stale connections every 60s
+    setInterval(cleanClosedConnections, 60000);
 
     fastify.decorate('wsHelpers', {
         registerConnection,
@@ -70,7 +89,7 @@ export async function configureWebSocket(fastify: any) {
     });
 }
 
-export function registerConnection(opts: { role: 'aluno' | 'recepcionista' | 'admin'; escolaId?: string; alunoToken?: string }, ws: WsLike) {
+export function registerConnection(opts: { role: 'aluno' | 'recepcionista' | 'admin' | 'monitor'; escolaId?: string; alunoToken?: string }, ws: WsLike) {
     if (opts.role === 'aluno' && opts.alunoToken) {
         // substitui ligação anterior se existir (cliente reconectou)
         alunoTokenMap.set(opts.alunoToken, ws);
@@ -87,10 +106,18 @@ export function registerConnection(opts: { role: 'aluno' | 'recepcionista' | 'ad
     if ((opts.role === 'recepcionista' || opts.role === 'admin') && !escolaKey) {
         recepcionistasGlobais.add(ws);
     }
+
+    if (opts.role === 'monitor' && escolaKey) {
+        let set = monitoresPorEscola.get(escolaKey);
+        if (!set) {
+            set = new Set();
+            monitoresPorEscola.set(escolaKey, set);
+        }
+        set.add(ws);
+    }
 }
 
 export function unregisterConnection(ws: WsLike) {
-    // limpar mapas
     for (const [token, w] of alunoTokenMap.entries()) {
         if (w === ws) alunoTokenMap.delete(token);
     }
@@ -98,19 +125,91 @@ export function unregisterConnection(ws: WsLike) {
         if (set.has(ws)) set.delete(ws);
     }
     if (recepcionistasGlobais.has(ws)) recepcionistasGlobais.delete(ws);
+    for (const set of monitoresPorEscola.values()) {
+        if (set.has(ws)) set.delete(ws);
+    }
+}
+
+function wsSend(ws: WsLike, msg: string): boolean {
+    try {
+        if (typeof (ws as any).readyState === 'number' && (ws as any).readyState !== 1 /* OPEN */) {
+            return false;
+        }
+        ws.send(msg);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function cleanClosedConnections() {
+    for (const [key, set] of recepcionistasPorEscola.entries()) {
+        for (const ws of set) {
+            if (typeof (ws as any).readyState === 'number' && (ws as any).readyState > 1) {
+                set.delete(ws);
+            }
+        }
+        if (set.size === 0) recepcionistasPorEscola.delete(key);
+    }
+    for (const ws of recepcionistasGlobais) {
+        if (typeof (ws as any).readyState === 'number' && (ws as any).readyState > 1) {
+            recepcionistasGlobais.delete(ws);
+        }
+    }
+    for (const [token, ws] of alunoTokenMap.entries()) {
+        if (typeof (ws as any).readyState === 'number' && (ws as any).readyState > 1) {
+            alunoTokenMap.delete(token);
+        }
+    }
+    for (const [key, set] of monitoresPorEscola.entries()) {
+        for (const ws of set) {
+            if (typeof (ws as any).readyState === 'number' && (ws as any).readyState > 1) {
+                set.delete(ws);
+            }
+        }
+        if (set.size === 0) monitoresPorEscola.delete(key);
+    }
 }
 
 export function notificarFila(escolaId: string, evento: string, dados: any) {
-    const set = recepcionistasPorEscola.get(String(escolaId));
+    const escolaKey = String(escolaId);
+    const set = recepcionistasPorEscola.get(escolaKey);
+    const monitorSet = monitoresPorEscola.get(escolaKey);
     const msg = JSON.stringify({ evento, dados });
+    let sent = false;
     if (set) {
-        set.forEach(ws => { try { ws.send(msg); } catch (e) { logger.error('WS send error (recepcionista)', e); } });
+        for (const ws of set) {
+            if (wsSend(ws, msg)) sent = true;
+        }
     }
-    recepcionistasGlobais.forEach(ws => { try { ws.send(msg); } catch (e) { logger.error('WS send error (global)', e); } });
+    if (monitorSet) {
+        for (const ws of monitorSet) {
+            if (wsSend(ws, msg)) sent = true;
+        }
+    }
+    for (const ws of recepcionistasGlobais) {
+        if (wsSend(ws, msg)) sent = true;
+    }
+    if (!sent) {
+        logger.warn(`notificarFila: no active WS connection for escolaId=${escolaId}, evento=${evento}`);
+    }
 }
 
 export function notificarAluno(alunoToken: string, payload: any) {
     const ws = alunoTokenMap.get(alunoToken);
     if (!ws) return;
-    try { ws.send(JSON.stringify(payload)); } catch (e) { logger.error('WS send error (aluno)', e); }
+    if (!wsSend(ws, JSON.stringify(payload))) {
+        logger.warn(`notificarAluno: failed to send to alunoToken=${alunoToken}, cleaning up`);
+        alunoTokenMap.delete(alunoToken);
+    }
+}
+
+/** Runs a WebSocket notification, swallowing/logging any failure so it never
+ *  breaks the request flow. */
+export function safeNotify(label: string, fn: () => void): void {
+    try {
+        fn();
+    } catch {
+        logger.warn(label);
+    }
 }

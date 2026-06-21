@@ -1,3 +1,5 @@
+import type { Db } from '../shared/db.js';
+
 export interface IStudent {
     id: string;
     escola_id: string;
@@ -33,13 +35,14 @@ export interface ITrainingRecord {
     data: string;
     hora_inicio?: string;
     hora_fim?: string;
-    instrutor?: string;
-    descricao?: string;
-    realizada: boolean;
+    car_id?: string;
+    instructor_id?: string;
+    summary?: string;
+    status: string;
 }
 
 export class StudentModel {
-    static async criar(db: any, escolaId: string, data: {
+    static async criar(db: Db, escolaId: string, data: {
         numero_estudante: string;
         nome: string;
         email?: string;
@@ -51,20 +54,21 @@ export class StudentModel {
         estado_formacao?: string;
         data_matricula?: string;
         observacoes?: string;
+        senha_hash?: string;
     }): Promise<IStudent> {
         const res = await db.query(
-            `INSERT INTO students (escola_id, numero_estudante, nome, email, telefone, endereco, data_nascimento, documento_identificacao, categoria, estado_formacao, data_matricula, observacoes)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            `INSERT INTO students (escola_id, numero_estudante, nome, email, telefone, endereco, data_nascimento, documento_identificacao, categoria, estado_formacao, data_matricula, observacoes, senha_hash)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
              RETURNING *`,
             [escolaId, data.numero_estudante, data.nome, data.email || null, data.telefone || null,
              data.endereco || null, data.data_nascimento || null, data.documento_identificacao || null,
              data.categoria || 'B', data.estado_formacao || 'inscrito', data.data_matricula || new Date().toISOString().split('T')[0],
-             data.observacoes || null]
+             data.observacoes || null, data.senha_hash || null]
         );
         return res.rows[0];
     }
 
-    static async atualizar(db: any, id: string, data: Partial<{
+    static async atualizar(db: Db, id: string, data: Partial<{
         numero_estudante: string;
         nome: string;
         email: string;
@@ -104,20 +108,20 @@ export class StudentModel {
         return res.rows[0] || null;
     }
 
-    static async buscarPorId(db: any, id: string): Promise<IStudent | null> {
+    static async buscarPorId(db: Db, id: string): Promise<IStudent | null> {
         const res = await db.query(
             `SELECT s.*, 
                 (SELECT COUNT(*) FROM tickets t WHERE t.student_id = s.id) as total_tickets,
                 (SELECT COUNT(*) FROM tickets t WHERE t.student_id = s.id AND t.status = 'finished') as tickets_concluidos,
                 (SELECT COUNT(*) FROM training_records tr WHERE tr.student_id = s.id) as total_aulas,
-                (SELECT COUNT(*) FROM training_records tr WHERE tr.student_id = s.id AND tr.realizada = true) as aulas_realizadas
+                (SELECT COUNT(*) FROM training_records tr WHERE tr.student_id = s.id AND tr.status = 'concluida') as aulas_realizadas
              FROM students s WHERE s.id = $1`,
             [id]
         );
         return res.rows[0] || null;
     }
 
-    static async listar(db: any, escolaId: string, filters: {
+    static async listar(db: Db, escolaId: string, filters: {
         search?: string;
         categoria?: string;
         estado_formacao?: string;
@@ -172,12 +176,12 @@ export class StudentModel {
         return { students: res.rows, total };
     }
 
-    static async excluir(db: any, id: string): Promise<boolean> {
+    static async excluir(db: Db, id: string): Promise<boolean> {
         const res = await db.query('UPDATE students SET ativo = false, updated_at = NOW() WHERE id = $1 RETURNING id', [id]);
         return res.rowCount > 0;
     }
 
-    static async dashboard(db: any, escolaId: string): Promise<{
+    static async dashboard(db: Db, escolaId: string): Promise<{
         total: number;
         ativos: number;
         por_estado: Record<string, number>;
@@ -217,7 +221,7 @@ export class StudentModel {
     }
 
     // Contacts
-    static async listarContactos(db: any, studentId: string): Promise<IStudentContact[]> {
+    static async listarContactos(db: Db, studentId: string): Promise<IStudentContact[]> {
         const res = await db.query(
             'SELECT * FROM student_contacts WHERE student_id = $1 ORDER BY created_at ASC',
             [studentId]
@@ -225,7 +229,7 @@ export class StudentModel {
         return res.rows;
     }
 
-    static async adicionarContacto(db: any, studentId: string, data: {
+    static async adicionarContacto(db: Db, studentId: string, data: {
         nome: string;
         parentesco?: string;
         telefone?: string;
@@ -239,45 +243,13 @@ export class StudentModel {
         return res.rows[0];
     }
 
-    static async removerContacto(db: any, contactId: string): Promise<boolean> {
+    static async removerContacto(db: Db, contactId: string): Promise<boolean> {
         const res = await db.query('DELETE FROM student_contacts WHERE id = $1 RETURNING id', [contactId]);
         return res.rowCount > 0;
     }
 
-    // Training Records
-    static async listarAulas(db: any, studentId: string): Promise<ITrainingRecord[]> {
-        const res = await db.query(
-            'SELECT * FROM training_records WHERE student_id = $1 ORDER BY data DESC, created_at DESC',
-            [studentId]
-        );
-        return res.rows;
-    }
-
-    static async adicionarAula(db: any, studentId: string, data: {
-        tipo: string;
-        data: string;
-        hora_inicio?: string;
-        hora_fim?: string;
-        instrutor?: string;
-        descricao?: string;
-        realizada?: boolean;
-    }): Promise<ITrainingRecord> {
-        const res = await db.query(
-            `INSERT INTO training_records (student_id, tipo, data, hora_inicio, hora_fim, instrutor, descricao, realizada)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [studentId, data.tipo, data.data, data.hora_inicio || null, data.hora_fim || null,
-             data.instrutor || null, data.descricao || null, data.realizada !== false]
-        );
-        return res.rows[0];
-    }
-
-    static async removerAula(db: any, recordId: string): Promise<boolean> {
-        const res = await db.query('DELETE FROM training_records WHERE id = $1 RETURNING id', [recordId]);
-        return res.rowCount > 0;
-    }
-
     // Tickets association
-    static async tickets(db: any, studentId: string): Promise<any[]> {
+    static async tickets(db: Db, studentId: string): Promise<any[]> {
         const res = await db.query(
             `SELECT t.*, s.nome as servico_nome
              FROM tickets t
@@ -289,7 +261,7 @@ export class StudentModel {
         return res.rows;
     }
 
-    static async associarTicket(db: any, ticketId: string, studentId: string): Promise<boolean> {
+    static async associarTicket(db: Db, ticketId: string, studentId: string): Promise<boolean> {
         const res = await db.query(
             'UPDATE tickets SET student_id = $1 WHERE id = $2 RETURNING id',
             [studentId, ticketId]

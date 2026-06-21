@@ -1,23 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
+const STAFF_PORT = parseInt(process.env.NEXT_PUBLIC_STAFF_PORT || '3002', 10);
+
+function getArea(): 'public' | 'staff' {
+  if (typeof window === 'undefined') return 'public';
+  return window.location.port === String(STAFF_PORT) ? 'staff' : 'public';
+}
+
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  // List of paths that don't require authentication
-  const publicPaths = ['/login', '/aluno', '/servicos', '/chamadas', '/_error'];
-
   useEffect(() => {
-    // Check if the current path is public
-    const path = router.pathname;
-    if (publicPaths.some(p => path.startsWith(p) || path === '/')) {
-      setIsAuthenticated(true); // Don't block render for public pages
+    const area = getArea();
+
+    if (area === 'public') {
+      setIsAuthenticated(true);
       return;
     }
 
     const token = localStorage.getItem('backoffice_token');
-    if (!token) {
+    if (!token && router.pathname !== '/login') {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
@@ -25,8 +29,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [router.pathname]);
 
   if (isAuthenticated === null) {
-    // Optional: add a global loading spinner here
-    return <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">A carregar...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-surface">A carregar...</div>;
   }
 
   return <>{children}</>;

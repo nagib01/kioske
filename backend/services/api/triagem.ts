@@ -1,15 +1,49 @@
 import { FastifyInstance } from 'fastify';
+import { randomUUID } from 'crypto';
 import { TriagemEngine, PerguntaTriagem, RespostaTriagem } from '../../services/TriagemEngine.js';
 import { TicketModel } from '../../src/models/Ticket.js';
-import { notificarFila, notificarAluno } from '../../websocket/index.js';
+import { notificarFila, notificarAluno, safeNotify } from '../../websocket/index.js';
 import { formatTicket } from '../../src/shared/formatTicket.js';
 import { gerarQRCode } from '../../src/shared/qrCode.js';
-import { registrarAuditoria } from '../../src/shared/auditoria.js';
 import { getDefaultEscolaId } from '../../src/shared/escola.js';
-import { authBackoffice } from '../../src/shared/auth.js';
-import { validate, chamarTicketSchema, servicoIdSchema } from '../../src/shared/validation.js';
-import { withDb } from '../../src/shared/db.js';
 import type { PerguntaRow, OpcaoRow } from '../../src/shared/types.js';
+
+const kioskTokens = new Set<string>();
+const KIOSK_TOKEN_MAX_AGE_MS = 10 * 60 * 1000;
+const kioskTokenTimestamps = new Map<string, number>();
+
+function generateKioskToken(): string {
+    const token = randomUUID();
+    kioskTokens.add(token);
+    kioskTokenTimestamps.set(token, Date.now());
+    return token;
+}
+
+function validateKioskToken(token: string): boolean {
+    const ts = kioskTokenTimestamps.get(token);
+    if (!ts) return false;
+    if (Date.now() - ts > KIOSK_TOKEN_MAX_AGE_MS) {
+        kioskTokens.delete(token);
+        kioskTokenTimestamps.delete(token);
+        return false;
+    }
+    return kioskTokens.has(token);
+}
+
+function consumeKioskToken(token: string): void {
+    kioskTokens.delete(token);
+    kioskTokenTimestamps.delete(token);
+}
+
+setInterval(() => {
+    const now = Date.now();
+    for (const [token, ts] of kioskTokenTimestamps) {
+        if (now - ts > KIOSK_TOKEN_MAX_AGE_MS) {
+            kioskTokens.delete(token);
+            kioskTokenTimestamps.delete(token);
+        }
+    }
+}, 60_000);
 
 const buscarPerguntas = async (fastify: FastifyInstance, escolaId: string, servicoId: string) => {
     const perguntasRes = await fastify.pg.query(
@@ -66,7 +100,7 @@ export async function triagemRoutes(fastify: FastifyInstance) {
         if (!escolaId) return reply.send([]);
 
         const res = await fastify.pg.query(
-            `SELECT id, nome, tempo_medio_atendimento, codigo_prefixo, ativo
+            `SELECT id, nome, tempo_medio_atendimento, codigo_prefixo, mesa_padrao, mesas, ativo
              FROM servicos
              WHERE escola_id = $1 AND ativo = true
              ORDER BY created_at ASC`,
@@ -93,11 +127,23 @@ export async function triagemRoutes(fastify: FastifyInstance) {
 
     const criarTicketHandler = async (request: any, reply: any) => {
         const body = request.body as any;
-        const { servicoId, respostas, escolaId: escolaIdBody, alunoToken } = body;
+        const { servicoId, respostas, escolaId: escolaIdBody, alunoToken, studentId, kioskToken } = body;
+        if (kioskToken) consumeKioskToken(kioskToken);
         const escolaId = escolaIdBody || (await getDefaultEscolaId(fastify));
 
         if (!servicoId || !escolaId) {
             return reply.status(400).send({ error: 'servicoId e escolaId são obrigatórios' });
+        }
+
+        // If no studentId provided, try to get from JWT (authenticated student)
+        let resolvedStudentId = studentId;
+        if (!resolvedStudentId) {
+            try {
+                await request.jwtVerify();
+                if (request.user?.role === 'student' && request.user?.sub) {
+                    resolvedStudentId = request.user.sub;
+                }
+            } catch {}
         }
 
         const respostasArr: RespostaTriagem[] = Array.isArray(respostas) ? respostas : [];
@@ -122,7 +168,9 @@ export async function triagemRoutes(fastify: FastifyInstance) {
                 priority: resultado.priority,
                 priority_level: resultado.priorityLevel,
                 alertas: resultado.alertas,
-                aluno_token: alunoToken
+                aluno_token: alunoToken,
+                aluno_nome: undefined,
+                student_id: resolvedStudentId,
             });
 
             const perguntasPorId = new Map<string, any>(perguntas.map((p: any) => [p.id, p]));
@@ -145,12 +193,8 @@ export async function triagemRoutes(fastify: FastifyInstance) {
             const qrCode = await gerarQRCode(ticket.aluno_token);
             const out = { ...ticketOut, qrCode };
 
-            try { notificarFila(escolaId, 'novo_ticket', out); } catch { fastify.log.debug('WS notify fila failed'); }
-            try { notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }); } catch { fastify.log.debug('WS notify aluno failed'); }
-
-            await registrarAuditoria(fastify, 'criar_ticket', null, null, ticket.id, {
-                servicoId, metodo: 'triagem'
-            });
+            safeNotify('WS notify fila failed', () => notificarFila(escolaId, 'novo_ticket', out));
+            safeNotify('WS notify aluno failed', () => notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }));
 
             return reply.send({ ticket: out, alertas: resultado.alertas });
         } finally {
@@ -158,7 +202,19 @@ export async function triagemRoutes(fastify: FastifyInstance) {
         }
     };
 
-    fastify.post('/api/triagem/finalizar', criarTicketHandler);
+    fastify.get('/api/kiosk/token', async (_request, reply) => {
+        const token = generateKioskToken();
+        return reply.send({ token });
+    });
+
+    fastify.post('/api/triagem/finalizar', {
+        preHandler: [async (request: any, reply: any) => {
+            const kioskToken = request.body?.kioskToken as string | undefined;
+            if (!kioskToken || !validateKioskToken(kioskToken)) {
+                return reply.status(403).send({ error: 'Kiosk token inválido ou expirado', code: 'INVALID_KIOSK_TOKEN' });
+            }
+        }]
+    }, criarTicketHandler);
 
     fastify.get('/api/tickets/:alunoToken', async (request: any, reply) => {
         const alunoToken = request.params?.alunoToken as string;
@@ -217,64 +273,4 @@ export async function triagemRoutes(fastify: FastifyInstance) {
         }
     });
 
-    const chamarPorIdHandler = async (request: any, reply: any) => {
-        if (!(await authBackoffice(request, reply))) return;
-        const { ticketId } = request.params as any;
-        let parsed: { mesa?: string };
-        try { parsed = validate<{ mesa?: string }>(chamarTicketSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-        const { mesa } = parsed;
-        return withDb(fastify, async (client) => {
-            const t = await TicketModel.chamarTicket(client, ticketId, mesa);
-            if (!t) return reply.status(404).send({ error: 'Ticket não encontrado' });
-            const chamadoPayload = formatTicket(t);
-            try { notificarAluno(t.aluno_token, { event: 'chamado', data: chamadoPayload }); } catch { fastify.log.debug('WS notify aluno failed'); }
-            try { notificarFila(t.escola_id, 'ticket_chamado', chamadoPayload); } catch { fastify.log.debug('WS notify fila failed'); }
-            await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, ticketId, { mesa });
-            return reply.send({ ticket: chamadoPayload });
-        });
-    };
-
-    fastify.post('/api/chamar/:ticketId', chamarPorIdHandler);
-
-    fastify.post('/api/chamar/proximo', async (request: any, reply) => {
-        if (!(await authBackoffice(request, reply))) return;
-        let parsed: { mesa?: string; servicoId?: string; escolaId?: string };
-        try { parsed = validate<{ mesa?: string; servicoId?: string; escolaId?: string }>(chamarTicketSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
-        const { mesa } = parsed;
-        const servicoId = request.body?.servicoId as string | undefined;
-        const escolaIdBody = request.body?.escolaId as string | undefined;
-        const escolaId = escolaIdBody || request.user?.escola_id || (await getDefaultEscolaId(fastify));
-        return withDb(fastify, async (client) => {
-            const fila = servicoId
-                ? await TicketModel.buscarFilaPorServico(client, servicoId)
-                : escolaId
-                    ? await TicketModel.buscarFilaPorEscola(client, escolaId)
-                    : [];
-            const proximo = fila.find((t: any) => t.status === 'waiting');
-            if (!proximo) return reply.status(404).send({ error: 'Nenhum ticket waiting' });
-            const chamado = await TicketModel.chamarTicket(client, proximo.id, mesa);
-            if (!chamado) return reply.status(404).send({ error: 'Ticket não encontrado' });
-            const payload = formatTicket(chamado);
-            try { notificarAluno(chamado.aluno_token, { event: 'chamado', data: payload }); } catch { fastify.log.debug('WS notify aluno failed'); }
-            try { notificarFila(chamado.escola_id, 'ticket_chamado', payload); } catch { fastify.log.debug('WS notify fila failed'); }
-            await registrarAuditoria(fastify, 'chamar_ticket', request.user?.id, request.user?.nome, chamado.id, { mesa, metodo: 'proximo' });
-            return reply.send({ ticket: payload });
-        });
-    });
-
-    // Finalizar atendimento
-    const finalizarHandler = async (request: any, reply: any) => {
-        if (!(await authBackoffice(request, reply))) return;
-        const { ticketId } = request.params as any;
-        return withDb(fastify, async (client) => {
-            const ticket = await TicketModel.finalizarTicket(client, ticketId);
-            if (!ticket) return reply.status(404).send({ error: 'Ticket não encontrado' });
-            const out = formatTicket(ticket);
-            try { notificarFila(ticket.escola_id, 'ticket_finalizado', out); } catch { fastify.log.debug('WS notify failed'); }
-            await registrarAuditoria(fastify, 'finalizar_ticket', request.user?.id, request.user?.nome, ticketId, {});
-            return reply.send({ ticket: out });
-        });
-    };
-
-    fastify.post('/api/finalizar/:ticketId', finalizarHandler);
 }

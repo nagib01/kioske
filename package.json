@@ -1,0 +1,31 @@
+{
+  "name": "kioske",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:all": "concurrently -n backend,frontend -c blue,green \"cd backend && npm run dev\" \"cd frontend && node server.js\"",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "build:prod": "cd backend && npm run build && cd ../frontend && cross-env NODE_ENV=production npm run build",
+    "start": "concurrently -n backend,frontend -c blue,green \"cd backend && npm start\" \"cd frontend && npm start\"",
+    "start:prod": "concurrently -n backend,frontend -c blue,green \"cd backend && npm run start:prod\" \"cd frontend && cross-env NODE_ENV=production node server.js\"",
+    "start:all": "concurrently -n backend,frontend -c blue,green \"cd backend && npm start\" \"cd frontend && cross-env NODE_ENV=production node server.js\"",
+    "db:migrate": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/schema.sql",
+    "db:schema": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/schema.sql",
+    "db:seed": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/seed.sql",
+    "db:seed-triage": "set PGCLIENTENCODING=UTF8 && psql -U postgres -d kiosque -f backend/src/db/seed-triage.sql",
+    "db:setup": "npm run db:schema && npm run db:seed && npm run db:seed-triage",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "lint": "npm --prefix backend run lint && npm --prefix frontend run lint",
+    "test": "npm --prefix backend test && npm --prefix frontend test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "prettier": "^3.3.3"
+  }
+}
