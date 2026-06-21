@@ -9,7 +9,6 @@
 "strict": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
-    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,
