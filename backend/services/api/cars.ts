@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authAdmin, authInstructor } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
-import { validate, carSchema, carUpdateSchema } from '../../src/shared/validation.js';
+import { validate, validateBody, carSchema, carUpdateSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { CarModel } from '../../src/models/Car.js';
 
@@ -26,8 +26,7 @@ export async function carRoutes(fastify: FastifyInstance) {
     if (!(await authAdmin(request, reply))) return;
     const escolaId = await resolveEscolaId(fastify, request);
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
-    let parsed: any;
-    try { parsed = validate(carSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(carSchema, request.body, reply); if (parsed === undefined) return;
     return withDb(fastify, async (client) => {
       try {
         const car = await CarModel.criar(client, escolaId, parsed);
@@ -43,8 +42,7 @@ export async function carRoutes(fastify: FastifyInstance) {
   fastify.put('/admin/cars/:id', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
-    let parsed: any;
-    try { parsed = validate(carUpdateSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(carUpdateSchema, request.body, reply); if (parsed === undefined) return;
     return withDb(fastify, async (client) => {
       const car = await CarModel.atualizar(client, id, parsed);
       if (!car) return reply.status(404).send({ error: 'Viatura não encontrada' });

@@ -74,14 +74,16 @@ independently verifiable unit. After each phase: run the gate, verify manually, 
 - Removed dead `StudentModel.{listarAulas,adicionarAula,removerAula}`, the created-then-dropped `regras_triagem` DDL, and the duplicate `criarOpcaoSchemaAlt` (now uses shared `criarOpcaoSchema`).
 
 ## Phase 5 — Backend layering & auth unification
-- [~] Extract helpers: [x] `resolveEscolaId()` (adopted in cars/admin_lessons/admin/students); [ ] `notifyQueue()` (×3); [ ] `validate` preHandler (×30)
-- [ ] Route-level auth via Fastify `preHandler` (replace ~40 inline guard calls)
+- [x] Extract helpers: [x] `resolveEscolaId()` (12 sites); [x] `safeNotify()` for WS notifications (10 sites); [x] `validateBody()` (18 sites)
+- [ ] Route-level auth via Fastify `preHandler` (cosmetic — guards already centralized via shared `authXxx`; deferred)
 - [x] Unify staff + student auth on shared JWT plumbing (added `authStudent`, adopted across `student_auth.ts`)
-- [ ] Move inline SQL into models
-- [ ] Split `student_auth.ts` (407) and `admin.ts` (311) into focused files
+- [ ] Move inline SQL into models (deferred — large, touches untested endpoints; safest as its own pass with added tests)
+- [ ] Split `student_auth.ts` (407) and `admin.ts` (311) into focused files (deferred — mechanical move, follow-up)
 
 **Phase 5 notes**
-- Step 1 (done): `authStudent` guard added to `shared/auth.ts` and adopted in all 10 student-auth handlers (replacing the inline `jwtVerify`+role blocks); `resolveEscolaId()` added to `shared/escola.ts` and adopted at 12 sites. Kiosk/triagem escolaId kept inline (different precedence order).
+- Step 1: `authStudent` guard + `resolveEscolaId()` (see above).
+- Step 2: `safeNotify(label, fn)` added to `websocket/index.js`; replaced the 10 `try { notificar… } catch { fastify.log.warn(…) }` blocks. `validateBody(schema, data, reply)` added to `shared/validation.js`; replaced the 18 `let parsed; try { parsed = validate(…) } catch {…}` blocks with `const parsed = validateBody(…); if (parsed === undefined) return;` (also tightens the types).
+- **Remaining (recommended as a focused follow-up):** convert inline auth guards to route `preHandler` (cosmetic), move the remaining inline SQL into model methods, and split the two large controllers. These touch endpoints with no automated coverage, so they should be done carefully (ideally after backfilling route tests in Phase 6).
 
 ## Phase 6 — Contracts & ratchet (ongoing)
 - [ ] Single source of truth for ports/URLs (today duplicated across `.env`, `server.js`, `next.config.js`, root scripts)

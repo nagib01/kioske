@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { randomUUID } from 'crypto';
 import { TriagemEngine, PerguntaTriagem, RespostaTriagem } from '../../services/TriagemEngine.js';
 import { TicketModel } from '../../src/models/Ticket.js';
-import { notificarFila, notificarAluno } from '../../websocket/index.js';
+import { notificarFila, notificarAluno, safeNotify } from '../../websocket/index.js';
 import { formatTicket } from '../../src/shared/formatTicket.js';
 import { gerarQRCode } from '../../src/shared/qrCode.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
@@ -194,8 +194,8 @@ export async function triagemRoutes(fastify: FastifyInstance) {
             const qrCode = await gerarQRCode(ticket.aluno_token);
             const out = { ...ticketOut, qrCode };
 
-            try { notificarFila(escolaId, 'novo_ticket', out); } catch { fastify.log.warn('WS notify fila failed'); }
-            try { notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }); } catch { fastify.log.warn('WS notify aluno failed'); }
+            safeNotify('WS notify fila failed', () => notificarFila(escolaId, 'novo_ticket', out));
+            safeNotify('WS notify aluno failed', () => notificarAluno(ticket.aluno_token, { event: 'estado_inicial', data: out }));
 
             await registrarAuditoria(fastify, 'criar_ticket', null, null, ticket.id, {
                 servicoId, metodo: 'triagem'

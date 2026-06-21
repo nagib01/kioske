@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import bcrypt from 'bcrypt';
 import { authAdmin } from '../../src/shared/auth.js';
-import { validate, createUserSchema, updateUserSchema } from '../../src/shared/validation.js';
+import { validate, validateBody, createUserSchema, updateUserSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { UserModel } from '../../src/models/User.js';
 
@@ -36,8 +36,7 @@ export async function adminUserRoutes(fastify: FastifyInstance) {
     const escolaId = request.user.escola_id;
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
 
-    let parsed: any;
-    try { parsed = validate(createUserSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(createUserSchema, request.body, reply); if (parsed === undefined) return;
 
     return withDb(fastify, async (client) => {
       if (parsed.email) {
@@ -63,8 +62,7 @@ export async function adminUserRoutes(fastify: FastifyInstance) {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
 
-    let parsed: any;
-    try { parsed = validate(updateUserSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(updateUserSchema, request.body, reply); if (parsed === undefined) return;
 
     return withDb(fastify, async (client) => {
       const existing = await UserModel.buscarPorId(client, id);

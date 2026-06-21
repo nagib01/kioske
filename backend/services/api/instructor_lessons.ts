@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { authInstructor } from '../../src/shared/auth.js';
-import { validate, lessonSchema, lessonUpdateSchema } from '../../src/shared/validation.js';
+import { validate, validateBody, lessonSchema, lessonUpdateSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { LessonModel } from '../../src/models/Lesson.js';
 import { NotificationModel } from '../../src/models/Notification.js';
@@ -45,8 +45,7 @@ export async function instructorLessonRoutes(fastify: FastifyInstance) {
   // POST /api/instructor/lessons - Create lesson
   fastify.post('/api/instructor/lessons', async (request: any, reply) => {
     if (!(await authInstructor(request, reply))) return;
-    let parsed: any;
-    try { parsed = validate(lessonSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(lessonSchema, request.body, reply); if (parsed === undefined) return;
     const instructorId = request.user.id;
 
     return withDb(fastify, async (client) => {
@@ -95,8 +94,7 @@ export async function instructorLessonRoutes(fastify: FastifyInstance) {
     if (!(await authInstructor(request, reply))) return;
     const { id } = request.params as any;
     const instructorId = request.user.id;
-    let parsed: any;
-    try { parsed = validate(lessonUpdateSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(lessonUpdateSchema, request.body, reply); if (parsed === undefined) return;
 
     return withDb(fastify, async (client) => {
       const existing = await LessonModel.buscarPorId(client, id);

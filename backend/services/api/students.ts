@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { authAdmin, authBackoffice } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
-import { validate, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
+import { validate, validateBody, criarAlunoSchema, atualizarAlunoSchema, contactoAlunoSchema, lessonSchema, associarTicketSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 import { StudentModel } from '../../src/models/Student.js';
 import { LessonModel } from '../../src/models/Lesson.js';
@@ -57,8 +57,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   // POST /api/admin/students - Create student
   fastify.post('/admin/students', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
-    let parsed: any;
-    try { parsed = validate(criarAlunoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(criarAlunoSchema, request.body, reply); if (parsed === undefined) return;
     const escolaId = await resolveEscolaId(fastify, request, { body: true });
     if (!escolaId) return reply.status(400).send({ error: 'escolaId é obrigatório' });
 
@@ -75,8 +74,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   fastify.put('/admin/students/:id', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
-    let parsed: any;
-    try { parsed = validate(atualizarAlunoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(atualizarAlunoSchema, request.body, reply); if (parsed === undefined) return;
 
     return withDb(fastify, async (client) => {
       const student = await StudentModel.atualizar(client, id, parsed);
@@ -114,8 +112,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   fastify.post('/admin/students/:id/contacts', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
-    let parsed: any;
-    try { parsed = validate(contactoAlunoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(contactoAlunoSchema, request.body, reply); if (parsed === undefined) return;
     return withDb(fastify, async (client) => {
       const contact = await StudentModel.adicionarContacto(client, id, parsed);
       return reply.status(201).send(contact);
@@ -149,8 +146,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   fastify.post('/admin/students/:id/lessons', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
-    let parsed: any;
-    try { parsed = validate(lessonSchema, { ...request.body, student_id: id }); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(lessonSchema, { ...request.body, student_id: id }, reply); if (parsed === undefined) return;
     return withDb(fastify, async (client) => {
       const lesson = await LessonModel.criar(client, { ...parsed, student_id: id });
 
@@ -193,8 +189,7 @@ export async function studentRoutes(fastify: FastifyInstance) {
   fastify.post('/admin/students/:id/tickets', async (request: any, reply) => {
     if (!(await authAdmin(request, reply))) return;
     const { id } = request.params as any;
-    let parsed: any;
-    try { parsed = validate(associarTicketSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+    const parsed = validateBody(associarTicketSchema, request.body, reply); if (parsed === undefined) return;
     return withDb(fastify, async (client) => {
       const ok = await StudentModel.associarTicket(client, parsed.ticketId, id);
       if (!ok) return reply.status(404).send({ error: 'Ticket não encontrado' });

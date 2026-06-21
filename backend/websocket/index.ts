@@ -203,3 +203,13 @@ export function notificarAluno(alunoToken: string, payload: any) {
         alunoTokenMap.delete(alunoToken);
     }
 }
+
+/** Runs a WebSocket notification, swallowing/logging any failure so it never
+ *  breaks the request flow. */
+export function safeNotify(label: string, fn: () => void): void {
+    try {
+        fn();
+    } catch {
+        logger.warn(label);
+    }
+}

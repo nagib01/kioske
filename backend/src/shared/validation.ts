@@ -10,6 +10,20 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
   return result.data;
 }
 
+/**
+ * Validates `data` against `schema`. On success returns the parsed value; on
+ * failure sends a 400 reply and returns `undefined`. Call sites should guard
+ * with `if (reply.sent) return;`.
+ */
+export function validateBody<T>(schema: z.ZodSchema<T>, data: unknown, reply: any): T | undefined {
+  try {
+    return validate(schema, data);
+  } catch (err: any) {
+    reply.status(err.statusCode || 400).send(err.body);
+    return undefined;
+  }
+}
+
 export function addValidationHook<T>(fastify: FastifyInstance, schema: z.ZodSchema) {
   return async (request: any, reply: any) => {
     try {

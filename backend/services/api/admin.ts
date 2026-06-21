@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authAdmin } from '../../src/shared/auth.js';
 import { resolveEscolaId } from '../../src/shared/escola.js';
 import { registrarAuditoria } from '../../src/shared/auditoria.js';
-import { validate, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
+import { validate, validateBody, criarServicoSchema, criarPerguntaSchema, criarOpcaoSchema } from '../../src/shared/validation.js';
 import { withDb } from '../../src/shared/db.js';
 
 const atualizarServicoSchema = z.object({
@@ -46,8 +46,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     // Criar novo serviço
     fastify.post('/admin/servicos', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        let parsed: any;
-        try { parsed = validate(criarServicoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const parsed = validateBody(criarServicoSchema, request.body, reply); if (parsed === undefined) return;
         const { nome, prioridade_base, codigo_prefixo, tempo_medio_atendimento, mesa_padrao } = parsed;
         const escolaId = await resolveEscolaId(fastify, request, { body: true });
         if (!escolaId) return reply.status(400).send({ error: 'escolaId é obrigatório' });
@@ -68,8 +67,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         if (!(await authAdmin(request, reply))) return;
         const { id } = request.params as any;
         if (!id) return reply.status(400).send({ error: 'id é necessário' });
-        let parsed: any;
-        try { parsed = validate(atualizarServicoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const parsed = validateBody(atualizarServicoSchema, request.body, reply); if (parsed === undefined) return;
         const { nome, prioridade_base, ativo, codigo_prefixo, tempo_medio_atendimento, mesa_padrao, mesas } = parsed;
         return withDb(fastify, async (client) => {
             const res = await client.query(
@@ -148,8 +146,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         if (!(await authAdmin(request, reply))) return;
         const escolaId = await resolveEscolaId(fastify, request, { body: true });
         if (!escolaId) return reply.status(400).send({ error: 'escolaId é necessário' });
-        let parsed: any;
-        try { parsed = validate(criarPerguntaSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const parsed = validateBody(criarPerguntaSchema, request.body, reply); if (parsed === undefined) return;
         const { servico_id, texto, tipo, obrigatoria, ordem, opcoes } = parsed;
         const body = request.body as any;
         const chave = body.chave;
@@ -243,8 +240,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     fastify.post('/admin/opcoes', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        let parsed: any;
-        try { parsed = validate(criarOpcaoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const parsed = validateBody(criarOpcaoSchema, request.body, reply); if (parsed === undefined) return;
         const { question_id, label, value, ordem, regra } = parsed;
         return withDb(fastify, async (client) => {
             const result = await client.query(
@@ -260,8 +256,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     fastify.put('/admin/opcoes/:id', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
         const { id } = request.params as any;
-        let parsed: any;
-        try { parsed = validate(atualizarOpcaoSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const parsed = validateBody(atualizarOpcaoSchema, request.body, reply); if (parsed === undefined) return;
         const { label, value, ordem, regra, ativo } = parsed;
         return withDb(fastify, async (client) => {
             const result = await client.query(
@@ -302,8 +297,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     fastify.post('/admin/triage/avaliar', async (request: any, reply) => {
         if (!(await authAdmin(request, reply))) return;
-        let parsed: any;
-        try { parsed = validate(avaliarTriagemSchema, request.body); } catch (err: any) { return reply.status(err.statusCode || 400).send(err.body); }
+        const parsed = validateBody(avaliarTriagemSchema, request.body, reply); if (parsed === undefined) return;
         const { pergunta_resposta_pairs } = parsed;
         return withDb(fastify, async (client) => {
             let priority_level = 0;
